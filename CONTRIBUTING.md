@@ -88,7 +88,7 @@ CSHELL_NO_UPDATE_CHECK=1 bash cshell help
 
 Use the [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```plaintext
 <type>(<scope>): <short description>
 
 [optional body]
