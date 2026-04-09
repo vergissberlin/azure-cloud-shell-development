@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.19.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.18.0...1.19.0) (2026-04-09)
+
+
+### Features
+
+* add --overwrite flag to blob upload commands ([886e526](https://github.com/vergissberlin/azure-cloud-shell-development/commit/886e526c43bf4621ba7285997d2f089efa120b5d))
+
 ## [1.18.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.17.0...1.18.0) (2026-04-09)
 
 
