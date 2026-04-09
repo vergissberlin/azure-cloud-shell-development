@@ -4,7 +4,10 @@
     ".": {
       "release-type": "simple",
       "extra-files": [
-        "cshell"
+        {
+          "type": "generic",
+          "path": "cshell"
+        }
       ],
       "changelog-path": "CHANGELOG.md",
       "changelog-sections": [

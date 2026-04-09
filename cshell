@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_NAME="cshell"
-SCRIPT_VERSION="1.0.0"
+SCRIPT_VERSION="1.1.0" # x-release-please-version
 INSTALL_PATH_DEFAULT="/usr/bin/${SCRIPT_NAME}"
 INSTALL_PATH_USER="${HOME}/.local/bin/${SCRIPT_NAME}"
 ENV_FILE="${HOME}/.cshell.env"
