@@ -46,7 +46,18 @@ Thank you for your interest in contributing to **azure-cloud-shell-development**
 ## Testing
 
 Pull requests run **`bash -n`**, **`shellcheck`**, **`shfmt -d`**, and **Bats**
-smoke tests via GitHub Actions. Locally:
+smoke tests via GitHub Actions.
+
+With [**just**](https://github.com/casey/just) installed (`brew install just`), from the repo root:
+
+```bash
+just check    # same pipeline as standalone-build-check (build, syntax, shellcheck, shfmt, bats)
+just --list   # all recipes (build, lint, fmt, bats-deps, …)
+```
+
+Without `just`, run the commands below manually.
+
+Locally:
 
 ```bash
 # Syntax (repository + generated standalone)
@@ -54,8 +65,11 @@ bash -n cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
 ./scripts/build-standalone-scripts.sh
 bash -n dist/cshell dist/install.sh
 
-# Linters (install from distro packages or upstream releases)
-shellcheck -x cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
+# Linters — same commands as CI (job `shell-lint` in `.github/workflows/standalone-build-check.yml`)
+# Install: Ubuntu/Debian `sudo apt-get install -y shellcheck shfmt`, macOS `brew install shellcheck shfmt`,
+# or Docker: `docker run --rm -v "$PWD:/mnt" -w /mnt koalaman/shellcheck:stable shellcheck -x cshell install.sh scripts/build-standalone-scripts.sh lib/*.sh`
+shellcheck -x cshell install.sh scripts/build-standalone-scripts.sh lib/*.sh
+shellcheck -x dist/cshell
 shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
 
 # Bats (example: install bats-core, then)

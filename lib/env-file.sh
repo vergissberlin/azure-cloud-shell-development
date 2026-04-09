@@ -53,8 +53,10 @@ cshell_env_load() {
 		cshell_env_is_allowed_key "${key}" || continue
 		val="$(cshell_env_normalize_value "${val}")"
 		# Dynamic variable names from allowlisted keys only (safe assignment, no eval/source).
-		# shellcheck disable=SC2178,SC2163
+		# shellcheck disable=SC2178
 		printf -v "${key}" '%s' "${val}"
+		# Export allowlisted variable by dynamic name (printf -v above set the value).
+		# shellcheck disable=SC2163
 		export "${key}"
 	done <"${env_path}"
 }

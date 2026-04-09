@@ -1,3 +1,4 @@
 .bin/
+.bats-core/
 build-log.txt
 dist/
