@@ -14,7 +14,7 @@ CLI output styling is standardized through shared helpers in
 ### Quick install via curl (recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | bash
 ```
 
 This downloads `cshell` from the repository and installs it to `/usr/local/bin`.
@@ -34,13 +34,13 @@ chmod +x /usr/local/bin/cshell
 curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh \
   -o install.sh
 chmod +x install.sh
-sudo ./install.sh
+./install.sh
 ```
 
 ### From a local clone
 
 ```bash
-sudo bash cshell setup
+bash cshell setup
 ```
 
 This installs `cshell` to `/usr/bin/cshell` so it is available system-wide.

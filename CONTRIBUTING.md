@@ -53,7 +53,7 @@ bash -n cshell
 # Run shellcheck (if installed)
 shellcheck cshell
 
-# Smoke-test locally (setup step requires sudo and a real Azure subscription)
+# Smoke-test locally (setup step requires and a real Azure subscription)
 bash cshell --help 2>/dev/null || bash cshell invalid_command
 ```
 

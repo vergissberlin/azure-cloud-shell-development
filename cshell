@@ -172,7 +172,7 @@ cmd_setup() {
     info "Installing Google Cloud SDK ..."
     if command_exists apt-get; then
       apt-get update -qq
-      apt-get install -y apt-transport-https ca-certificates gnupg
+      apt-get install -y ca-certificates gnupg curl
       echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] \
 https://packages.cloud.google.com/apt cloud-sdk main" \
         | tee /etc/apt/sources.list.d/google-cloud-sdk.list
@@ -183,9 +183,21 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
     elif command_exists brew; then
       brew install --cask google-cloud-sdk
     else
-      error "No supported package manager found. Install gcloud manually:"
-      echo "  https://cloud.google.com/sdk/docs/install"
-      exit 1
+      info "No apt/brew found. Using official tarball installer ..."
+      local tmp_dir gcloud_tar gcloud_root gcloud_bin
+      tmp_dir="$(mktemp -d)"
+      gcloud_tar="${tmp_dir}/google-cloud-cli.tar.gz"
+      curl -fsSL "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz" -o "${gcloud_tar}"
+      tar -xzf "${gcloud_tar}" -C "${tmp_dir}"
+      gcloud_root="${tmp_dir}/google-cloud-sdk"
+      "${gcloud_root}/install.sh" --quiet --path-update=true --usage-reporting=false --command-completion=true
+      gcloud_bin="${gcloud_root}/bin/gcloud"
+      if [[ -x "${gcloud_bin}" ]]; then
+        cp "${gcloud_bin}" /usr/local/bin/gcloud
+      else
+        error "gcloud binary not found after installer run."
+        exit 1
+      fi
     fi
     success "gcloud installed"
   fi
@@ -200,6 +212,14 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
         apt-get install -y zsh
       elif command_exists brew; then
         brew install zsh
+      elif command_exists dnf; then
+        dnf install -y zsh
+      elif command_exists yum; then
+        yum install -y zsh
+      elif command_exists apk; then
+        apk add zsh
+      elif command_exists pacman; then
+        pacman -S --noconfirm zsh
       else
         error "zsh not found and no supported package manager available."
         exit 1
