@@ -666,7 +666,7 @@ cmd_hybrid() {
 	cluster_region=$(ask "Kubernetes cluster region (maps to CLUSTER_LOCATION in Google docs)" "${CLUSTER_REGION:-${analytics_region}}")
 	helm_charts_home=$(ask "Local Helm charts directory" "${APIGEE_HELM_CHARTS_HOME:-${HOME}/apigee-hybrid/helm-charts}")
 	apigee_namespace=$(ask "Kubernetes namespace for Apigee pods" "${APIGEE_NAMESPACE:-apigee}")
-	environment_name=$(ask "Apigee environment name (must match UI; non-prod often pairs with apigee-non-prod SA)" "${ENVIRONMENT_NAME:-dev}")
+	environment_name=$(ask "Apigee environment name (must match UI; non-prod often pairs with apigee-non-prod SA)" "${ENVIRONMENT_NAME:-non-prod}")
 	env_group=$(ask "Apigee environment group name (Helm --set envgroup)" "${ENV_GROUP:-${environment_name}}")
 	env_group_release_name=$(ask "Helm release name for apigee-virtualhost (unique per cluster)" "${ENV_GROUP_RELEASE_NAME:-${env_group}}")
 	domain=$(ask "Public hostname for the environment group (TLS / virtual host CN)" "${DOMAIN:-}")
