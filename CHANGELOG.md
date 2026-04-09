@@ -1,5 +1,42 @@
 # Changelog
 
+## [1.16.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.3...1.16.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** integrate non-prod overrides.yaml settings for Apigee Hybrid ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+* **lib, install.sh, justfile:** add support for new Apigee configuration options including instance ID, ingress settings, and runtime tuning ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+* **lib:** add hybrid-overrides-nonprod.sh for non-prod Apigee Hybrid ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+* **workflow:** add hybrid-overrides-nonprod.sh to standalone build check ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+
+
+### Bug Fixes
+
+* **hybrid-overrides-nonprod.sh:** update comment for clarity on setting CONTROL_PLANE_LOCATION for data residency ([78b79c1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/78b79c1e5766f765eec2702849a56100a76fd8cc))
+
+
+### Documentation
+
+* **Command-Reference:** update to include non-prod overrides.yaml settings ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+* **Configuration.md, Hybrid-Setup.md, Release-and-CI.md:** update documentation to include new Apigee configuration options and clarify existing ones ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+* **README.md:** clarify CONTROL_PLANE_LOCATION description and add note on optional Helm variables ([78b79c1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/78b79c1e5766f765eec2702849a56100a76fd8cc))
+
+
+### Tests
+
+* **hybrid_overrides_nonprod:** add bats tests for hybrid overrides ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+
+
+### Build System
+
+* **scripts:** include hybrid-overrides-nonprod.sh in build process ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+
+
+### Chores
+
+* **lib/config-cmd.sh, lib/env-file.sh:** update allowed keys and configuration commands to support new Apigee options ([be84dd6](https://github.com/vergissberlin/azure-cloud-shell-development/commit/be84dd6782fb95717af5567636628bd6c142ade2))
+
 ## [1.15.3](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.2...1.15.3) (2026-04-09)
 
 
