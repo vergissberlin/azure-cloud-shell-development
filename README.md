@@ -180,7 +180,7 @@ environment (`PROJECT_ID` required).
 | `CLUSTER_REGION` | Cluster region (same as `CLUSTER_LOCATION` in Google docs; for zonal clusters use the **region**, not the zone) | `$ANALYTICS_REGION` |
 | `APIGEE_NAMESPACE` | Kubernetes namespace for Apigee | `apigee` |
 | `ENVIRONMENT_NAME` | Apigee environment name (match UI; non-prod pairs with `apigee-non-prod` SA in Google’s flow) | `non-prod` |
-| `ENV_GROUP` | Environment group name (Helm `envgroup`) | `$ENVIRONMENT_NAME` |
+| `ENV_GROUP` | Environment group name (Helm `envgroup`) | `envgroup` |
 | `ENV_GROUP_RELEASE_NAME` | Helm release name for `apigee-virtualhost` | `$ENV_GROUP` |
 | `DOMAIN` | Hostname for the environment group (TLS / virtual host) | – |
 | `CONTROL_PLANE_LOCATION` | Optional; only for data residency (`contractProvider`) | – |
