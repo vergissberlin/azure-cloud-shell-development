@@ -65,7 +65,10 @@ cshell_hybrid_certs_dir_has_material() {
 cshell_hybrid_count_prod_keyfiles() {
 	local sa_dir="$1"
 	local count=0 sfx
-	[[ -d "${sa_dir}" && -n "${PROJECT_ID:-}" ]] || { printf '%s\n' 0; return 0; }
+	[[ -d "${sa_dir}" && -n "${PROJECT_ID:-}" ]] || {
+		printf '%s\n' 0
+		return 0
+	}
 	for sfx in "${HYBRID_PROD_SA_SUFFIXES[@]}"; do
 		[[ -f "${sa_dir}/${PROJECT_ID}-apigee-${sfx}.json" ]] && count=$((count + 1))
 	done
@@ -75,7 +78,10 @@ cshell_hybrid_count_prod_keyfiles() {
 cshell_hybrid_count_prod_sa_emails() {
 	local emails="$1"
 	local found=0 sfx
-	[[ -n "${emails}" ]] || { printf '%s\n' 0; return 0; }
+	[[ -n "${emails}" ]] || {
+		printf '%s\n' 0
+		return 0
+	}
 	for sfx in "${HYBRID_PROD_SA_SUFFIXES[@]}"; do
 		if grep -q "apigee-${sfx}@" <<<"${emails}"; then
 			found=$((found + 1))
@@ -233,6 +239,8 @@ cshell_hybrid_eval_checklist_steps_5_13() {
 		else
 			local base="https://apigee.googleapis.com"
 			[[ -n "${CONTROL_PLANE_LOCATION:-}" ]] && base="https://${CONTROL_PLANE_LOCATION}-apigee.googleapis.com"
+			# ORG_NAME is loaded from ~/.cshell.env before the checklist runs (not a local misspelling).
+			# shellcheck disable=SC2153
 			local url="${base}/v1/organizations/${ORG_NAME}/controlPlaneAccess"
 			tmp="$(mktemp "${TMPDIR:-/tmp}/cshell-hybrid-cp.XXXXXX")"
 			http_code="$(curl -sS -o "${tmp}" -w '%{http_code}' --max-time 15 -H "Authorization: Bearer ${token}" -H "Content-Type: application/json" "${url}" 2>/dev/null || printf '%s' '000')"

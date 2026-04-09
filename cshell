@@ -730,6 +730,12 @@ cmd_hybrid_install_checklist_print() {
 
 	hybrid_checklist_fail_count=0
 
+	if [[ "${strict_banner}" == "1" ]]; then
+		info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ✗ below (— is not a failure)."
+	else
+		info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
+	fi
+
 	local step1_sym="${sym_done}"
 	((${#hybrid_missing_required[@]} > 0)) && step1_sym="${sym_fail}"
 
@@ -786,11 +792,6 @@ cmd_hybrid_install_checklist_print() {
 		[[ "${_sym}" == "${sym_fail}" ]] && hybrid_checklist_fail_count=$((hybrid_checklist_fail_count + 1))
 	done
 
-	if [[ "${strict_banner}" == "1" ]]; then
-		info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ✗ below (— is not a failure)."
-	else
-		info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
-	fi
 	printf '  [%s] %2d. Before you begin — %s\n' "${step1_sym}" 1 "${DOC_BEFORE_BEGIN}"
 	printf '  [%s] %2d. Create cluster — %s\n' "${step2_sym}" 2 "${DOC_INSTALL_CREATE_CLUSTER}"
 	[[ -n "${step2_note}" ]] && printf '      %s\n' "${step2_note}"
