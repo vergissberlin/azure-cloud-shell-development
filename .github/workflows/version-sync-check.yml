@@ -1,0 +1,62 @@
+name: version-sync-check
+
+on:
+  pull_request:
+    paths:
+      - "cshell"
+      - ".release-please-manifest.json"
+      - ".github/workflows/version-sync-check.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "cshell"
+      - ".release-please-manifest.json"
+      - ".github/workflows/version-sync-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-version-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify cshell version matches release manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path
+
+          manifest_path = Path(".release-please-manifest.json")
+          cshell_path = Path("cshell")
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          manifest_version = manifest.get(".")
+          if not manifest_version:
+            print("Missing root package version ('.') in .release-please-manifest.json", file=sys.stderr)
+            sys.exit(1)
+
+          cshell_content = cshell_path.read_text(encoding="utf-8")
+          match = re.search(r'^SCRIPT_VERSION="([^"]+)"', cshell_content, flags=re.MULTILINE)
+          if not match:
+            print("Could not find SCRIPT_VERSION in cshell", file=sys.stderr)
+            sys.exit(1)
+
+          script_version = match.group(1)
+          if script_version != manifest_version:
+            print(
+              f"Version mismatch detected: cshell has '{script_version}' but manifest has '{manifest_version}'",
+              file=sys.stderr,
+            )
+            sys.exit(1)
+
+          print(f"Version sync OK: {script_version}")
+          PY
