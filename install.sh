@@ -23,7 +23,8 @@ INSTALL_DIR="${DEFAULT_INSTALL_DIR}"
 SCRIPT_NAME="cshell"
 INSTALL_PATH="${INSTALL_DIR}/${SCRIPT_NAME}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
+SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_SOURCE}")" && pwd)"
 CLI_UTILS_PATH="${SCRIPT_DIR}/scripts/misc-cli-utils.sh"
 
 if [[ -f "${CLI_UTILS_PATH}" ]]; then
@@ -82,18 +83,17 @@ if ! declare -F info >/dev/null 2>&1; then
     esac
 
     title_text="[ ${title} ]"
-    width=56
-    if [[ -n "${desc}" && ${#desc} -gt 44 ]]; then
-      width=$(( ${#desc} + 12 ))
+    width=44
+    if [[ -n "${desc}" && ${#desc} -gt 32 ]]; then
+      width=$(( ${#desc} + 10 ))
     fi
-    line_len=$((width - ${#title_text} - 4))
-    (( line_len < 8 )) && line_len=8
+    line_len=$((width - ${#title_text} - 3))
+    (( line_len < 6 )) && line_len=6
 
     echo
     echo -e "${tone}╭─${title_text}$(printf '─%.0s' $(seq 1 "${line_len}"))╮${RESET}"
     if [[ -n "${desc}" ]]; then
-      printf -v _section_desc_pad "%*s" $((width - ${#desc} - 4)) ""
-      echo -e "${tone}│${RESET} ${desc}${_section_desc_pad}${tone}│${RESET}"
+      echo -e "  ${desc}"
     fi
     echo -e "${tone}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
   }

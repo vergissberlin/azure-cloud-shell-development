@@ -7,7 +7,7 @@
 #
 # Idempotent: second source returns immediately (no duplicate definitions).
 if [[ -n "${_MISC_CLI_UTILS_LOADED:-}" ]]; then
-  [[ "${BASH_SOURCE[0]}" != "${0}" ]] && return 0
+  [[ "${BASH_SOURCE[0]:-$0}" != "${0}" ]] && return 0
 fi
 _MISC_CLI_UTILS_LOADED=1
 
@@ -87,92 +87,32 @@ error() {
 # color options: cyan (default), green, yellow, red, blue
 header() {
   local label="$1"
-  local description="$2"
+  local description="${2:-}"
   local color="${3:-cyan}"
-  
-  # Map color names to ANSI codes
-  local border_color
-  local text_color
-  
+  local tone="$CYAN"
+  local title_text width line_len
+
   case "$color" in
-    cyan)
-      border_color="$CYAN"
-      text_color="$CYAN"
-      ;;
-    green)
-      border_color="$GREEN"
-      text_color="$GREEN"
-      ;;
-    yellow)
-      border_color="$YELLOW"
-      text_color="$YELLOW"
-      ;;
-    red)
-      border_color="$RED"
-      text_color="$RED"
-      ;;
-    blue)
-      border_color="$BLUE"
-      text_color="$BLUE"
-      ;;
-    *)
-      border_color="$CYAN"
-      text_color="$CYAN"
-      ;;
+    green) tone="$GREEN" ;;
+    yellow) tone="$YELLOW" ;;
+    red) tone="$RED" ;;
+    blue) tone="$BLUE" ;;
   esac
-  
-  # Calculate width based on both label and description
-  # Format: "╭ LABEL ────────╮" and "│   Description text   │"
-  local desc_len=${#description}
-  local label_len=${#label}
-  local label_line_prefix_len=$((label_len + 4))  # "╭ " + label + " " = label_len + 4
-  
-  # Width should accommodate:
-  # - Label line: "╭ LABEL ────────╮" needs at least label_line_prefix_len + some dashes
-  # - Description line: "│   Description text   │" needs description + padding (at least 6 chars)
-  # Use the maximum of both, with minimum width of 50
-  local min_width_for_label=$((label_line_prefix_len + 20))  # Label + some dashes
-  local min_width_for_desc=$((desc_len + 12))  # Description + padding on both sides
-  local width=$((min_width_for_label > min_width_for_desc ? min_width_for_label : min_width_for_desc))
-  
-  # Ensure minimum width of 50
-  if [ $width -lt 50 ]; then
-    width=50
+
+  title_text="[ ${label} ]"
+  width=44
+  if [[ -n "${description}" && ${#description} -gt 32 ]]; then
+    width=$(( ${#description} + 10 ))
   fi
-  
-  # Create header box with rounded corners
-  # All lines must be exactly 'width' characters long
-  echo ""
-  
-  # Top border: "╭ LABEL ────────────────────────────╮"
-  local label_line="╭ ${label} "
-  local label_dashes=$((width - ${#label_line} - 1))  # -1 for the closing "╮"
-  if [ $label_dashes -lt 0 ]; then
-    label_dashes=0
+  line_len=$((width - ${#title_text} - 3))
+  (( line_len < 6 )) && line_len=6
+
+  echo
+  echo -e "${tone}╭─${title_text}$(printf '─%.0s' $(seq 1 "${line_len}"))╮${RESET}"
+  if [[ -n "${description}" ]]; then
+    echo -e "  ${description}"
   fi
-  echo -e "${border_color}${label_line}$(printf '─%.0s' $(seq 1 $label_dashes))╮${RESET}"
-  
-  # Empty line: "│                                    │"
-  # Must be exactly width characters: "│" + (width-2) spaces + "│"
-  echo -e "${border_color}│$(printf ' %.0s' $(seq 1 $((width - 2))))│${RESET}"
-  
-  # Description line: "│   Description text            │"
-  # Must be exactly width characters: "│" + left_pad spaces + description + right_pad spaces + "│"
-  # Total: 1 (│) + left_pad + desc_len + right_pad + 1 (│) = width
-  # So: left_pad + desc_len + right_pad = width - 2
-  local desc_total_padding=$((width - ${#description} - 2))  # -2 for "│" on both sides
-  local desc_left_pad=$((desc_total_padding / 2))
-  local desc_right_pad=$((desc_total_padding - desc_left_pad))
-  echo -e "${border_color}│$(printf ' %.0s' $(seq 1 $desc_left_pad))${text_color}${description}${border_color}$(printf ' %.0s' $(seq 1 $desc_right_pad))│${RESET}"
-  
-  # Empty line: "│                                    │"
-  # Must be exactly width characters: "│" + (width-2) spaces + "│"
-  echo -e "${border_color}│$(printf ' %.0s' $(seq 1 $((width - 2))))│${RESET}"
-  
-  # Bottom border: "╰──────────────────────────────────╯"
-  # Must be exactly width characters: "╰" + (width-2) dashes + "╯"
-  echo -e "${border_color}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
-  echo ""
+  echo -e "${tone}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
 }
 
 # Countdown progress bar - displays a visual countdown with progress bar
