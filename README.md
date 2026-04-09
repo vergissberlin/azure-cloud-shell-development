@@ -181,7 +181,7 @@ environment (`PROJECT_ID` required).
 | `APIGEE_NAMESPACE` | Kubernetes namespace for Apigee | `apigee` |
 | `ENVIRONMENT_NAME` | Apigee environment name (match UI; non-prod pairs with `apigee-non-prod` SA in Google’s flow) | `non-prod` |
 | `ENV_GROUP` | Environment group name (Helm `envgroup`) | `envgroup` |
-| `ENV_GROUP_RELEASE_NAME` | Helm release name for `apigee-virtualhost` | `$ENV_GROUP` |
+| `ENV_GROUP_RELEASE_NAME` | Helm release name for `apigee-virtualhost` | `apigee-virtualhost` |
 | `DOMAIN` | Hostname for the environment group (TLS / virtual host) | – |
 | `CONTROL_PLANE_LOCATION` | Optional; only for data residency (`contractProvider`) | – |
 | `APIGEE_HELM_CHARTS_HOME` | Local path to Helm charts directory | `~/apigee-hybrid/helm-charts` |
