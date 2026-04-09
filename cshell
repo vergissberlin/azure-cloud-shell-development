@@ -376,9 +376,16 @@ cmd_setup() {
   fi
 
   info "Installing ${SCRIPT_NAME} to ${install_path} ..."
-  cp "$(realpath "$0")" "${install_path}"
-  chmod +x "${install_path}"
-  success "cshell installed to ${install_path}"
+  local source_path target_path
+  source_path="$(realpath "$0")"
+  target_path="$(realpath "${install_path}" 2>/dev/null || true)"
+  if [[ -n "${target_path}" && "${source_path}" == "${target_path}" ]]; then
+    info "${SCRIPT_NAME} is already installed at ${install_path}. Skipping copy."
+  else
+    cp "${source_path}" "${install_path}"
+    chmod +x "${install_path}"
+    success "cshell installed to ${install_path}"
+  fi
   if [[ "${install_path}" == "${INSTALL_PATH_USER}" ]]; then
     if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
       warn "${HOME}/.local/bin is not in PATH. Add this to your shell profile:"
