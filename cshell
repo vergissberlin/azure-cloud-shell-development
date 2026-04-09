@@ -143,57 +143,19 @@ EOF
   success "Bash completion installed: ${bash_completion_file}"
 }
 
-install_zsh_completion() {
-  local zsh_completion_dir="${HOME}/.zsh/completions"
-  local zsh_completion_file="${zsh_completion_dir}/_${SCRIPT_NAME}"
-  local zshrc_file="${HOME}/.zshrc"
-  local command_list="${CSHELL_COMMANDS[*]}"
-
-  mkdir -p "${zsh_completion_dir}"
-  cat > "${zsh_completion_file}" <<EOF
-#compdef ${SCRIPT_NAME}
-
-local -a commands
-commands=(${command_list})
-_describe 'command' commands
-EOF
-
-  append_line_if_missing "${zshrc_file}" ""
-  append_line_if_missing "${zshrc_file}" "# Added by cshell setup: user completion path"
-  append_line_if_missing "${zshrc_file}" "fpath=(\"${zsh_completion_dir}\" \$fpath)"
-  append_line_if_missing "${zshrc_file}" "autoload -Uz compinit"
-  append_line_if_missing "${zshrc_file}" "compinit"
-
-  success "Zsh completion installed: ${zsh_completion_file}"
-  info "Restart zsh or run 'exec zsh' to load new completion immediately."
-}
-
 install_shell_completion() {
-  local install_failed=0
-
   if command_exists bash; then
     if ! install_bash_completion; then
       warn "Could not install bash completion for ${SCRIPT_NAME}."
-      install_failed=1
+      warn "Completion setup finished with warnings."
+      return 1
     fi
   else
-    warn "bash not found. Skipping bash completion setup."
+    warn "bash not found. Skipping completion setup."
+    return 1
   fi
 
-  if command_exists zsh; then
-    if ! install_zsh_completion; then
-      warn "Could not install zsh completion for ${SCRIPT_NAME}."
-      install_failed=1
-    fi
-  else
-    warn "zsh not found. Skipping zsh completion setup."
-  fi
-
-  if [[ ${install_failed} -eq 1 ]]; then
-    warn "Completion setup finished with warnings."
-  else
-    success "Autocomplete setup completed for available shells."
-  fi
+  success "Autocomplete setup completed for bash."
 }
 
 is_azure_cloud_shell() {
@@ -451,36 +413,7 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
     success "gcloud installed"
   fi
 
-  # ── 4. Install oh-my-zsh ─────────────────────────────────────────────────
-  if [[ -d "${HOME}/.oh-my-zsh" ]]; then
-    success "oh-my-zsh is already installed"
-  else
-    info "Installing oh-my-zsh ..."
-    if ! command_exists zsh; then
-      if command_exists apt-get && [[ $EUID -eq 0 ]]; then
-        apt-get install -y zsh
-      elif command_exists brew; then
-        brew install zsh
-      elif command_exists dnf && [[ $EUID -eq 0 ]]; then
-        dnf install -y zsh
-      elif command_exists yum && [[ $EUID -eq 0 ]]; then
-        yum install -y zsh
-      elif command_exists apk && [[ $EUID -eq 0 ]]; then
-        apk add zsh
-      elif command_exists pacman && [[ $EUID -eq 0 ]]; then
-        pacman -S --noconfirm zsh
-      else
-        error "zsh not found. Non-root environment detected and no user-space zsh installer is configured."
-        info "Install zsh manually or run setup with elevated privileges in a writable system environment."
-        exit 1
-      fi
-    fi
-    RUNZSH=no CHSH=no \
-      sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    success "oh-my-zsh installed"
-  fi
-
-  # ── 5. Interactive storage-account setup ─────────────────────────────────
+  # ── 4. Interactive storage-account setup ─────────────────────────────────
   section "AZURE STORAGE" "Backup configuration" "blue"
   local storage_account container_name storage_account_key
 
@@ -884,7 +817,7 @@ Usage: ${SCRIPT_NAME} <command>
 
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
-  setup    Install cshell, gcloud, oh-my-zsh and configure Azure Blob Storage
+  setup    Install cshell, gcloud and configure Azure Blob Storage
   hybrid   Download Apigee Hybrid Helm charts and set up environment variables
   backup   Backup home directory to archive.zip (and upload to Azure)
   restore  Restore home directory from archive.zip (download from Azure if needed)
@@ -892,7 +825,7 @@ Commands:
   docs     Print project and Apigee documentation links
 
 Environment file: ${ENV_FILE}
-Autocomplete: installed automatically for bash/zsh during 'cshell setup'
+Autocomplete: installed automatically for bash during 'cshell setup'
 
 Documentation:
   Project README                 : ${DOC_PROJECT_README}
