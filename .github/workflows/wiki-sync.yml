@@ -13,16 +13,20 @@ on:
       - ".github/workflows/wiki-sync.yml"
   workflow_dispatch:
 
-permissions:
-  contents: write
+concurrency:
+  group: wiki-sync-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-docs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Validate markdown links in docs
         shell: bash
@@ -70,9 +74,12 @@ jobs:
   sync-wiki:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Clone wiki repository
         shell: bash

@@ -15,15 +15,20 @@ on:
       - ".github/workflows/version-sync-check.yml"
   workflow_dispatch:
 
+concurrency:
+  group: version-sync-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   verify-version-sync:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Verify cshell version matches release manifest
         shell: bash

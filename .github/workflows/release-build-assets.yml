@@ -5,19 +5,20 @@ on:
     types:
       - published
 
+concurrency:
+  group: release-build-assets-${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
-  packages: write
-  checks: write
-  pull-requests: write
-  issues: write
 
 jobs:
   build-and-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           ref: ${{ github.event.release.tag_name }}
 
@@ -45,9 +46,16 @@ jobs:
           chmod +x scripts/build-standalone-scripts.sh
           scripts/build-standalone-scripts.sh
           tar -czf "dist/${ASSET_NAME}" -C dist cshell
+          (cd dist && sha256sum "${ASSET_NAME}") >"dist/${ASSET_NAME}.sha256"
+          cp dist/install.sh "dist/install-${VERSION}.sh"
+          (cd dist && sha256sum "install-${VERSION}.sh") >"dist/install-${VERSION}.sh.sha256"
 
       - name: Upload archive to GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
         with:
           tag_name: ${{ github.event.release.tag_name }}
-          files: dist/${{ env.ASSET_NAME }}
+          files: |
+            dist/${{ env.ASSET_NAME }}
+            dist/${{ env.ASSET_NAME }}.sha256
+            dist/install-${{ env.VERSION }}.sh
+            dist/install-${{ env.VERSION }}.sh.sha256
