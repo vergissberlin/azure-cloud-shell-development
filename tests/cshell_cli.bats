@@ -17,6 +17,8 @@ setup() {
 	run_cshell help
 	[ "$status" -eq 0 ]
 	[[ "$output" == *Commands:* ]]
+	[[ "$output" == *"Exit codes"* ]]
+	[[ "$output" == *NO_COLOR* ]]
 }
 
 @test "global --no-update-check before help still works" {
@@ -131,7 +133,11 @@ DOMAIN=api.example.com
 APIGEE_HELM_CHARTS_HOME=/tmp/charts
 # END_CSHELL_HYBRID_ENV
 EOF
-	run env NO_COLOR=1 bash "${REPO_ROOT}/cshell" hybrid --check
+	# Hide kubectl/helm/gcloud so subprocesses do not inject ANSI into merged stdout/stderr.
+	local bats_bash bats_path
+	bats_bash="$(command -v bash)"
+	bats_path="$(hybrid_path_for_local_files_only)"
+	run env NO_COLOR=1 PATH="${bats_path}" "${bats_bash}" "${REPO_ROOT}/cshell" hybrid --check
 	[ "$status" -eq 0 ]
 	[[ "$output" != *$'\e'* ]]
 	[[ "$output" != *$'\033'* ]]
@@ -190,7 +196,7 @@ DOMAIN=api.example.com
 APIGEE_HELM_CHARTS_HOME=${charts}
 # END_CSHELL_HYBRID_ENV
 EOF
-	run_cshell hybrid --check --strict --json
+	run_cshell_with_path "$(hybrid_path_for_local_files_only)" hybrid --check --strict --json
 	[ "$status" -eq 0 ]
 	[[ "$output" == *'"strict":true'* ]]
 }

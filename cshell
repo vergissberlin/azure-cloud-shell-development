@@ -113,6 +113,8 @@ fi
 # END_CLI_UTILS_FALLBACK
 
 # Strip ANSI colors for NO_COLOR, non-TTY stdout, or pipes (CLI UX: machine-readable streams).
+# shellcheck disable=SC2034
+# (Palette matches scripts/misc-cli-utils.sh; cleared vars are still read by sourced helpers.)
 cshell_cli_color_init() {
 	if [[ -n "${NO_COLOR:-}" ]] || [[ ! -t 1 ]]; then
 		RESET=''
@@ -131,6 +133,10 @@ cshell_cli_color_init() {
 	fi
 }
 cshell_cli_color_init
+
+cshell_cli_colors_active() {
+	[[ -z "${NO_COLOR:-}" ]] && [[ -t 1 ]]
+}
 
 # BEGIN_CSHELL_LIBS
 _CSHELL_LIB_ROOT="${SCRIPT_DIR}"
@@ -746,7 +752,10 @@ cmd_hybrid_env_validate() {
 # Args: step_num title url status_symbol [note]
 cshell_hybrid_checklist_emit_step() {
 	local num="$1" title="$2" url="$3" sym="$4" note="${5:-}"
-	local dim="${DIM:-\033[2m}"
+	local dim=''
+	if cshell_cli_colors_active; then
+		dim="${DIM:-\033[2m}"
+	fi
 	local sym_color="${GREEN}" title_color="${GREEN}"
 
 	if [[ "${sym}" == "${CROSS}" ]]; then
