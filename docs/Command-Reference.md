@@ -52,12 +52,16 @@ Performs first-time setup:
 ## `cshell hybrid`
 
 Prepares Apigee Hybrid environment variables (including namespace, environment
-name, environment group, hostname, and optional control-plane location for data
-residency) and pulls required Helm charts. Replaces only the Hybrid block in
-`~/.cshell.env` so Azure keys stay intact. Requires **Helm v3.14+** and GCP auth
-to pull OCI charts. With `APIGEE_SETUP_NONINTERACTIVE=1`, uses defaults from the
-environment / `~/.cshell.env` (no prompts). Prints the full Google Hybrid v1.16
-install link list (same as `cshell docs`).
+name, environment group, hostname, optional **`AKS_RESOURCE_GROUP`** for Azure
+Kubernetes Service, and optional control-plane location for data residency) and
+pulls required Helm charts. When **`AKS_RESOURCE_GROUP`** and **`CLUSTER_NAME`**
+are set and **`az`** is on `PATH`, merges kubeconfig with
+`az aks get-credentials --overwrite-existing` (non-fatal if the command fails).
+Replaces only the Hybrid block in `~/.cshell.env` so unrelated Azure keys stay
+intact. Requires **Helm v3.14+** and GCP auth to pull OCI charts. With
+`APIGEE_SETUP_NONINTERACTIVE=1`, uses defaults from the environment /
+`~/.cshell.env` (no prompts). Prints the full Google Hybrid v1.16 install link
+list (same as `cshell docs`).
 
 - `hybrid --check`: read-only validation that `~/.cshell.env` exists and all
   required Hybrid variables are **non-empty** (`PROJECT_ID`, `ORG_*`,

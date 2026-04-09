@@ -148,6 +148,8 @@ source "${_CSHELL_LIB_ROOT}/lib/portable.sh"
 source "${_CSHELL_LIB_ROOT}/lib/config-cmd.sh"
 # shellcheck source=lib/hybrid-checklist.sh
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-checklist.sh"
+# shellcheck source=lib/hybrid-aks-kubeconfig.sh
+source "${_CSHELL_LIB_ROOT}/lib/hybrid-aks-kubeconfig.sh"
 # END_CSHELL_LIBS
 
 ask() {
@@ -1066,7 +1068,7 @@ cmd_hybrid() {
 
 	local project_id org_name org_display_name org_description \
 		analytics_region runtime_type helm_charts_home \
-		cluster_name cluster_region apigee_namespace environment_name \
+		cluster_name cluster_region aks_resource_group apigee_namespace environment_name \
 		env_group env_group_release_name domain control_plane_location
 
 	project_id=$(ask "GCP Project ID" "${PROJECT_ID:-}")
@@ -1077,6 +1079,9 @@ cmd_hybrid() {
 	runtime_type=$(ask "Runtime type" "${RUNTIMETYPE:-HYBRID}")
 	cluster_name=$(ask "Kubernetes cluster name" "${CLUSTER_NAME:-aks-hybrid}")
 	cluster_region=$(ask "Kubernetes cluster region (maps to CLUSTER_LOCATION in Google docs)" "${CLUSTER_REGION:-${analytics_region}}")
+	aks_resource_group=$(ask "Azure AKS resource group (for az aks get-credentials; leave empty to skip)" "${AKS_RESOURCE_GROUP:-}")
+	aks_resource_group="${aks_resource_group#"${aks_resource_group%%[![:space:]]*}"}"
+	aks_resource_group="${aks_resource_group%"${aks_resource_group##*[![:space:]]}"}"
 	helm_charts_home=$(ask "Local Helm charts directory" "${APIGEE_HELM_CHARTS_HOME:-${DEFAULT_APIGEE_HELM_CHARTS_HOME}}")
 	helm_charts_home="${helm_charts_home#"${helm_charts_home%%[![:space:]]*}"}"
 	helm_charts_home="${helm_charts_home%"${helm_charts_home##*[![:space:]]}"}"
@@ -1119,6 +1124,9 @@ cmd_hybrid() {
 		printf 'RUNTIMETYPE=%s\n' "${runtime_type}"
 		printf 'CLUSTER_NAME=%s\n' "${cluster_name}"
 		printf 'CLUSTER_REGION=%s\n' "${cluster_region}"
+		if [[ -n "${aks_resource_group}" ]]; then
+			printf 'AKS_RESOURCE_GROUP=%s\n' "${aks_resource_group}"
+		fi
 		printf 'APIGEE_NAMESPACE=%s\n' "${apigee_namespace}"
 		printf 'ENVIRONMENT_NAME=%s\n' "${environment_name}"
 		printf 'ENV_GROUP=%s\n' "${env_group}"
@@ -1168,6 +1176,8 @@ cmd_hybrid() {
 		done
 	)
 	success "Helm charts downloaded to ${helm_charts_home}"
+
+	cshell_hybrid_fetch_aks_kubeconfig "${aks_resource_group}" "${cluster_name}"
 }
 
 cmd_docs() {

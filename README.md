@@ -180,7 +180,10 @@ For the **current** session you can run **`eval "$(cshell hybrid --export --prin
 **Prerequisites:** Helm **v3.14+** and GCP credentials that can pull from the
 Apigee Hybrid OCI registry (see the download-charts page). For automation, set
 `APIGEE_SETUP_NONINTERACTIVE=1` and provide values via `~/.cshell.env` / the
-environment (`PROJECT_ID` required).
+environment (`PROJECT_ID` required). To merge **AKS** credentials into
+`~/.kube/config` at the end of `cshell hybrid`, set **`AKS_RESOURCE_GROUP`**
+(interactive prompt or `cshell config set`) and use an authenticated **Azure CLI**
+(`az login`); the command is skipped when the group name is empty or `az` is missing.
 
 **Environment variables configured:**
 
@@ -194,6 +197,7 @@ environment (`PROJECT_ID` required).
 | `RUNTIMETYPE`              | Runtime type                                                                                                    | `HYBRID`                                                                                                               |
 | `CLUSTER_NAME`             | Kubernetes cluster name                                                                                         | `aks-hybrid`                                                                                                           |
 | `CLUSTER_REGION`           | Cluster region (same as `CLUSTER_LOCATION` in Google docs; for zonal clusters use the **region**, not the zone) | `$ANALYTICS_REGION`                                                                                                    |
+| `AKS_RESOURCE_GROUP`       | Optional; Azure resource group of the AKS cluster — when set, `cshell hybrid` runs `az aks get-credentials` after the chart pull | –                                                                                                                      |
 | `APIGEE_NAMESPACE`         | Kubernetes namespace for Apigee                                                                                 | `apigee`                                                                                                               |
 | `ENVIRONMENT_NAME`         | Apigee environment name (match UI; non-prod pairs with `apigee-non-prod` SA in Google’s flow)                   | `non-prod`                                                                                                             |
 | `ENV_GROUP`                | Environment group name (Helm `envgroup`)                                                                        | `envgroup`                                                                                                             |

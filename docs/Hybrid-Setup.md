@@ -15,6 +15,10 @@ cshell hybrid
 - updates the Apigee Hybrid block in `~/.cshell.env` without removing unrelated keys
 - downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME` (default
   `~/apigee-hybrid/helm-charts`, created by `cshell setup` with `mkdir -p` when needed)
+- when **`AKS_RESOURCE_GROUP`** is non-empty and **`CLUSTER_NAME`** matches your AKS
+  cluster, runs **`az aks get-credentials --resource-group … --name …
+  --overwrite-existing`** so `kubectl` can use that cluster (requires Azure CLI on
+  `PATH` and a logged-in `az` session; failures are warned, not fatal)
 
 ## Requirements
 

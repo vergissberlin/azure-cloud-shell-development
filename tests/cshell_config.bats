@@ -39,6 +39,13 @@ setup() {
 	[[ "$output" == *allowlisted* ]]
 }
 
+@test "config set accepts AKS_RESOURCE_GROUP" {
+	export_home_tmp
+	run_cshell config set AKS_RESOURCE_GROUP rg-h hybrid
+	[ "$status" -eq 0 ]
+	grep -qx 'AKS_RESOURCE_GROUP=rg-h hybrid' "${HOME}/.cshell.env"
+}
+
 @test "config show ignores non-allowlisted lines in file" {
 	export_home_tmp
 	{

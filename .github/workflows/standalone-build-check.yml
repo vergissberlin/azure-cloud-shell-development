@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           bash -n cshell install.sh scripts/build-standalone-scripts.sh
-          bash -n lib/env-file.sh lib/portable.sh lib/config-cmd.sh lib/hybrid-checklist.sh
+          bash -n lib/env-file.sh lib/portable.sh lib/config-cmd.sh lib/hybrid-checklist.sh lib/hybrid-aks-kubeconfig.sh
           bash -n dist/cshell dist/install.sh
 
   shell-lint:
