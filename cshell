@@ -256,7 +256,7 @@ cmd_init() {
   local subscription resource_group location storage_account container_name sku
 
   subscription=$(ask    "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
-  resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-cshell-rg}")
+  resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-rg-cshell}")
   location=$(ask        "Azure region (e.g. westeurope)"                              "${AZURE_LOCATION:-westeurope}")
   storage_account=$(ask "Storage Account name (3-24 lowercase letters/digits)"        "${AZURE_STORAGE_ACCOUNT:-}")
   container_name=$(ask  "Blob container name"                                         "${AZURE_STORAGE_CONTAINER:-backups}")

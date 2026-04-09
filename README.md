@@ -65,7 +65,7 @@ cshell init
 | Prompt | Default |
 |---|---|
 | Azure Subscription ID or name | current subscription |
-| Resource group name | `cshell-rg` |
+| Resource group name | `rg-cshell` |
 | Azure region | `westeurope` |
 | Storage Account name | – |
 | Blob container name | `backups` |
