@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.10.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.9.0...1.10.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add detailed install checklist for hybrid setup ([72a47be](https://github.com/vergissberlin/azure-cloud-shell-development/commit/72a47be68421b4f90338c1acfa31f540a1a269c5))
+* **hybrid:** add --export and --export --print ([40a197f](https://github.com/vergissberlin/azure-cloud-shell-development/commit/40a197ffec7135ef944016a8202ab645b3c8bdce))
+
+
+### Documentation
+
+* update README and command reference for hybrid checklist ([72a47be](https://github.com/vergissberlin/azure-cloud-shell-development/commit/72a47be68421b4f90338c1acfa31f540a1a269c5))
+
+
+### Tests
+
+* **cshell_cli.bats:** add assertions for install checklist output ([72a47be](https://github.com/vergissberlin/azure-cloud-shell-development/commit/72a47be68421b4f90338c1acfa31f540a1a269c5))
+* **cshell_cli.bats:** simplify export file existence and content check ([72a47be](https://github.com/vergissberlin/azure-cloud-shell-development/commit/72a47be68421b4f90338c1acfa31f540a1a269c5))
+
 ## [1.9.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.8.0...1.9.0) (2026-04-09)
 
 
