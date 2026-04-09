@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.19.1](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.19.0...1.19.1) (2026-04-09)
+
+
+### Bug Fixes
+
+* **cshell:** handle broken gcloud installations by checking version ([9216821](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9216821f677bae7a3982e1d9abcc649e43af2da0))
+* **cshell:** install gcloud under $HOME and symlink launcher ([9216821](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9216821f677bae7a3982e1d9abcc649e43af2da0))
+
+
+### Documentation
+
+* **Troubleshooting:** add section for gcloud.py file open error ([9216821](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9216821f677bae7a3982e1d9abcc649e43af2da0))
+
+
+### Tests
+
+* **cshell_cli:** verify gcloud install uses symlink for launcher ([9216821](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9216821f677bae7a3982e1d9abcc649e43af2da0))
+
 ## [1.19.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.18.0...1.19.0) (2026-04-09)
 
 
