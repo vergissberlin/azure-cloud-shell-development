@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.13.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.12.0...1.13.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add dimmed Doc URL line to checklist steps ([4052bf2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/4052bf2a55f3a28fdfd3c932dec9289983101393))
+* **cshell:** ensure helm_charts_home is set to default if input is empty ([c3bd987](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c3bd98753fcb8746caa8930369a5b262ad1d5573))
+
+
+### Bug Fixes
+
+* **cshell:** trim whitespace from helm_charts_home input to prevent errors ([c3bd987](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c3bd98753fcb8746caa8930369a5b262ad1d5573))
+
+
+### Code Refactoring
+
+* **cshell:** move mkdir command to ensure directory creation after validation ([c3bd987](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c3bd98753fcb8746caa8930369a5b262ad1d5573))
+
 ## [1.12.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.11.1...1.12.0) (2026-04-09)
 
 
