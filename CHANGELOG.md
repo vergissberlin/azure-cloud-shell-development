@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.2.0...1.3.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add `docs` command to print project and Apigee documentation links ([053333c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/053333ca0776ebbb4b07c2e5452ed6ffac191ea5))
+
+
+### Documentation
+
+* **cshell:** add additional documentation links to cmd_hybrid function for better guidance ([9ad9d76](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9ad9d76e0e4d7c70c4f36d41ad5faa61e2158106))
+* **cshell:** add links to project README, releases, issues, and contributing guide to enhance user accessibility and provide comprehensive project documentation ([1cc582a](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1cc582aeba32717b02b0393584cb84a869a74862))
+* **README.md:** update README with information about the new `cshell docs` command ([053333c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/053333ca0776ebbb4b07c2e5452ed6ffac191ea5))
+
 ## [1.2.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.1.0...1.2.0) (2026-04-09)
 
 
