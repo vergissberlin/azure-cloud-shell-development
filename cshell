@@ -37,11 +37,23 @@ CSHELL_COMMANDS=(init setup hybrid backup restore update config docs help)
 
 DOC_BEFORE_BEGIN="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin"
 DOC_DOWNLOAD_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts"
+DOC_INSTALL_CREATE_CLUSTER="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-cluster"
+DOC_INSTALL_CREATE_NAMESPACE="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-namespace"
+DOC_INSTALL_SERVICE_ACCOUNTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-service-accounts"
+DOC_INSTALL_SA_AUTH="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-sa-authentication"
+DOC_INSTALL_TLS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-tls-certificates"
+DOC_INSTALL_OVERRIDES="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-overrides"
+DOC_INSTALL_CONTROL_PLANE="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-enable-control-plane-access"
+DOC_INSTALL_CERT_MANAGER="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-cert-manager"
+DOC_INSTALL_CRDS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-crds"
+DOC_INSTALL_HELM_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-helm-charts"
+DOC_HELM_INSTALL="https://helm.sh/docs/intro/install/"
 DOC_INSTALL_HYBRID="https://github.com/vergissberlin/apigee-hybride-development/blob/main/docs/install-apigee-hybrid.md"
 DOC_PROJECT_README="https://github.com/${REPO_SLUG}#readme"
 DOC_PROJECT_RELEASES="https://github.com/${REPO_SLUG}/releases"
 DOC_PROJECT_ISSUES="https://github.com/${REPO_SLUG}/issues"
 DOC_PROJECT_CONTRIBUTING="https://github.com/${REPO_SLUG}/blob/main/CONTRIBUTING.md"
+HELM_MIN_VERSION="3.14.0"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -111,6 +123,10 @@ ask() {
 	local prompt="$1"
 	local default="${2:-}"
 	local value
+	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
+		printf '%s\n' "${default}"
+		return 0
+	fi
 	if [[ -n "$default" ]]; then
 		read -rp "${prompt} [${default}]: " value
 		echo "${value:-$default}"
@@ -129,6 +145,20 @@ require_root() {
 
 command_exists() {
 	command -v "$1" &>/dev/null
+}
+
+# Return 0 if Helm client version is >= min (e.g. 3.14.0). Expects "helm version --short" like v3.14.0.
+helm_meets_min_version() {
+	local min_ver="$1"
+	local hv
+	if ! command_exists helm; then
+		return 1
+	fi
+	hv="$(helm version --short 2>/dev/null | sed -E 's/^v//; s/-.*//')"
+	[[ -n "${hv}" ]] || return 1
+	local max_ver
+	max_ver="$(printf '%s\n' "${min_ver}" "${hv}" | sort -V | tail -n1)"
+	[[ "${max_ver}" == "${hv}" ]]
 }
 
 append_line_if_missing() {
@@ -576,9 +606,19 @@ cmd_hybrid() {
 		"Releases: ${DOC_PROJECT_RELEASES}" \
 		"Issues: ${DOC_PROJECT_ISSUES}" \
 		"Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
-		"Before you begin: ${DOC_BEFORE_BEGIN}" \
-		"Download charts: ${DOC_DOWNLOAD_CHARTS}" \
-		"Install guide: ${DOC_INSTALL_HYBRID}"
+		"Google Hybrid v1.16 — Before you begin: ${DOC_BEFORE_BEGIN}" \
+		"Google — Create cluster: ${DOC_INSTALL_CREATE_CLUSTER}" \
+		"Google — Download charts: ${DOC_DOWNLOAD_CHARTS}" \
+		"Google — Create namespace: ${DOC_INSTALL_CREATE_NAMESPACE}" \
+		"Google — Service accounts: ${DOC_INSTALL_SERVICE_ACCOUNTS}" \
+		"Google — Service account auth: ${DOC_INSTALL_SA_AUTH}" \
+		"Google — TLS certificates: ${DOC_INSTALL_TLS}" \
+		"Google — Overrides: ${DOC_INSTALL_OVERRIDES}" \
+		"Google — Control plane access: ${DOC_INSTALL_CONTROL_PLANE}" \
+		"Google — cert-manager: ${DOC_INSTALL_CERT_MANAGER}" \
+		"Google — CRDs: ${DOC_INSTALL_CRDS}" \
+		"Google — Helm install: ${DOC_INSTALL_HELM_CHARTS}" \
+		"Community install guide: ${DOC_INSTALL_HYBRID}"
 
 	# ── 1. Interactive environment variables ─────────────────────────────────
 	section "ENV" "Apigee Hybrid environment variables" "blue"
@@ -609,6 +649,16 @@ cmd_hybrid() {
 	env_group_release_name=$(ask "Helm release name for apigee-virtualhost (unique per cluster)" "${ENV_GROUP_RELEASE_NAME:-${env_group}}")
 	domain=$(ask "Public hostname for the environment group (TLS / virtual host CN)" "${DOMAIN:-}")
 	control_plane_location=$(ask "Control plane location (optional; only needed for data residency)" "${CONTROL_PLANE_LOCATION:-}")
+
+	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
+		if [[ -z "${project_id}" ]]; then
+			error "APIGEE_SETUP_NONINTERACTIVE: PROJECT_ID must be set (e.g. in ${ENV_FILE} or the environment) before running hybrid."
+			exit 1
+		fi
+		if [[ -z "${domain}" ]]; then
+			warn "APIGEE_SETUP_NONINTERACTIVE: DOMAIN is empty — set DOMAIN for TLS / virtual host steps."
+		fi
+	fi
 
 	touch "${ENV_FILE}"
 	cshell_env_strip_managed_block "${ENV_FILE}" "# BEGIN_CSHELL_HYBRID_ENV" "# END_CSHELL_HYBRID_ENV"
@@ -648,10 +698,16 @@ cmd_hybrid() {
 
 	# ── 2. Download Helm charts ───────────────────────────────────────────────
 	if ! command_exists helm; then
-		error "helm is not installed. Install Helm v3.14+ from https://helm.sh/docs/intro/install/"
+		error "helm is not installed. Install Helm v${HELM_MIN_VERSION}+ from ${DOC_HELM_INSTALL}"
+		exit 1
+	fi
+	if ! helm_meets_min_version "${HELM_MIN_VERSION}"; then
+		error "helm must be version ${HELM_MIN_VERSION} or newer (Apigee Hybrid v1.16). Found: $(helm version --short 2>/dev/null || echo 'unknown')"
+		info "Upgrade: ${DOC_HELM_INSTALL}"
 		exit 1
 	fi
 
+	info "Pulling OCI charts requires GCP auth for ${CHART_REPO} (e.g. gcloud auth login or gcloud auth application-default login). See: ${DOC_DOWNLOAD_CHARTS}"
 	info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
 	mkdir -p "${helm_charts_home}"
 	(
@@ -671,9 +727,19 @@ cmd_docs() {
 		"Releases: ${DOC_PROJECT_RELEASES}" \
 		"Issues: ${DOC_PROJECT_ISSUES}" \
 		"Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
-		"Before you begin: ${DOC_BEFORE_BEGIN}" \
-		"Download charts: ${DOC_DOWNLOAD_CHARTS}" \
-		"Install guide: ${DOC_INSTALL_HYBRID}"
+		"Google Hybrid v1.16 — Before you begin: ${DOC_BEFORE_BEGIN}" \
+		"Google — Create cluster: ${DOC_INSTALL_CREATE_CLUSTER}" \
+		"Google — Download charts: ${DOC_DOWNLOAD_CHARTS}" \
+		"Google — Create namespace: ${DOC_INSTALL_CREATE_NAMESPACE}" \
+		"Google — Service accounts: ${DOC_INSTALL_SERVICE_ACCOUNTS}" \
+		"Google — Service account auth: ${DOC_INSTALL_SA_AUTH}" \
+		"Google — TLS certificates: ${DOC_INSTALL_TLS}" \
+		"Google — Overrides: ${DOC_INSTALL_OVERRIDES}" \
+		"Google — Control plane access: ${DOC_INSTALL_CONTROL_PLANE}" \
+		"Google — cert-manager: ${DOC_INSTALL_CERT_MANAGER}" \
+		"Google — CRDs: ${DOC_INSTALL_CRDS}" \
+		"Google — Helm install: ${DOC_INSTALL_HELM_CHARTS}" \
+		"Community install guide: ${DOC_INSTALL_HYBRID}"
 }
 
 # ---------------------------------------------------------------------------
@@ -1033,6 +1099,7 @@ Documentation:
   Apigee Hybrid before you begin : ${DOC_BEFORE_BEGIN}
   Apigee Hybrid download charts  : ${DOC_DOWNLOAD_CHARTS}
   Install guide                  : ${DOC_INSTALL_HYBRID}
+  Google Hybrid v1.16 all steps  : run '${SCRIPT_NAME} docs'
 EOF
 }
 

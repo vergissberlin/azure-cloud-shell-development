@@ -161,6 +161,11 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 2. Downloads the Apigee Hybrid Helm charts as described in the
    [official documentation](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts)
 
+**Prerequisites:** Helm **v3.14+** and GCP credentials that can pull from the
+Apigee Hybrid OCI registry (see the download-charts page). For automation, set
+`APIGEE_SETUP_NONINTERACTIVE=1` and provide values via `~/.cshell.env` / the
+environment (`PROJECT_ID` required).
+
 **Environment variables configured:**
 
 | Variable | Description | Default |
@@ -196,8 +201,20 @@ Inspect values with `cshell config show` instead of `source ~/.cshell.env`
 **Documentation links:**
 
 - [Before you begin](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin)
+- [Create cluster](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-cluster)
 - [Download Helm charts](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts)
+- [Create namespace](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-namespace)
+- [Service accounts](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-service-accounts)
+- [Service account authentication](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-sa-authentication)
+- [TLS certificates](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-tls-certificates)
+- [Overrides](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-overrides)
+- [Control plane access](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-enable-control-plane-access)
+- [cert-manager](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-cert-manager)
+- [CRDs](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-crds)
+- [Helm install (Hybrid)](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-helm-charts)
 - [Install Apigee Hybrid (community guide)](https://github.com/vergissberlin/apigee-hybride-development/blob/main/docs/install-apigee-hybrid.md)
+
+Run `cshell docs` for the same list with copy-friendly URLs.
 
 ---
 

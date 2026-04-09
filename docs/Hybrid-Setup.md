@@ -15,6 +15,27 @@ cshell hybrid
 - updates the Apigee Hybrid block in `~/.cshell.env` without removing unrelated keys
 - downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME`
 
+## Requirements
+
+- **Helm** v3.14 or newer (Apigee Hybrid v1.16 expectation). Older versions are rejected.
+- **GCP auth** for the OCI registry `oci://us-docker.pkg.dev/apigee-release/...`
+  (for example `gcloud auth login` or `gcloud auth application-default login`).
+  See the official *Download the Apigee Helm charts* page linked below.
+
+## Non-interactive use
+
+With `APIGEE_SETUP_NONINTERACTIVE=1`, `cshell hybrid` does not read from the TTY:
+it uses the default shown in each prompt, typically from existing environment
+variables or from `~/.cshell.env` (load a complete Hybrid block first).
+`PROJECT_ID` must be non-empty; if `DOMAIN` is empty, a warning is printed.
+
+## All official install steps (v1.16)
+
+Run `cshell docs` for the same link list printed by `cshell hybrid`, or open the
+[Hybrid v1.16 documentation hub](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin)
+and follow the numbered install topics (cluster, charts, namespace, service
+accounts, TLS, overrides, control plane access, cert-manager, CRDs, Helm install).
+
 ## Non-production environments
 
 For a **non-prod** Apigee hybrid runtime, Google’s install guide expects an
@@ -52,4 +73,15 @@ To export variables into an interactive shell session, you may still
 ## Official References
 
 - Before you begin: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin>
+- Create cluster: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-cluster>
 - Download charts: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts>
+- Create namespace: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-namespace>
+- Service accounts: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-service-accounts>
+- Service account authentication: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-sa-authentication>
+- TLS certificates: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-tls-certificates>
+- Overrides: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-overrides>
+- Control plane access: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-enable-control-plane-access>
+- cert-manager: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-cert-manager>
+- CRDs: <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-crds>
+- Helm charts (install): <https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-helm-charts>
+- Helm install (upstream): <https://helm.sh/docs/intro/install/>

@@ -38,7 +38,10 @@ Performs first-time setup:
 Prepares Apigee Hybrid environment variables (including namespace, environment
 name, environment group, hostname, and optional control-plane location for data
 residency) and pulls required Helm charts. Replaces only the Hybrid block in
-`~/.cshell.env` so Azure keys stay intact.
+`~/.cshell.env` so Azure keys stay intact. Requires **Helm v3.14+** and GCP auth
+to pull OCI charts. With `APIGEE_SETUP_NONINTERACTIVE=1`, uses defaults from the
+environment / `~/.cshell.env` (no prompts). Prints the full Google Hybrid v1.16
+install link list (same as `cshell docs`).
 
 ## `cshell backup`
 
