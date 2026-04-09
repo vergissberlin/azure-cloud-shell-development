@@ -192,7 +192,7 @@ cmd_setup() {
     success "gcloud is already installed ($(gcloud --version 2>&1 | head -1))"
   else
     info "Installing Google Cloud SDK ..."
-    if command_exists apt-get; then
+    if command_exists apt-get && [[ $EUID -eq 0 ]]; then
       apt-get update -qq
       apt-get install -y ca-certificates gnupg curl
       echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] \
@@ -247,20 +247,21 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
   else
     info "Installing oh-my-zsh ..."
     if ! command_exists zsh; then
-      if command_exists apt-get; then
+      if command_exists apt-get && [[ $EUID -eq 0 ]]; then
         apt-get install -y zsh
       elif command_exists brew; then
         brew install zsh
-      elif command_exists dnf; then
+      elif command_exists dnf && [[ $EUID -eq 0 ]]; then
         dnf install -y zsh
-      elif command_exists yum; then
+      elif command_exists yum && [[ $EUID -eq 0 ]]; then
         yum install -y zsh
-      elif command_exists apk; then
+      elif command_exists apk && [[ $EUID -eq 0 ]]; then
         apk add zsh
-      elif command_exists pacman; then
+      elif command_exists pacman && [[ $EUID -eq 0 ]]; then
         pacman -S --noconfirm zsh
       else
-        error "zsh not found and no supported package manager available."
+        error "zsh not found. Non-root environment detected and no user-space zsh installer is configured."
+        info "Install zsh manually or run setup with elevated privileges in a writable system environment."
         exit 1
       fi
     fi
@@ -437,7 +438,7 @@ cmd_init() {
 
   subscription=$(ask    "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
   resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-rg-cshell}")
-  location=$(ask        "Azure region (e.g. westeurope)"                              "${AZURE_LOCATION:-westeurope}")
+  location=$(ask        "Azure region (e.g. germanywestcentral)"                       "${AZURE_LOCATION:-germanywestcentral}")
   storage_account=$(ask "Storage Account name (3-24 lowercase letters/digits)"        "${AZURE_STORAGE_ACCOUNT:-}")
   container_name=$(ask  "Blob container name"                                         "${AZURE_STORAGE_CONTAINER:-backups}")
   sku=$(ask             "Storage SKU"                                                 "${AZURE_STORAGE_SKU:-Standard_LRS}")
