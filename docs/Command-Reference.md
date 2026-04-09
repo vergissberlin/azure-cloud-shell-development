@@ -53,9 +53,13 @@ Performs first-time setup:
 
 Prepares Apigee Hybrid environment variables (including namespace, environment
 name, environment group, hostname, optional **`AKS_RESOURCE_GROUP`** for Azure
-Kubernetes Service, and optional control-plane location for data residency) and
-pulls required Helm charts. When **`AKS_RESOURCE_GROUP`** and **`CLUSTER_NAME`**
-are set and **`az`** is on `PATH`, merges kubeconfig with
+Kubernetes Service, and optional control-plane location for data residency),
+prompts for non-prod **Helm `overrides.yaml`** settings (with defaults from the
+same wizard / `~/.cshell.env` where applicable), then pulls required Helm charts and
+writes **`${APIGEE_HELM_CHARTS_HOME}/overrides.yaml`** (non-prod, Kubernetes Secrets)
+unless the file already exists and you decline replacement, or in non-interactive
+mode unless **`APIGEE_OVERRIDES_OVERWRITE=1`**. When **`AKS_RESOURCE_GROUP`** and
+**`CLUSTER_NAME`** are set and **`az`** is on `PATH`, merges kubeconfig with
 `az aks get-credentials --overwrite-existing` (non-fatal if the command fails).
 Replaces only the Hybrid block in `~/.cshell.env` so unrelated Azure keys stay
 intact. Requires **Helm v3.14+** and GCP auth to pull OCI charts. With

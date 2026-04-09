@@ -12,9 +12,22 @@ cshell hybrid
 
 - prompts for required Apigee environment values (including namespace, environment
   group, and hostname for non-prod TLS steps)
+- prompts for non-prod **`overrides.yaml`** fields that are not already in the Hybrid
+  block (for example **`instanceID`**, ingress gateway name, TLS paths relative to the
+  `apigee-virtualhost` chart, optional ingress service annotations, runtime image tag,
+  and optional large-payload runtime tuning), using known values from the wizard where
+  they apply
 - updates the Apigee Hybrid block in `~/.cshell.env` without removing unrelated keys
+  (including optional overrides-related keys when set; see **Configuration**)
 - downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME` (default
   `~/apigee-hybrid/helm-charts`, created by `cshell setup` with `mkdir -p` when needed)
+- writes a starter **non-prod** [`overrides.yaml`](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-overrides)
+  under **`APIGEE_HELM_CHARTS_HOME`** using the **Kubernetes Secrets** pattern
+  (`serviceAccountSecretRefs` / `serviceAccountRef`), with a single valid `runtime:`
+  block (Google’s docs show two `runtime:` keys; the generator merges them when
+  large-payload tuning is enabled). If **`overrides.yaml`** already exists, you are
+  asked whether to replace it; in non-interactive mode it is left unchanged unless
+  **`APIGEE_OVERRIDES_OVERWRITE=1`**
 - when **`AKS_RESOURCE_GROUP`** is non-empty and **`CLUSTER_NAME`** matches your AKS
   cluster, runs **`az aks get-credentials --resource-group … --name …
   --overwrite-existing`** so `kubectl` can use that cluster (requires Azure CLI on
@@ -33,6 +46,9 @@ With `APIGEE_SETUP_NONINTERACTIVE=1`, `cshell hybrid` does not read from the TTY
 it uses the default shown in each prompt, typically from existing environment
 variables or from `~/.cshell.env` (load a complete Hybrid block first).
 `PROJECT_ID` must be non-empty; if `DOMAIN` is empty, a warning is printed.
+Existing **`overrides.yaml`** files are not overwritten unless **`APIGEE_OVERRIDES_OVERWRITE=1`**.
+Use **`APIGEE_OVERRIDE_LARGE_PAYLOAD=1`** to enable large-payload runtime tuning without
+a confirmation prompt.
 
 ## All official install steps (v1.16)
 

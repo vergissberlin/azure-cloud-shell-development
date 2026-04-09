@@ -150,6 +150,8 @@ source "${_CSHELL_LIB_ROOT}/lib/config-cmd.sh"
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-checklist.sh"
 # shellcheck source=lib/hybrid-aks-kubeconfig.sh
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-aks-kubeconfig.sh"
+# shellcheck source=lib/hybrid-overrides-nonprod.sh
+source "${_CSHELL_LIB_ROOT}/lib/hybrid-overrides-nonprod.sh"
 # END_CSHELL_LIBS
 
 ask() {
@@ -412,7 +414,7 @@ download_cshell_support_libs_from_raw() {
 
 	base="https://raw.githubusercontent.com/${REPO_SLUG}/${ref}/lib"
 	work="$(mktemp -d)"
-	for name in env-file.sh portable.sh config-cmd.sh; do
+	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh; do
 		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
 			rm -rf "${work}"
 			error "Failed to download ${name} from ${base}/${name}"
@@ -1135,7 +1137,47 @@ cmd_hybrid() {
 	env_group=$(ask "Apigee environment group name (Helm --set envgroup)" "${ENV_GROUP:-envgroup}")
 	env_group_release_name=$(ask "Helm release name for apigee-virtualhost (unique per cluster)" "${ENV_GROUP_RELEASE_NAME:-apigee-virtualhost}")
 	domain=$(ask "Public hostname for the environment group (TLS / virtual host CN)" "${DOMAIN:-}")
-	control_plane_location=$(ask "Control plane location (optional; only needed for data residency)" "${CONTROL_PLANE_LOCATION:-europe-west3}")
+	control_plane_location=$(ask "Control plane location (optional; only needed for data residency)" "${CONTROL_PLANE_LOCATION:-}")
+
+	local apigee_instance_id apigee_nonprod_sa_secret ingress_gateway_name \
+		override_tls_cert_rel override_tls_key_rel ingress_svc_ann_key ingress_svc_ann_val \
+		override_runtime_tag override_large_payload
+
+	section "OVERRIDES" "Non-prod overrides.yaml (Kubernetes Secrets)" "blue"
+	info "Values are merged into ${ENV_FILE} when set; file is written after Helm charts are pulled."
+
+	local _id_default
+	_id_default="$(cshell_hybrid_suggest_instance_id "${org_name}" "${cluster_name}")"
+	apigee_instance_id=$(ask "Apigee hybrid instanceID (unique per cluster; max 63 chars)" "${APIGEE_INSTANCE_ID:-${_id_default}}")
+	apigee_nonprod_sa_secret=$(ask "Kubernetes secret name for non-prod service account" "${APIGEE_NONPROD_SA_SECRET:-apigee-non-prod-svc-account}")
+	ingress_gateway_name=$(ask "Ingress gateway name (max 17 chars, lowercase)" "${APIGEE_INGRESS_NAME:-$(cshell_hybrid_suggest_ingress_name "${environment_name}")}")
+	if ! cshell_hybrid_validate_ingress_name "${ingress_gateway_name}"; then
+		warn "Ingress name '${ingress_gateway_name}' is invalid — using 'apigee-ingress'."
+		ingress_gateway_name="apigee-ingress"
+	fi
+	override_tls_cert_rel=$(ask "Virtual host sslCertPath (relative to apigee-virtualhost chart)" "${APIGEE_OVERRIDE_TLS_CERT_REL:-certs/tls.crt}")
+	override_tls_key_rel=$(ask "Virtual host sslKeyPath (relative to apigee-virtualhost chart)" "${APIGEE_OVERRIDE_TLS_KEY_REL:-certs/tls.key}")
+	ingress_svc_ann_key=$(ask "Ingress LoadBalancer annotation key (optional; empty to skip)" "${APIGEE_INGRESS_SVC_ANNOTATION_KEY:-}")
+	ingress_svc_ann_val=$(ask "Ingress LoadBalancer annotation value (optional)" "${APIGEE_INGRESS_SVC_ANNOTATION_VALUE:-}")
+	if [[ -z "${ingress_svc_ann_key}" || -z "${ingress_svc_ann_val}" ]]; then
+		ingress_svc_ann_key=""
+		ingress_svc_ann_val=""
+	fi
+	local _rt_default="${CHART_VERSION%%-*}"
+	override_runtime_tag=$(ask "apigee-runtime image tag (see Apigee release matrix)" "${APIGEE_OVERRIDE_RUNTIME_TAG:-${_rt_default}}")
+	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
+		override_large_payload="${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}"
+	elif declare -F confirm >/dev/null 2>&1; then
+		local lp_def="n"
+		[[ "${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}" == "1" ]] && lp_def="y"
+		if confirm "Add large message payload tuning (runtime heap/resources for payloads >10MB)?" "${lp_def}"; then
+			override_large_payload=1
+		else
+			override_large_payload=0
+		fi
+	else
+		[[ "${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}" == "1" ]] && override_large_payload=1 || override_large_payload=0
+	fi
 
 	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
 		if [[ -z "${project_id}" ]]; then
@@ -1177,6 +1219,17 @@ cmd_hybrid() {
 		printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
 		printf 'CHART_REPO=%s\n' "${CHART_REPO}"
 		printf 'CHART_VERSION=%s\n' "${CHART_VERSION}"
+		printf 'APIGEE_INSTANCE_ID=%s\n' "${apigee_instance_id}"
+		printf 'APIGEE_NONPROD_SA_SECRET=%s\n' "${apigee_nonprod_sa_secret}"
+		printf 'APIGEE_INGRESS_NAME=%s\n' "${ingress_gateway_name}"
+		printf 'APIGEE_OVERRIDE_TLS_CERT_REL=%s\n' "${override_tls_cert_rel}"
+		printf 'APIGEE_OVERRIDE_TLS_KEY_REL=%s\n' "${override_tls_key_rel}"
+		if [[ -n "${ingress_svc_ann_key}" ]]; then
+			printf 'APIGEE_INGRESS_SVC_ANNOTATION_KEY=%s\n' "${ingress_svc_ann_key}"
+			printf 'APIGEE_INGRESS_SVC_ANNOTATION_VALUE=%s\n' "${ingress_svc_ann_val}"
+		fi
+		printf 'APIGEE_OVERRIDE_RUNTIME_TAG=%s\n' "${override_runtime_tag}"
+		printf 'APIGEE_OVERRIDE_LARGE_PAYLOAD=%s\n' "${override_large_payload}"
 		echo "# END_CSHELL_HYBRID_ENV"
 	} >>"${ENV_FILE}"
 
@@ -1215,6 +1268,35 @@ cmd_hybrid() {
 		done
 	)
 	success "Helm charts downloaded to ${helm_charts_home}"
+
+	local ov_out="${helm_charts_home}/overrides.yaml"
+	local ov_write=1
+	if [[ -f "${ov_out}" && -s "${ov_out}" ]]; then
+		if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
+			if [[ "${APIGEE_OVERRIDES_OVERWRITE:-0}" != "1" ]]; then
+				ov_write=0
+				warn "Existing overrides.yaml kept (set APIGEE_OVERRIDES_OVERWRITE=1 to replace in non-interactive mode)."
+			fi
+		else
+			if declare -F confirm >/dev/null 2>&1 && ! confirm "Overwrite existing overrides.yaml?" "n"; then
+				ov_write=0
+				info "Kept existing overrides.yaml."
+			fi
+		fi
+	fi
+	if [[ "${ov_write}" == "1" ]]; then
+		if cshell_hybrid_atomic_write_nonprod_overrides "${helm_charts_home}" "1" \
+			"${apigee_instance_id}" "${apigee_namespace}" "${project_id}" "${analytics_region}" \
+			"${cluster_name}" "${cluster_region}" "${org_name}" \
+			"${environment_name}" "${env_group}" "${control_plane_location}" \
+			"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
+			"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
+			"${override_runtime_tag}" "${override_large_payload}"; then
+			success "Wrote non-prod ${ov_out}"
+		else
+			warn "Could not write overrides.yaml (charts directory missing?)."
+		fi
+	fi
 
 	cshell_hybrid_fetch_aks_kubeconfig "${aks_resource_group}" "${cluster_name}"
 }

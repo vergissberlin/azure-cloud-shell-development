@@ -117,7 +117,7 @@ download_cshell_support_libs_from_raw() {
 
 	base="https://raw.githubusercontent.com/${REPO}/${ref}/lib"
 	work="$(mktemp -d)"
-	for name in env-file.sh portable.sh config-cmd.sh; do
+	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh; do
 		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
 			rm -rf "${work}"
 			error "Failed to download ${name}"
