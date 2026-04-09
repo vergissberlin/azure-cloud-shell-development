@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.8.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.7.0...1.8.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add `hybrid --check` command for env validation ([24d9411](https://github.com/vergissberlin/azure-cloud-shell-development/commit/24d9411513459772b3afde6a3ec2e31afc423f3b))
+* **cshell:** add APIGEE_HELM_CHARTS_HOME setup and export ([7827d5f](https://github.com/vergissberlin/azure-cloud-shell-development/commit/7827d5f11cefd3dfc11307dea42925d0ff2c17a0))
+
+
+### Bug Fixes
+
+* **cshell:** change default ENV_GROUP value to 'envgroup' to ensure consistency with documentation ([ea3b467](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ea3b46727cc838f45557f13cc502bb3f06acc5b4))
+* **cshell:** escape dollar sign in bashrc export snippet to ensure correct variable expansion ([b47ce6e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b47ce6efa1f7b911910c0e68fe2b7e8dde6599e2))
+* **README.md, cshell:** update default Helm release name for apigee-virtualhost to 'apigee-virtualhost' for consistency and clarity ([abba923](https://github.com/vergissberlin/azure-cloud-shell-development/commit/abba9237b493b0d5f3b96c5d8dd52598a9dc4b91))
+
+
+### Documentation
+
+* **README.md, Configuration.md:** update default value for CONTROL_PLANE_LOCATION to 'europe-west3' for clarity ([d1a2142](https://github.com/vergissberlin/azure-cloud-shell-development/commit/d1a2142e01c659380794c2caab1a11cdc25db652))
+* **README.md:** update default Apigee environment name to 'non-prod' for consistency with non-production setups ([ea9c866](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ea9c8666d30e4fd76f7480788449b0d98e0a1eb5))
+* **README.md:** update default value for ENV_GROUP to 'envgroup' for clarity ([ea3b467](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ea3b46727cc838f45557f13cc502bb3f06acc5b4))
+* update markdown formatting for tables in CONTRIBUTING.md and README.md ([01b2783](https://github.com/vergissberlin/azure-cloud-shell-development/commit/01b2783be72a066029fafaad3e568cc7de9e7d65))
+* update README and Command-Reference for `hybrid --check` ([24d9411](https://github.com/vergissberlin/azure-cloud-shell-development/commit/24d9411513459772b3afde6a3ec2e31afc423f3b))
+
+
+### Tests
+
+* **cshell_cli:** add tests for `hybrid --check` command ([24d9411](https://github.com/vergissberlin/azure-cloud-shell-development/commit/24d9411513459772b3afde6a3ec2e31afc423f3b))
+
+
+### Chores
+
+* **cshell:** change default Apigee environment name to 'non-prod' to align with updated documentation and typical non-production configurations ([ea9c866](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ea9c8666d30e4fd76f7480788449b0d98e0a1eb5))
+* **cshell:** set default control plane location to 'europe-west3' in interactive mode to streamline configuration ([d1a2142](https://github.com/vergissberlin/azure-cloud-shell-development/commit/d1a2142e01c659380794c2caab1a11cdc25db652))
+* **justfile:** add alias for test command to simplify running bats tests ([926a3be](https://github.com/vergissberlin/azure-cloud-shell-development/commit/926a3bec409ad4ae3238f00afb306e287671dd8b))
+
 ## [1.7.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.6.0...1.7.0) (2026-04-09)
 
 
