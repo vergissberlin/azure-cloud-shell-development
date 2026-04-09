@@ -84,15 +84,33 @@ cshell_env_strip_managed_block() {
 	mv "${tmp}" "${env_path}"
 }
 
+# Remove assignment lines for a key (exact KEY=value at line start). Used before re-writing a value
+# that may also appear later in another managed block (last match would win in cshell_env_load).
+cshell_env_delete_assignment_lines() {
+	local env_path="$1"
+	local key="$2"
+	[[ -f "${env_path}" ]] || return 0
+	[[ -n "${key}" ]] || return 0
+	local tmp
+	tmp="$(mktemp)"
+	grep -v "^${key}=" "${env_path}" >"${tmp}" || true
+	mv "${tmp}" "${env_path}"
+}
+
 # Idempotent storage snippet from `cshell setup` (replaces prior setup block).
+# Optional 5th arg: APIGEE_HELM_CHARTS_HOME (canonical dir at setup time, usually $PWD).
 cshell_env_write_setup_storage_block() {
 	local env_path="$1"
 	local storage_account="$2"
 	local container_name="$3"
 	local storage_account_key="$4"
+	local helm_charts_home="${5:-}"
 
 	touch "${env_path}"
 	cshell_env_strip_managed_block "${env_path}" "# BEGIN_CSHELL_SETUP_STORAGE" "# END_CSHELL_SETUP_STORAGE"
+	if [[ -n "${helm_charts_home}" ]]; then
+		cshell_env_delete_assignment_lines "${env_path}" "APIGEE_HELM_CHARTS_HOME"
+	fi
 
 	{
 		echo ""
@@ -102,6 +120,9 @@ cshell_env_write_setup_storage_block() {
 		printf 'AZURE_STORAGE_CONTAINER=%s\n' "${container_name}"
 		if [[ -n "${storage_account_key}" ]]; then
 			printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${storage_account_key}"
+		fi
+		if [[ -n "${helm_charts_home}" ]]; then
+			printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
 		fi
 		echo "# END_CSHELL_SETUP_STORAGE"
 	} >>"${env_path}"
