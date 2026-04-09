@@ -10,21 +10,21 @@ LIB_START="# BEGIN_CSHELL_LIBS"
 LIB_END="# END_CSHELL_LIBS"
 
 LIB_FILES=(
-  "${ROOT_DIR}/lib/env-file.sh"
-  "${ROOT_DIR}/lib/portable.sh"
-  "${ROOT_DIR}/lib/config-cmd.sh"
+	"${ROOT_DIR}/lib/env-file.sh"
+	"${ROOT_DIR}/lib/portable.sh"
+	"${ROOT_DIR}/lib/config-cmd.sh"
 )
 
 if [[ ! -f "${UTILS_FILE}" ]]; then
-  echo "Missing utils file: ${UTILS_FILE}" >&2
-  exit 1
+	echo "Missing utils file: ${UTILS_FILE}" >&2
+	exit 1
 fi
 
 for lf in "${LIB_FILES[@]}"; do
-  if [[ ! -f "${lf}" ]]; then
-    echo "Missing lib file: ${lf}" >&2
-    exit 1
-  fi
+	if [[ ! -f "${lf}" ]]; then
+		echo "Missing lib file: ${lf}" >&2
+		exit 1
+	fi
 done
 
 mkdir -p "${DIST_DIR}"
@@ -32,33 +32,33 @@ mkdir -p "${DIST_DIR}"
 utils_payload="$(<"${UTILS_FILE}")"
 
 strip_leading_shebang() {
-  local f="$1"
-  if head -n 1 "${f}" | grep -q '^#!'; then
-    tail -n +2 "${f}"
-  else
-    cat "${f}"
-  fi
+	local f="$1"
+	if head -n 1 "${f}" | grep -q '^#!'; then
+		tail -n +2 "${f}"
+	else
+		cat "${f}"
+	fi
 }
 
 bundle_lib_block() {
-  echo "# Inlined cshell libraries (dev sources: lib/*.sh)"
-  for lf in "${LIB_FILES[@]}"; do
-    echo "# ----- ${lf##*/} -----"
-    strip_leading_shebang "${lf}"
-    echo ""
-  done
-  echo "CSHELL_LIBS_INLINED=1"
+	echo "# Inlined cshell libraries (dev sources: lib/*.sh)"
+	for lf in "${LIB_FILES[@]}"; do
+		echo "# ----- ${lf##*/} -----"
+		strip_leading_shebang "${lf}"
+		echo ""
+	done
+	echo "CSHELL_LIBS_INLINED=1"
 }
 
 build_fallback_block() {
-  cat <<'EOF'
+	cat <<'EOF'
 # BEGIN_CLI_UTILS_FALLBACK
 if ! declare -F info >/dev/null 2>&1; then
   # shellcheck source=/dev/null
   source /dev/stdin <<'__CSHELL_CLI_UTILS__'
 EOF
-  printf '%s\n' "${utils_payload}"
-  cat <<'EOF'
+	printf '%s\n' "${utils_payload}"
+	cat <<'EOF'
 __CSHELL_CLI_UTILS__
 fi
 # END_CLI_UTILS_FALLBACK
@@ -66,13 +66,13 @@ EOF
 }
 
 replace_block() {
-  local source_file="$1"
-  local target_file="$2"
-  local start_marker="$3"
-  local end_marker="$4"
-  local replacement="$5"
+	local source_file="$1"
+	local target_file="$2"
+	local start_marker="$3"
+	local end_marker="$4"
+	local replacement="$5"
 
-  python3 - "${source_file}" "${target_file}" "${start_marker}" "${end_marker}" "${replacement}" <<'PY'
+	python3 - "${source_file}" "${target_file}" "${start_marker}" "${end_marker}" "${replacement}" <<'PY'
 import pathlib
 import sys
 
