@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# install.sh – Download cshell and install it to /usr/local/bin
+# install.sh – Download cshell and install it to a writable bin directory
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | bash
@@ -14,7 +14,9 @@ set -euo pipefail
 REPO="vergissberlin/azure-cloud-shell-development"
 BRANCH="main"
 RAW_BASE="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
-INSTALL_DIR="/usr/local/bin"
+DEFAULT_INSTALL_DIR="/usr/local/bin"
+FALLBACK_INSTALL_DIR="${HOME}/.local/bin"
+INSTALL_DIR="${DEFAULT_INSTALL_DIR}"
 SCRIPT_NAME="cshell"
 INSTALL_PATH="${INSTALL_DIR}/${SCRIPT_NAME}"
 
@@ -32,8 +34,9 @@ if ! command -v curl &>/dev/null; then
 fi
 
 if [[ ! -w "${INSTALL_DIR}" ]]; then
-  error "${INSTALL_DIR} is not writable. Try: sudo bash install.sh"
-  exit 1
+  info "${INSTALL_DIR} is not writable. Falling back to ${FALLBACK_INSTALL_DIR}."
+  INSTALL_DIR="${FALLBACK_INSTALL_DIR}"
+  INSTALL_PATH="${INSTALL_DIR}/${SCRIPT_NAME}"
 fi
 
 # ---------------------------------------------------------------------------
@@ -41,8 +44,13 @@ fi
 # ---------------------------------------------------------------------------
 
 info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} …"
+mkdir -p "${INSTALL_DIR}"
 curl -fsSL "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
 chmod +x "${INSTALL_PATH}"
 
 success "${SCRIPT_NAME} installed to ${INSTALL_PATH}"
+if [[ ":${PATH}:" != *":${INSTALL_DIR}:"* ]]; then
+  info "Add ${INSTALL_DIR} to your PATH to use '${SCRIPT_NAME}' globally."
+  info "Example: echo 'export PATH=\"${INSTALL_DIR}:$PATH\"' >> ~/.bashrc && source ~/.bashrc"
+fi
 info  "Run '${SCRIPT_NAME} init' to create Azure Storage resources, then '${SCRIPT_NAME} setup' to finish first-time configuration."
