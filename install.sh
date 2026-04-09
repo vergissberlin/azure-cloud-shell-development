@@ -30,33 +30,41 @@ fi
 
 # Fallback for standalone curl execution where shared utils are unavailable.
 if ! declare -F info >/dev/null 2>&1; then
-  info()    { echo -e "\033[1;34m[INFO]\033[0m  $*"; }
-  success() { echo -e "\033[1;32m[OK]\033[0m    $*"; }
-  error()   { echo -e "\033[1;31m[ERROR]\033[0m $*" >&2; }
+  RESET='\033[0m'
+  BLACK='\033[30m'
+  CYAN='\033[36m'
+  GREEN='\033[32m'
+  YELLOW='\033[33m'
+  RED='\033[31m'
+  BG_CYAN='\033[46m'
+  BG_GREEN='\033[42m'
+  BG_YELLOW='\033[43m'
+  BG_RED='\033[41m'
+  CHECKMARK='✓'
+  CROSS='✗'
+
+  box() { echo -e "${2:-$BG_CYAN}${3:-$BLACK} $1 ${RESET}"; }
+  info() { echo -e "$(box 'INFO' "$BG_CYAN" "$BLACK") ${CYAN}$*${RESET}"; }
+  success() { echo -e "$(box 'DONE' "$BG_GREEN" "$BLACK") ${GREEN}${CHECKMARK}${RESET} ${GREEN}$*${RESET}"; }
+  warn() { echo -e "$(box 'WARN' "$BG_YELLOW" "$BLACK") ${YELLOW}$*${RESET}"; }
+  error() { echo -e "$(box 'ERR' "$BG_RED" "$BLACK") ${RED}${CROSS}${RESET} ${RED}$*${RESET}" >&2; }
+  section() { echo; echo -e "${CYAN}=== $1 ===${RESET}"; [[ -n "${2:-}" ]] && info "$2"; }
 fi
 
-# ---------------------------------------------------------------------------
-# Preflight checks
-# ---------------------------------------------------------------------------
+section "PRECHECK" "Validate dependencies and install target" "cyan"
 
 if ! command -v curl &>/dev/null; then
-  error "curl is required but not installed."
+  error "curl is required but not installed"
   exit 1
 fi
 
 if [[ ! -w "${INSTALL_DIR}" ]]; then
-  info "${INSTALL_DIR} is not writable. Falling back to ${FALLBACK_INSTALL_DIR}."
+  warn "${INSTALL_DIR} is not writable. Falling back to ${FALLBACK_INSTALL_DIR}"
   INSTALL_DIR="${FALLBACK_INSTALL_DIR}"
   INSTALL_PATH="${INSTALL_DIR}/${SCRIPT_NAME}"
 fi
 
-# ---------------------------------------------------------------------------
-# Download and install
-# ---------------------------------------------------------------------------
-
-if declare -F section >/dev/null 2>&1; then
-  section "INSTALL" "Download and install ${SCRIPT_NAME}" "cyan"
-fi
+section "INSTALL" "Download and install ${SCRIPT_NAME}" "cyan"
 
 info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} ..."
 mkdir -p "${INSTALL_DIR}"
@@ -64,8 +72,9 @@ curl -fsSL "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
 chmod +x "${INSTALL_PATH}"
 
 success "${SCRIPT_NAME} installed to ${INSTALL_PATH}"
+section "NEXT STEPS" "Complete first-time setup" "green"
 if [[ ":${PATH}:" != *":${INSTALL_DIR}:"* ]]; then
   info "Add ${INSTALL_DIR} to your PATH to use '${SCRIPT_NAME}' globally."
   info "Example: echo 'export PATH=\"${INSTALL_DIR}:$PATH\"' >> ~/.bashrc && source ~/.bashrc"
 fi
-info  "Run '${SCRIPT_NAME} init' to create Azure Storage resources, then '${SCRIPT_NAME} setup' to finish first-time configuration."
+info "Run '${SCRIPT_NAME} init' to create Azure Storage resources, then '${SCRIPT_NAME} setup' to finish first-time configuration."
