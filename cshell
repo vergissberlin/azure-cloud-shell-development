@@ -159,7 +159,7 @@ check_for_update_notice() {
 
   latest_version="${latest_tag#v}"
   if is_newer_version "${SCRIPT_VERSION}" "${latest_version}"; then
-    warn "A newer ${SCRIPT_NAME} revision is available (${latest_version}). Run '${SCRIPT_NAME} update'."
+    warn "A newer ${SCRIPT_NAME} version is available (${latest_version}). Run '${SCRIPT_NAME} update'."
   fi
 }
 
@@ -645,7 +645,7 @@ cmd_init() {
   } >> "${ENV_FILE}"
 
   success "Configuration saved to ${ENV_FILE}"
-  info  "Run 'cshell backup' to create and upload your first backup."
+  info "Run 'cshell backup' to create and upload your first backup."
 }
 
 # ---------------------------------------------------------------------------
@@ -704,21 +704,21 @@ cmd_restore() {
 
   if [[ ! -f "${ARCHIVE_FILE}" ]]; then
     if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
-      info "archive.zip not found locally - downloading from Azure Blob Storage ..."
+      info "Local archive not found. Downloading from Azure Blob Storage ..."
       if download_blob_with_fallback \
         "${AZURE_STORAGE_ACCOUNT}" \
         "${AZURE_STORAGE_CONTAINER}" \
         "archive.zip" \
         "${ARCHIVE_FILE}"; then
-        success "archive.zip downloaded from Azure Blob Storage"
+        success "Archive downloaded from Azure Blob Storage"
       else
-        error "Could not download archive.zip from Azure Blob Storage."
+        error "Could not download archive from Azure Blob Storage."
         error "Grant blob data permissions or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE}."
         exit 1
       fi
     else
-      error "archive.zip not found at ${ARCHIVE_FILE} and no Azure storage config available."
-      echo  "Place archive.zip in your home directory or run 'cshell setup' to configure Azure."
+      error "Archive not found at ${ARCHIVE_FILE}, and no Azure storage config is available."
+      warn "Place archive.zip in your home directory or run 'cshell setup' to configure Azure."
       exit 1
     fi
   fi
