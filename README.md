@@ -143,7 +143,7 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 | `ORG_NAME` | Apigee Organization name | `$PROJECT_ID` |
 | `ORG_DISPLAY_NAME` | Apigee Organization display name | `$ORG_NAME` |
 | `ORGANIZATION_DESCRIPTION` | Organization description | – |
-| `ANALYTICS_REGION` | Analytics region (e.g. `europe-west1`) | `us-central1` |
+| `ANALYTICS_REGION` | Analytics region (e.g. `europe-west3`) | `europe-west3` |
 | `RUNTIMETYPE` | Runtime type | `HYBRID` |
 | `CLUSTER_NAME` | Kubernetes cluster name | `apigee-hybrid` |
 | `CLUSTER_REGION` | Kubernetes cluster region | `$ANALYTICS_REGION` |

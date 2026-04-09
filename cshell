@@ -483,7 +483,7 @@ cmd_hybrid() {
   org_name=$(ask          "Apigee Organization name"                 "${ORG_NAME:-$project_id}")
   org_display_name=$(ask  "Apigee Organization display name"         "${ORG_DISPLAY_NAME:-$org_name}")
   org_description=$(ask   "Apigee Organization description"          "${ORGANIZATION_DESCRIPTION:-Apigee Hybrid organization}")
-  analytics_region=$(ask  "Analytics region (e.g. europe-west1)"    "${ANALYTICS_REGION:-us-central1}")
+  analytics_region=$(ask  "Analytics region (e.g. europe-west3)"    "${ANALYTICS_REGION:-europe-west3}")
   runtime_type=$(ask      "Runtime type"                             "${RUNTIMETYPE:-HYBRID}")
   cluster_name=$(ask      "Kubernetes cluster name"                  "${CLUSTER_NAME:-apigee-hybrid}")
   cluster_region=$(ask    "Kubernetes cluster region"                "${CLUSTER_REGION:-${analytics_region}}")
