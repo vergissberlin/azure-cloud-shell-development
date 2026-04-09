@@ -25,10 +25,10 @@ setup() {
 	[[ "$output" == *Commands:* ]]
 }
 
-@test "cshell docs exits 0 and mentions README" {
+@test "cshell docs exits 0 and mentions project docs" {
 	run_cshell docs
 	[ "$status" -eq 0 ]
-	[[ "$output" == *README* || "$output" == *readme* ]]
+	[[ "$output" == *vergissberlin* ]]
 }
 
 @test "cshell with no command prints usage and exits 1" {

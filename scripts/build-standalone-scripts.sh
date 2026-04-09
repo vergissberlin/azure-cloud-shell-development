@@ -47,7 +47,6 @@ bundle_lib_block() {
 		strip_leading_shebang "${lf}"
 		echo ""
 	done
-	echo "CSHELL_LIBS_INLINED=1"
 }
 
 build_fallback_block() {

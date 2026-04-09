@@ -98,4 +98,4 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          "${RUNNER_TEMP}/bats-core/bin/bats" tests/cshell_cli.bats
+          "${RUNNER_TEMP}/bats-core/bin/bats" tests

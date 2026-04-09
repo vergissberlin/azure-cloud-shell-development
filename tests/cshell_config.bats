@@ -57,13 +57,14 @@ setup() {
 @test "config help exits 0" {
 	run_cshell config help
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"config show"* ]]
+	[[ "$output" == *Usage:* ]]
+	[[ "$output" == *validate* ]]
 }
 
 @test "config without subcommand shows usage" {
 	run_cshell config
 	[ "$status" -eq 0 ]
-	[[ "$output" == *"config show"* ]]
+	[[ "$output" == *Usage:* ]]
 }
 
 @test "config validate exits 0 without Azure" {

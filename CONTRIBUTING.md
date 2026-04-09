@@ -51,9 +51,12 @@ smoke tests via GitHub Actions.
 With [**just**](https://github.com/casey/just) installed (`brew install just`), from the repo root:
 
 ```bash
+just doctor   # see if shellcheck, shfmt, bats are on PATH (just prepends Homebrew dirs)
 just check    # same pipeline as standalone-build-check (build, syntax, shellcheck, shfmt, bats)
 just --list   # all recipes (build, lint, fmt, bats-deps, …)
 ```
+
+If `just check` stops at `lint` with “shellcheck not found”, install the tools (e.g. `brew install shellcheck shfmt`) — see `just doctor`.
 
 Without `just`, run the commands below manually.
 
@@ -73,7 +76,7 @@ shellcheck -x dist/cshell
 shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
 
 # Bats (example: install bats-core, then)
-bats tests/cshell_cli.bats
+bats tests
 
 # Manual smoke (init/setup need a real Azure subscription when exercised)
 CSHELL_NO_UPDATE_CHECK=1 bash cshell help
