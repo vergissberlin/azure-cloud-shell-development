@@ -167,10 +167,10 @@ Hybrid variables **set and non-empty** (read-only; no writes, no chart pull). Th
 includes a **non-empty `DOMAIN`** (stricter than `APIGEE_SETUP_NONINTERACTIVE`,
 which only warns if `DOMAIN` is empty). The command also prints a **numbered
 v1.16 install checklist** (same order as the documentation links below) with ✓ /
-✗ / — for each step (all thirteen items now have automated hints where possible—see
+✗ / ○ for each step (all thirteen items now have automated hints where possible—see
 the command reference). **Exit code** still depends only on required variables
 unless you use **`cshell hybrid --check --strict`**, which fails when any checklist
-row is ✗ (rows marked — do not count as failures).
+row is ✗ (rows marked ○ do not count as failures).
 
 Use **`cshell hybrid --export`** to re-run those checks and refresh
 **`~/.cshell-env-exports.sh`** (plus `~/.bashrc` / `~/.profile` / `~/.bash_profile` hooks)—without pulling charts.

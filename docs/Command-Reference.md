@@ -16,7 +16,7 @@
 - **1** — error (missing env file, validation failure, unknown command, etc.)
 - **`cshell hybrid --check`**: **1** if `~/.cshell.env` is missing or empty, any required
   Hybrid variable is missing or empty, or (with **`--strict`**) any checklist row is **✗**.
-  Rows **—** do not fail `--strict`. Without `--strict`, the numbered checklist is
+  Rows **○** do not fail `--strict`. Without `--strict`, the numbered checklist is
   informational for exit status except for the required-variable / env-file errors above.
 
 **Note:** `-v` at the top level means `--version`. `backup` / `restore` use `-v` as
@@ -73,8 +73,8 @@ list (same as `cshell docs`).
   appear in the file when built-in defaults apply. After loading the env file it
   prints a **numbered checklist** (items 1–13) in the same order as the Google
   Apigee Hybrid v1.16 install topics (plus the community guide link), each item
-  with a separate **`Doc:`** line for the documentation URL. **✓** /
-  **✗** / **—** use the following heuristics:
+  with a separate, further-indented **`Doc:`** line for the documentation URL. **✓** /
+  **✗** / **○** use the following heuristics (status on the first line without `[` `]`):
   1. Required Hybrid variables (before you begin).
   2. Cluster reachability (`kubectl cluster-info`) when `kubectl` is on `PATH`.
   3. Unpacked chart directories under `APIGEE_HELM_CHARTS_HOME`.
@@ -82,27 +82,27 @@ list (same as `cshell docs`).
   5. **Service accounts:** non-prod key file `…/service-accounts/${PROJECT_ID}-apigee-non-prod.json`
      or matching GCP SA email via `gcloud`; production expects **seven** key files
      (logger, guardrails, metrics, watcher, mart, synchronizer, runtime) or the same
-     seven `@…` service accounts; **—** when neither keys nor `gcloud` are available
+     seven `@…` service accounts; **○** when neither keys nor `gcloud` are available
      (Vault / Workload Identity).
   6. **SA auth:** `apigee-non-prod-svc-account` (non-prod) or the seven production
      `apigee-*-svc-account` secrets in `APIGEE_NAMESPACE` when the cluster checks
-     apply; **—** if `kubectl` or the namespace is unavailable.
+     apply; **○** if `kubectl` or the namespace is unavailable.
   7. **TLS:** files under `apigee-virtualhost/certs/`, or a cert-manager `Certificate`
      / `kubernetes.io/tls` secret in the namespace when cluster checks apply.
   8. **Overrides:** non-empty `overrides.yaml` in `APIGEE_HELM_CHARTS_HOME`.
   9. **Control plane access:** `GET …/organizations/${ORG_NAME}/controlPlaneAccess`
      (respecting `CONTROL_PLANE_LOCATION` for data residency) with `gcloud`’s access
-     token; **✓** only when the response lists synchronizer service accounts; **—**
+     token; **✓** only when the response lists synchronizer service accounts; **○**
      on non-200 HTTP or missing credentials/network.
   10. **cert-manager:** CRD `certificates.cert-manager.io` and a non-empty
       `cert-manager` pod list when the cluster is reachable.
   11. **CRDs:** `apigeeorganizations.apigee.cloud.google.com` installed.
   12. **Helm:** release name `apigee-operator` in `APIGEE_NAMESPACE`.
-  13. **Community guide:** HTTP 2xx on the linked GitHub doc; **—** if unreachable
+  13. **Community guide:** HTTP 2xx on the linked GitHub doc; **○** if unreachable
       (offline), not **✗**.
 
   **`hybrid --check --strict`:** same checks; **exit status 1** if any row shows **✗**.
-  Rows marked **—** (not verifiable in this environment) do **not** fail `--strict`.
+  Rows marked **○** (not verifiable in this environment) do **not** fail `--strict`.
   Without `--strict`, **exit status** still reflects **only** required-variable
   validation (and env file presence), not the checklist. No file writes and no chart
   downloads.

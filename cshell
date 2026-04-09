@@ -736,6 +736,11 @@ HYBRID_REQUIRED_VARS=(
 	APIGEE_HELM_CHARTS_HOME
 )
 
+# Hybrid install checklist status glyphs (human output + JSON symbol field). Independent of CHECKMARK/CROSS in success/error.
+HYBRID_CHK_PASS='✓'
+HYBRID_CHK_FAIL='✗'
+HYBRID_CHK_SKIP='○'
+
 # After cshell_env_load "${ENV_FILE}", sets hybrid_missing_required to missing key names.
 cmd_hybrid_env_fill_missing_array() {
 	hybrid_missing_required=()
@@ -782,30 +787,31 @@ cmd_hybrid_env_validate() {
 # Args: step_num title url status_symbol [note]
 cshell_hybrid_checklist_emit_step() {
 	local num="$1" title="$2" url="$3" sym="$4" note="${5:-}"
+	local cont_ind='            '
 	local dim=''
 	if cshell_cli_colors_active; then
 		dim="${DIM:-\033[2m}"
 	fi
 	local sym_color="${GREEN}" title_color="${GREEN}"
 
-	if [[ "${sym}" == "${CROSS}" ]]; then
+	if [[ "${sym}" == "${HYBRID_CHK_FAIL}" ]]; then
 		sym_color="${RED}"
 		title_color="${RED}"
-	elif [[ "${sym}" == "—" ]]; then
+	elif [[ "${sym}" == "${HYBRID_CHK_SKIP}" ]]; then
 		sym_color="${YELLOW}"
 		title_color="${YELLOW}"
 	fi
 
-	echo -e "  ${sym_color}[${sym}]${RESET} ${title_color}$(printf '%2d' "${num}"). ${title}${RESET}"
-	echo -e "      ${dim}Doc: ${url}${RESET}"
+	echo -e "  ${sym_color}${sym}${RESET}  ${title_color}$(printf '%2d' "${num}"). ${title}${RESET}"
+	echo -e "${cont_ind}${dim}Doc: ${url}${RESET}"
 
 	if [[ -n "${note}" ]]; then
-		if [[ "${sym}" == "${CROSS}" ]]; then
-			echo -e "      ${RED}↳ ${note}${RESET}"
-		elif [[ "${sym}" == "—" ]]; then
-			echo -e "      ${YELLOW}↳ ${note}${RESET}"
+		if [[ "${sym}" == "${HYBRID_CHK_FAIL}" ]]; then
+			echo -e "${cont_ind}${RED}↳ ${note}${RESET}"
+		elif [[ "${sym}" == "${HYBRID_CHK_SKIP}" ]]; then
+			echo -e "${cont_ind}${YELLOW}↳ ${note}${RESET}"
 		else
-			echo -e "      ${dim}↳ ${note}${RESET}"
+			echo -e "${cont_ind}${dim}↳ ${note}${RESET}"
 		fi
 	fi
 	echo
@@ -823,10 +829,12 @@ cshell_json_escape() {
 
 cshell_hybrid_step_status_from_sym() {
 	local sym="$1"
-	if [[ "${sym}" == "${CHECKMARK}" ]]; then
+	if [[ "${sym}" == "${HYBRID_CHK_PASS}" ]]; then
 		printf '%s' pass
-	elif [[ "${sym}" == "${CROSS}" ]]; then
+	elif [[ "${sym}" == "${HYBRID_CHK_FAIL}" ]]; then
 		printf '%s' fail
+	elif [[ "${sym}" == "${HYBRID_CHK_SKIP}" ]]; then
+		printf '%s' skip
 	else
 		printf '%s' skip
 	fi
@@ -845,20 +853,20 @@ cshell_hybrid_json_step() {
 # Print numbered Hybrid v1.16 install checklist (docs order). Uses current shell state after cshell_env_load.
 # $1: "1" when invoked from hybrid --check --strict (banner / JSON strict field only).
 # $2: "1" for machine-readable JSON on stdout (no ANSI, no human banners).
-# Sets hybrid_checklist_fail_count to the number of rows with ✗ (for --strict).
+# Sets hybrid_checklist_fail_count to the number of rows with HYBRID_CHK_FAIL (for --strict).
 cmd_hybrid_install_checklist_print() {
 	local strict_banner="${1:-0}"
 	local json_mode="${2:-0}"
 
-	local sym_done="${CHECKMARK}"
-	local sym_fail="${CROSS}"
-	local sym_skip="—"
+	local sym_done="${HYBRID_CHK_PASS}"
+	local sym_fail="${HYBRID_CHK_FAIL}"
+	local sym_skip="${HYBRID_CHK_SKIP}"
 
 	hybrid_checklist_fail_count=0
 
 	if [[ "${json_mode}" != "1" ]]; then
 		if [[ "${strict_banner}" == "1" ]]; then
-			info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ✗ below (— is not a failure)."
+			info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ${HYBRID_CHK_FAIL} below (${HYBRID_CHK_SKIP} is not a failure)."
 		else
 			info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
 		fi
@@ -954,7 +962,7 @@ cmd_hybrid_install_checklist_print() {
 	cshell_hybrid_checklist_emit_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}"
 	cshell_hybrid_checklist_emit_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}"
 	cshell_hybrid_checklist_emit_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}"
-	info "Vault-only or Workload Identity setups may not show ✓ for service-account rows; confirm against Google's docs if needed."
+	info "Vault-only or Workload Identity setups may not show ${HYBRID_CHK_PASS} for service-account rows; confirm against Google's docs if needed."
 }
 
 cmd_hybrid_check() {
@@ -977,7 +985,7 @@ cmd_hybrid_check() {
 	fi
 
 	if [[ "${hybrid_strict}" == "1" ]] && [[ "${hybrid_checklist_fail_count:-0}" -gt 0 ]]; then
-		error "Checklist has ${hybrid_checklist_fail_count} failed item(s) (✗). Fix the issues above or run without --strict."
+		error "Checklist has ${hybrid_checklist_fail_count} failed item(s) (${HYBRID_CHK_FAIL}). Fix the issues above or run without --strict."
 		exit 1
 	fi
 
@@ -1591,7 +1599,7 @@ Exit codes:
   0  Success
   1  Error (missing env file, validation failure, unknown command, etc.)
   hybrid --check: exit 1 if ${ENV_FILE} is missing/empty, required Hybrid vars are missing/empty, or (with
-      --strict) any checklist row is ✗. Rows marked — do not fail --strict. Without --strict, checklist
+      --strict) any checklist row is ${HYBRID_CHK_FAIL}. Rows marked ${HYBRID_CHK_SKIP} do not fail --strict. Without --strict, checklist
       rows are informational for exit status except required-variable errors above.
   Top-level -v is short for --version; backup/restore use -v for --verbose (see their help text).
 

@@ -107,7 +107,7 @@ EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"install checklist"* ]]
-	[[ "$output" == *"[✓]"*"1. Before you begin"* ]]
+	[[ "$output" == *"✓"*1. Before you begin"* ]]
 	[[ "$output" == *"Doc:"*install-before-begin* ]]
 	[[ "$output" == *"13. Community install guide"* ]]
 	[[ "$output" == *"All required"* ]]
@@ -220,7 +220,7 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"[✗]"*"1. Before you begin"* ]]
+	[[ "$output" == *"✗"*1. Before you begin"* ]]
 	[[ "$output" == *Missing* ]]
 	[[ "$output" == *DOMAIN* ]]
 }
@@ -252,7 +252,7 @@ hybrid_make_chart_fixture() {
 	done
 }
 
-# Drop dirs that expose kubectl/helm/gcloud so heuristic checks stay — (not ✗) without a real cluster.
+# Drop dirs that expose kubectl/helm/gcloud so heuristic checks stay ○ (not ✗) without a real cluster.
 # When a directory like /usr/bin is dropped because it contains kubectl, core utilities there (grep,
 # curl, …) would also disappear and cshell can exit before finishing. Append a temp dir of symlinks to
 # those binaries (resolved before PATH is rewritten) so CI behaves like a dev laptop.
