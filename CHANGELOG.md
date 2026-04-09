@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.20.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.19.1...1.20.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add cmd_hybrid_help function to provide help for hybrid command ([6c1199e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6c1199ec6340d45c9e08d6115248809c85858ad4))
+* **cshell:** add interactive confirmation for writing overrides.yaml ([606e498](https://github.com/vergissberlin/azure-cloud-shell-development/commit/606e498ced752d731cce28f63f1f889cceb090b9))
+
+
+### Documentation
+
+* **Command-Reference.md, Hybrid-Setup.md:** update documentation to clarify interactive and non-interactive modes for writing overrides.yaml, including confirmation prompts and overwrite rules ([7d8acf9](https://github.com/vergissberlin/azure-cloud-shell-development/commit/7d8acf9a793e9e662e8e15ee626570816e4ec1c7))
+* **Command-Reference.md:** document hybrid --help flag for concise flag summary ([6c1199e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6c1199ec6340d45c9e08d6115248809c85858ad4))
+
+
+### Code Refactoring
+
+* **cshell:** relocate shellcheck directive for clarity ([7d8acf9](https://github.com/vergissberlin/azure-cloud-shell-development/commit/7d8acf9a793e9e662e8e15ee626570816e4ec1c7))
+
+
+### Tests
+
+* **cshell_cli.bats:** add tests for hybrid --help and -h flag to ensure correct output and exit status ([6c1199e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6c1199ec6340d45c9e08d6115248809c85858ad4))
+* **cshell_cli:** add tests for interactive and non-interactive modes ([606e498](https://github.com/vergissberlin/azure-cloud-shell-development/commit/606e498ced752d731cce28f63f1f889cceb090b9))
+
 ## [1.19.1](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.19.0...1.19.1) (2026-04-09)
 
 
