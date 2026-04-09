@@ -48,6 +48,17 @@ This appears after **`rm -rf ~/.local`** (or similar): the binary is gone, but B
 - Verify:
   - `gcloud --version`
 
+## `gcloud`: `can't open file '.../.local/lib/gcloud.py'`
+
+Older **`cshell setup`** versions copied only the small `bin/gcloud` launcher into **`~/.local/bin`**. That launcher must stay next to the full SDK tree (under **`~/google-cloud-sdk`**). A lone copy makes it treat **`~/.local`** as the SDK root and look for **`~/.local/lib/gcloud.py`**, which does not exist.
+
+**Fix (pick one):**
+
+1. **Preferred:** Update **`cshell`**, then run **`cshell setup`** again. The setup logic installs the SDK under **`~/google-cloud-sdk`** and puts a **symlink** at **`~/.local/bin/gcloud`** (or repairs a broken install when `gcloud --version` fails).
+2. **Quick manual repair:** Ensure the real binary is used, then open a new shell:
+   - `ln -sf "${HOME}/google-cloud-sdk/bin/gcloud" "${HOME}/.local/bin/gcloud"`
+   - or put **`${HOME}/google-cloud-sdk/bin`** on `PATH` ahead of **`~/.local/bin`** (Google’s `install.sh --path-update` usually adds this via **`path.bash.inc`** in **`~/.bashrc`**).
+
 ## `Permission denied` when running `~/.cshell-env-exports.sh`
 
 That file is **not** an executable script. It is **`source`d** (dot-sourced) by your shell so exports apply to the **current** session:

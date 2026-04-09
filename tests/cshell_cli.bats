@@ -84,6 +84,13 @@ setup() {
 	[ "$status" -eq 1 ]
 }
 
+@test "tarball gcloud install symlinks launcher into PATH (does not copy it alone)" {
+	run grep -qF 'ln -sf "${gcloud_root}/bin/gcloud"' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+	run grep -qF 'tar -xzf "${gcloud_tar}" -C "${HOME}"' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+}
+
 @test "hybrid --check succeeds when all required vars are set" {
 	export_home_tmp
 	cat >"${HOME}/.cshell.env" <<'EOF'

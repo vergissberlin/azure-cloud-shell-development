@@ -629,9 +629,15 @@ cmd_setup() {
 	install_shell_completion || warn "Autocomplete setup encountered an unexpected issue."
 
 	# ── 3. Install gcloud CLI (Apigee hybrid development) ────────────────────
-	if command_exists gcloud; then
+	# A broken ~/.local/bin/gcloud (e.g. copied from google-cloud-sdk/bin without
+	# the rest of the tree) resolves CLOUDSDK_ROOT_DIR to ~/.local and fails with
+	# "can't open file '.../.local/lib/gcloud.py'". Treat non-working gcloud as missing.
+	if command_exists gcloud && gcloud --version >/dev/null 2>&1; then
 		success "gcloud is already installed ($(gcloud --version 2>&1 | head -1))"
 	else
+		if command_exists gcloud; then
+			warn "gcloud is on PATH but does not run; reinstalling Google Cloud SDK ..."
+		fi
 		info "Installing Google Cloud SDK ..."
 		if command_exists apt-get && [[ $EUID -eq 0 ]]; then
 			apt-get update -qq
@@ -647,7 +653,7 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 			brew install --cask google-cloud-sdk
 		else
 			info "No apt/brew found. Using official tarball installer ..."
-			local tmp_dir gcloud_tar gcloud_root gcloud_bin target_bin os arch
+			local tmp_dir gcloud_tar gcloud_root target_bin os arch
 			tmp_dir="$(mktemp -d)"
 			os="$(uname -s | tr '[:upper:]' '[:lower:]')"
 			arch="$(uname -m)"
@@ -661,19 +667,25 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 			esac
 			gcloud_tar="${tmp_dir}/google-cloud-cli.tar.gz"
 			curl -fsSL "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${os}-${arch}.tar.gz" -o "${gcloud_tar}"
-			tar -xzf "${gcloud_tar}" -C "${tmp_dir}"
-			gcloud_root="${tmp_dir}/google-cloud-sdk"
+			# Install tree under $HOME so the launcher keeps LIB/CLOUDSDK_ROOT_DIR valid.
+			tar -xzf "${gcloud_tar}" -C "${HOME}"
+			rm -rf "${tmp_dir}"
+			gcloud_root="${HOME}/google-cloud-sdk"
+			if [[ ! -x "${gcloud_root}/install.sh" ]]; then
+				error "Google Cloud SDK unpack failed (missing ${gcloud_root}/install.sh)."
+				exit 1
+			fi
 			"${gcloud_root}/install.sh" --quiet --path-update=true --usage-reporting=false --command-completion=true
-			gcloud_bin="${gcloud_root}/bin/gcloud"
-			if [[ -x "${gcloud_bin}" ]]; then
+			if [[ -x "${gcloud_root}/bin/gcloud" ]]; then
 				if [[ $EUID -eq 0 ]]; then
+					mkdir -p /usr/local/bin
 					target_bin="/usr/local/bin/gcloud"
 				else
 					mkdir -p "${HOME}/.local/bin"
 					target_bin="${HOME}/.local/bin/gcloud"
 				fi
-				cp "${gcloud_bin}" "${target_bin}"
-				chmod +x "${target_bin}"
+				# Symlink: a copy here breaks _cloudsdk_root_dir() (expects .../google-cloud-sdk/bin/gcloud).
+				ln -sf "${gcloud_root}/bin/gcloud" "${target_bin}"
 			else
 				error "gcloud binary not found after installer run."
 				exit 1
