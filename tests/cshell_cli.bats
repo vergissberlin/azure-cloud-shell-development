@@ -107,7 +107,7 @@ EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"install checklist"* ]]
-	[[ "$output" == *"✓"*1. Before you begin"* ]]
+	[[ "$output" == *"✓"*"1. Before you begin"* ]]
 	[[ "$output" == *"Doc:"*install-before-begin* ]]
 	[[ "$output" == *"13. Community install guide"* ]]
 	[[ "$output" == *"All required"* ]]
@@ -220,7 +220,7 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"✗"*1. Before you begin"* ]]
+	[[ "$output" == *"✗"*"1. Before you begin"* ]]
 	[[ "$output" == *Missing* ]]
 	[[ "$output" == *DOMAIN* ]]
 }
