@@ -155,6 +155,9 @@ hybrid_make_chart_fixture() {
 }
 
 # Drop dirs that expose kubectl/helm/gcloud so heuristic checks stay — (not ✗) without a real cluster.
+# When a directory like /usr/bin is dropped because it contains kubectl, core utilities there (grep,
+# curl, …) would also disappear and cshell can exit before finishing. Append a temp dir of symlinks to
+# those binaries (resolved before PATH is rewritten) so CI behaves like a dev laptop.
 hybrid_path_for_local_files_only() {
 	local out="" d
 	while IFS= read -r d; do
@@ -164,7 +167,14 @@ hybrid_path_for_local_files_only() {
 		[[ -x "${d}/gcloud" ]] && continue
 		out="${out:+$out:}${d}"
 	done <<<"$(printf '%s' "${PATH:-}" | tr ':' '\n')"
-	printf '%s\n' "${out:-/usr/bin:/bin:/usr/sbin:/sbin}"
+	out="${out:-/usr/bin:/bin:/usr/sbin:/sbin}"
+	local mini util p
+	mini="$(mktemp -d)"
+	for util in grep curl awk sed tr mktemp wc cat head tail cut dirname basename sort env; do
+		p="$(command -v "${util}" 2>/dev/null || true)"
+		[[ -n "${p}" && "${p}" == */* && -x "${p}" ]] && ln -sf "${p}" "${mini}/${util}"
+	done
+	printf '%s:%s\n' "${out}" "${mini}"
 }
 
 @test "hybrid --check --strict succeeds when checklist has no failures" {
@@ -189,7 +199,7 @@ DOMAIN=api.example.com
 APIGEE_HELM_CHARTS_HOME=${charts}
 # END_CSHELL_HYBRID_ENV
 EOF
-	PATH="$(hybrid_path_for_local_files_only)" run_cshell hybrid --check --strict
+	run_cshell_with_path "$(hybrid_path_for_local_files_only)" hybrid --check --strict
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"All required"* ]]
 }
@@ -217,7 +227,7 @@ DOMAIN=api.example.com
 APIGEE_HELM_CHARTS_HOME=${charts}
 # END_CSHELL_HYBRID_ENV
 EOF
-	PATH="$(hybrid_path_for_local_files_only)" run_cshell hybrid --check --strict
+	run_cshell_with_path "$(hybrid_path_for_local_files_only)" hybrid --check --strict
 	[ "$status" -eq 1 ]
 	[[ "$output" == *"failed item"* ]]
 }

@@ -19,3 +19,14 @@ export_home_tmp() {
 run_cshell() {
 	run bash "${REPO_ROOT}/cshell" "$@"
 }
+
+# Run cshell with a custom PATH (e.g. hide kubectl/helm/gcloud) without losing bash.
+# Resolves bash from the current PATH before applying custom_path so /usr/bin can be
+# dropped when it only existed to ship kubectl (CI runners).
+run_cshell_with_path() {
+	local custom_path="$1"
+	shift
+	local bash_path
+	bash_path="$(command -v bash)"
+	run env PATH="${custom_path}" "${bash_path}" "${REPO_ROOT}/cshell" "$@"
+}
