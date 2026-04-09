@@ -215,7 +215,7 @@ install_bashrc_helm_charts_home_export() {
 	touch "${bashrc_file}"
 	append_line_if_missing "${bashrc_file}" ""
 	append_line_if_missing "${bashrc_file}" "# Added by cshell setup: APIGEE_HELM_CHARTS_HOME"
-	append_line_if_missing "${bashrc_file}" '[[ -r "${HOME}/.cshell-helm-charts-home.sh" ]] && . "${HOME}/.cshell-helm-charts-home.sh"'
+	append_line_if_missing "${bashrc_file}" "[[ -r \"\${HOME}/.cshell-helm-charts-home.sh\" ]] && . \"\${HOME}/.cshell-helm-charts-home.sh\""
 
 	success "APIGEE_HELM_CHARTS_HOME export snippet: ${snippet}"
 	info "New bash sessions load it via ~/.bashrc; in this shell run: source ${snippet}"
