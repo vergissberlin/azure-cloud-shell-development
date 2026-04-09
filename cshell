@@ -6,8 +6,12 @@ set -euo pipefail
 
 SCRIPT_NAME="cshell"
 SCRIPT_VERSION="1.1.0" # x-release-please-version
+REPO_SLUG="vergissberlin/azure-cloud-shell-development"
+DEFAULT_REF="main"
+LATEST_RELEASE_API="https://api.github.com/repos/${REPO_SLUG}/releases/latest"
 INSTALL_PATH_DEFAULT="/usr/bin/${SCRIPT_NAME}"
 INSTALL_PATH_USER="${HOME}/.local/bin/${SCRIPT_NAME}"
+UPDATE_INSTALL_PATH_DEFAULT="/usr/local/bin/${SCRIPT_NAME}"
 ENV_FILE="${HOME}/.cshell.env"
 ARCHIVE_FILE="${HOME}/archive.zip"
 SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
@@ -119,6 +123,83 @@ command_exists() {
 
 is_azure_cloud_shell() {
   [[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
+}
+
+resolve_latest_release_tag() {
+  local latest_json latest_tag
+
+  if ! command_exists curl; then
+    return 1
+  fi
+
+  latest_json="$(curl -fsSL "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+  latest_tag="$(printf '%s' "${latest_json}" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+  [[ -n "${latest_tag}" ]] || return 1
+  printf '%s\n' "${latest_tag}"
+}
+
+is_newer_version() {
+  local current_version="$1"
+  local latest_version="$2"
+  local highest_version
+
+  if [[ -z "${current_version}" || -z "${latest_version}" || "${current_version}" == "${latest_version}" ]]; then
+    return 1
+  fi
+
+  highest_version="$(printf '%s\n%s\n' "${current_version}" "${latest_version}" | sort -V | tail -n 1)"
+  [[ "${highest_version}" == "${latest_version}" ]]
+}
+
+check_for_update_notice() {
+  local latest_tag latest_version
+
+  latest_tag="$(resolve_latest_release_tag || true)"
+  [[ -n "${latest_tag}" ]] || return 0
+
+  latest_version="${latest_tag#v}"
+  if is_newer_version "${SCRIPT_VERSION}" "${latest_version}"; then
+    warn "A newer ${SCRIPT_NAME} revision is available (${latest_version}). Run '${SCRIPT_NAME} update'."
+  fi
+}
+
+is_path_writable_for_replace() {
+  local target_path="$1"
+  local target_dir
+
+  if [[ -e "${target_path}" ]]; then
+    [[ -w "${target_path}" ]]
+    return
+  fi
+
+  target_dir="$(dirname "${target_path}")"
+  [[ -w "${target_dir}" ]]
+}
+
+resolve_update_target_path() {
+  local current_path
+
+  current_path="$(command -v "${SCRIPT_NAME}" 2>/dev/null || true)"
+  if [[ -n "${current_path}" ]] && is_path_writable_for_replace "${current_path}"; then
+    printf '%s\n' "${current_path}"
+    return 0
+  fi
+
+  if is_path_writable_for_replace "${UPDATE_INSTALL_PATH_DEFAULT}"; then
+    printf '%s\n' "${UPDATE_INSTALL_PATH_DEFAULT}"
+    return 0
+  fi
+
+  mkdir -p "$(dirname "${INSTALL_PATH_USER}")"
+  printf '%s\n' "${INSTALL_PATH_USER}"
+}
+
+should_run_update_notice() {
+  local command_name="${1:-}"
+  case "${command_name}" in
+    init|setup|hybrid|backup|restore|update) return 0 ;;
+    *) return 1 ;;
+  esac
 }
 
 upload_blob_with_fallback() {
@@ -647,6 +728,50 @@ cmd_restore() {
   success "Restore completed from ${ARCHIVE_FILE}"
 }
 
+cmd_update() {
+  section "UPDATE" "Update ${SCRIPT_NAME} to latest release" "cyan"
+
+  if ! command_exists curl; then
+    error "curl is required for update but not installed."
+    exit 1
+  fi
+
+  local latest_tag release_ref target_path target_dir raw_url tmp_file installed_version
+  latest_tag="$(resolve_latest_release_tag || true)"
+  release_ref="${latest_tag:-${DEFAULT_REF}}"
+  raw_url="https://raw.githubusercontent.com/${REPO_SLUG}/${release_ref}/${SCRIPT_NAME}"
+  target_path="$(resolve_update_target_path)"
+  target_dir="$(dirname "${target_path}")"
+
+  mkdir -p "${target_dir}"
+  tmp_file="$(mktemp "${target_dir}/${SCRIPT_NAME}.XXXXXX")"
+
+  if [[ -n "${latest_tag}" ]]; then
+    info "Updating ${SCRIPT_NAME} to ${latest_tag} ..."
+  else
+    warn "Could not resolve latest release tag. Falling back to ${DEFAULT_REF}."
+    info "Updating ${SCRIPT_NAME} from ${DEFAULT_REF} branch ..."
+  fi
+
+  info "Download source: ${raw_url}"
+  if ! curl -fsSL "${raw_url}" -o "${tmp_file}"; then
+    rm -f "${tmp_file}"
+    error "Download failed. ${SCRIPT_NAME} was not changed."
+    exit 1
+  fi
+
+  chmod +x "${tmp_file}"
+  mv "${tmp_file}" "${target_path}"
+  success "${SCRIPT_NAME} updated at ${target_path}"
+
+  installed_version="$("${target_path}" --version 2>/dev/null || true)"
+  if [[ -n "${installed_version}" ]]; then
+    info "Installed version: ${installed_version}"
+  else
+    warn "Installed version could not be detected with '${target_path} --version'."
+  fi
+}
+
 # ---------------------------------------------------------------------------
 # usage / main
 # ---------------------------------------------------------------------------
@@ -661,6 +786,7 @@ Commands:
   hybrid   Download Apigee Hybrid Helm charts and set up environment variables
   backup   Backup home directory to archive.zip (and upload to Azure)
   restore  Restore home directory from archive.zip (download from Azure if needed)
+  update   Update cshell to latest release and print installed version
 
 Environment file: ${ENV_FILE}
 
@@ -671,7 +797,12 @@ Documentation:
 EOF
 }
 
-case "${1:-}" in
+main_cmd="${1:-}"
+if should_run_update_notice "${main_cmd}"; then
+  check_for_update_notice
+fi
+
+case "${main_cmd}" in
   --version|-v)
     echo "${SCRIPT_NAME} ${SCRIPT_VERSION}"
     ;;
@@ -680,5 +811,6 @@ case "${1:-}" in
   hybrid)  cmd_hybrid  ;;
   backup)  cmd_backup  ;;
   restore) cmd_restore ;;
+  update)  cmd_update  ;;
   *)       usage; exit 1 ;;
 esac

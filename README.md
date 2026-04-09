@@ -59,6 +59,10 @@ This installs `cshell` to `/usr/bin/cshell` so it is available system-wide.
 
 ## Commands
 
+All task commands (`init`, `setup`, `hybrid`, `backup`, `restore`, `update`) check
+for a newer release first. If a newer revision is available, `cshell` prints a
+non-blocking hint to run `cshell update`.
+
 ### `cshell init`
 
 Creates the Azure infrastructure required for backups:
@@ -179,6 +183,22 @@ cshell restore
 - If `archive.zip` is not found locally, it is downloaded automatically from
   the configured Azure Blob Storage container
 - Requires `cshell setup` to have been run first when downloading from Azure
+
+---
+
+### `cshell update`
+
+Updates the `cshell` executable itself from the latest GitHub release and prints
+the installed version at the end.
+
+```bash
+cshell update
+```
+
+- Uses latest release tag when available
+- Falls back to `main` if release metadata cannot be resolved
+- Chooses a writable install target automatically (`$PATH` binary, then
+  `/usr/local/bin/cshell`, then `~/.local/bin/cshell`)
 
 ---
 
