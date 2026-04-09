@@ -1,5 +1,111 @@
 # Changelog
 
+## [1.5.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.4.0...1.5.0) (2026-04-09)
+
+
+### Features
+
+* **config-cmd.sh:** add config command for managing environment ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** add 'config' command to CSHELL_COMMANDS ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** add config command to manage environment file settings ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** add dry-run and verbose options to backup and restore commands for safer operations ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** add update check caching and configurable TTL ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** implement no-update-check global option to skip update checks ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **install.sh:** add functions for verified release installation ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **justfile:** add justfile for task automation including build, lint, and test tasks ([79b0281](https://github.com/vergissberlin/azure-cloud-shell-development/commit/79b02816256dca0e3815686e504c1c20e6780243))
+* **lib:** add env-file.sh and portable.sh for environment management and portability ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+
+
+### Bug Fixes
+
+* **cshell:** add shellcheck directive to prevent false positive warnings ([79b0281](https://github.com/vergissberlin/azure-cloud-shell-development/commit/79b02816256dca0e3815686e504c1c20e6780243))
+* **cshell:** change default analytics region to europe-west3 to align with updated documentation ([e93580d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e93580dd2da165c46ae4458bdd532f64f3a7ac29))
+* **cshell:** enhance error handling and messaging for unknown options ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** ensure environment file permissions ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** ensure permissions on environment file after writing to prevent access issues ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **env-file.sh:** adjust shellcheck directives for dynamic variable handling ([79b0281](https://github.com/vergissberlin/azure-cloud-shell-development/commit/79b02816256dca0e3815686e504c1c20e6780243))
+
+
+### Performance Improvements
+
+* **cshell:** optimize release asset download and verification ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+
+
+### Documentation
+
+* **_Sidebar.md:** update sidebar to include link to wiki guidelines for easy access ([b5e0799](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b5e07997cef758dc4eb1b8256da588abdcd7d70e))
+* add comprehensive documentation for cshell ([6122cbc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6122cbcb1c36fbadf4a3ec6346654fc569fff9a5))
+* add comprehensive documentation for installation, release, and troubleshooting ([6122cbc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6122cbcb1c36fbadf4a3ec6346654fc569fff9a5))
+* add security and inspection guidelines for configuration ([6be8809](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6be88093a90bb603c90cfd9fdec5073497b415ec))
+* **AGENTS.md:** add sections on wiki documentation, style, tooling, and commit messages to guide contributors ([b5e0799](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b5e07997cef758dc4eb1b8256da588abdcd7d70e))
+* **Contributing.md:** include reference to wiki guidelines for editing GitHub Wiki content ([b5e0799](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b5e07997cef758dc4eb1b8256da588abdcd7d70e))
+* **CONTRIBUTING.md:** update contribution guidelines for clarity and completeness ([85e4ec1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/85e4ec165442fec66305a0dc054c42b6666062b3))
+* **contributing:** add instructions for using 'just doctor' to check tool availability ([3972a69](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3972a692648ae5ce47752a96999e1599f3d27f5f))
+* **contributing:** update testing instructions with just task runner usage ([79b0281](https://github.com/vergissberlin/azure-cloud-shell-development/commit/79b02816256dca0e3815686e504c1c20e6780243))
+* enhance installation instructions with checksum verification ([6be8809](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6be88093a90bb603c90cfd9fdec5073497b415ec))
+* **Home.md:** add link to wiki guidelines for better navigation ([b5e0799](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b5e07997cef758dc4eb1b8256da588abdcd7d70e))
+* **README.md:** enhance installation and usage instructions with more details and examples ([85e4ec1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/85e4ec165442fec66305a0dc054c42b6666062b3))
+* **README.md:** update default analytics region to europe-west3 for consistency ([e93580d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e93580dd2da165c46ae4458bdd532f64f3a7ac29))
+* **README.md:** update default Kubernetes cluster name to 'aks-hybrid' for consistency with Azure Kubernetes Service naming conventions ([4c4dcec](https://github.com/vergissberlin/azure-cloud-shell-development/commit/4c4dcec63bd8024b29f4e5fa3458a165796952b7))
+* update command reference with new options and config commands ([6be8809](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6be88093a90bb603c90cfd9fdec5073497b415ec))
+* update hybrid setup instructions for safer variable handling ([6be8809](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6be88093a90bb603c90cfd9fdec5073497b415ec))
+* update release and CI documentation with new workflows ([6be8809](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6be88093a90bb603c90cfd9fdec5073497b415ec))
+* **Wiki-Guidelines.md:** create guidelines for managing and editing GitHub Wiki content ([b5e0799](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b5e07997cef758dc4eb1b8256da588abdcd7d70e))
+
+
+### Styles
+
+* **build-standalone-scripts.sh:** convert spaces to tabs for consistency ([f9442f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f9442f2d280a4db00db9d221e216dc9311527678))
+* **config-cmd.sh:** convert spaces to tabs for consistent indentation ([c4cef3c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c4cef3cb0f69b610ce94ac95441d4a6dfd829c09))
+* **cshell:** convert spaces to tabs for consistent indentation throughout the script ([f74b251](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f74b25110f5e86a97040a4cfa26354ddcbd939f8))
+* **cshell:** improve code readability with consistent formatting and spacing ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **env-file.sh, portable.sh:** convert indentation to tabs for consistency ([c4cef3c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c4cef3cb0f69b610ce94ac95441d4a6dfd829c09))
+* **install.sh:** convert indentation from spaces to tabs for consistency ([038ae36](https://github.com/vergissberlin/azure-cloud-shell-development/commit/038ae36764275d3b1d38699ffcc1a4f75bb61fc8))
+* **install.sh:** convert spaces to tabs for consistent indentation ([038ae36](https://github.com/vergissberlin/azure-cloud-shell-development/commit/038ae36764275d3b1d38699ffcc1a4f75bb61fc8))
+
+
+### Code Refactoring
+
+* **cshell:** improve update process with verified release tarball support ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** modularize and improve code readability ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+* **cshell:** replace echo with printf for better formatting consistency ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+
+
+### Tests
+
+* **cshell_cli.bats:** add basic smoke tests for cshell functionality ([f9442f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f9442f2d280a4db00db9d221e216dc9311527678))
+* **cshell_cli.bats:** update test to check for 'vergissberlin' instead of 'README' ([3972a69](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3972a692648ae5ce47752a96999e1599f3d27f5f))
+* **cshell_cli:** enhance test coverage and refactor for clarity ([3f3a509](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3f3a5095421f5558b5a19b37ed888793c39cc405))
+* **cshell_config.bats:** refine output checks for 'config' command tests ([3972a69](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3972a692648ae5ce47752a96999e1599f3d27f5f))
+* **cshell_restore.bats:** add new tests for restore and backup commands ([3972a69](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3972a692648ae5ce47752a96999e1599f3d27f5f))
+
+
+### Build System
+
+* **justfile:** add 'doctor' recipe to verify tool visibility in PATH ([3972a69](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3972a692648ae5ce47752a96999e1599f3d27f5f))
+* **scripts:** enhance build-standalone-scripts.sh to inline libraries ([37cec84](https://github.com/vergissberlin/azure-cloud-shell-development/commit/37cec8404d64ff524b006680255dd8e6242d6b76))
+
+
+### Continuous Integration
+
+* **release-build-assets:** include checksum files for verification ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **standalone-build-check:** add shell linting and Bats smoke tests ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **version-sync-check:** add concurrency control and timeout limit ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **wiki-sync:** add concurrency control, timeout, and permissions ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **workflow:** add wiki-sync GitHub Action for docs synchronization ([6122cbc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6122cbcb1c36fbadf4a3ec6346654fc569fff9a5))
+* **workflows:** add concurrency control to prevent overlapping runs ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **workflows:** add timeout limits to prevent long-running jobs ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **workflows:** update actions to specific commit hashes for stability ([1eb13c3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1eb13c302588612fdaf536736c6d962c3987f1c7))
+* **workflow:** update bats test path to run all tests in directory ([3972a69](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3972a692648ae5ce47752a96999e1599f3d27f5f))
+
+
+### Chores
+
+* add .gitignore file to exclude build artifacts and logs ([038ae36](https://github.com/vergissberlin/azure-cloud-shell-development/commit/038ae36764275d3b1d38699ffcc1a4f75bb61fc8))
+* **cshell:** change default Kubernetes cluster name to 'aks-hybrid' to align with updated documentation and improve clarity ([4c4dcec](https://github.com/vergissberlin/azure-cloud-shell-development/commit/4c4dcec63bd8024b29f4e5fa3458a165796952b7))
+* **editorconfig:** add .editorconfig file to enforce consistent coding style across editors ([b5e0799](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b5e07997cef758dc4eb1b8256da588abdcd7d70e))
+* **gitignore:** add .bats-core/ to ignore list for local bats-core dependencies ([79b0281](https://github.com/vergissberlin/azure-cloud-shell-development/commit/79b02816256dca0e3815686e504c1c20e6780243))
+
 ## [1.4.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.3.0...1.4.0) (2026-04-09)
 
 
