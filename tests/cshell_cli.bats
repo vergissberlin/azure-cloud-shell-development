@@ -157,17 +157,13 @@ hybrid_make_chart_fixture() {
 # Drop dirs that expose kubectl/helm/gcloud so heuristic checks stay — (not ✗) without a real cluster.
 hybrid_path_for_local_files_only() {
 	local out="" d
-	local IFS=':'
-	# shellcheck disable=SC2206
-	local -a parts=(${PATH:-})
-	IFS=' '
-	for d in "${parts[@]}"; do
+	while IFS= read -r d; do
 		[[ -z "${d}" ]] && continue
 		[[ -x "${d}/kubectl" ]] && continue
 		[[ -x "${d}/helm" ]] && continue
 		[[ -x "${d}/gcloud" ]] && continue
 		out="${out:+$out:}${d}"
-	done
+	done <<<"$(printf '%s' "${PATH:-}" | tr ':' '\n')"
 	printf '%s\n' "${out:-/usr/bin:/bin:/usr/sbin:/sbin}"
 }
 
