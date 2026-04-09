@@ -145,7 +145,7 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 | `ORGANIZATION_DESCRIPTION` | Organization description | – |
 | `ANALYTICS_REGION` | Analytics region (e.g. `europe-west3`) | `europe-west3` |
 | `RUNTIMETYPE` | Runtime type | `HYBRID` |
-| `CLUSTER_NAME` | Kubernetes cluster name | `apigee-hybrid` |
+| `CLUSTER_NAME` | Kubernetes cluster name | `aks-hybrid` |
 | `CLUSTER_REGION` | Kubernetes cluster region | `$ANALYTICS_REGION` |
 | `APIGEE_HELM_CHARTS_HOME` | Local path to Helm charts directory | `~/apigee-hybrid/helm-charts` |
 

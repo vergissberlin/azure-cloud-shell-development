@@ -485,7 +485,7 @@ cmd_hybrid() {
   org_description=$(ask   "Apigee Organization description"          "${ORGANIZATION_DESCRIPTION:-Apigee Hybrid organization}")
   analytics_region=$(ask  "Analytics region (e.g. europe-west3)"    "${ANALYTICS_REGION:-europe-west3}")
   runtime_type=$(ask      "Runtime type"                             "${RUNTIMETYPE:-HYBRID}")
-  cluster_name=$(ask      "Kubernetes cluster name"                  "${CLUSTER_NAME:-apigee-hybrid}")
+  cluster_name=$(ask      "Kubernetes cluster name"                  "${CLUSTER_NAME:-aks-hybrid}")
   cluster_region=$(ask    "Kubernetes cluster region"                "${CLUSTER_REGION:-${analytics_region}}")
   helm_charts_home=$(ask  "Local Helm charts directory"              "${APIGEE_HELM_CHARTS_HOME:-${HOME}/apigee-hybrid/helm-charts}")
 
