@@ -13,6 +13,7 @@ This documentation covers installation, operations, and maintenance for `cshell`
 - [Troubleshooting](Troubleshooting.md)
 - [FAQ](FAQ.md)
 - [Contributing](Contributing.md)
+- [Wiki guidelines](Wiki-Guidelines.md) — how to edit docs that publish to the GitHub Wiki
 
 ## Project Scope
 

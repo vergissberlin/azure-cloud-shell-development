@@ -13,6 +13,9 @@
 - Prefer user-space install behavior for Cloud Shell compatibility.
 - Avoid assumptions about root access.
 - Keep docs in English and update relevant pages with behavior changes.
+- For anything that appears on the **GitHub Wiki**, follow
+  [Wiki guidelines](Wiki-Guidelines.md) (source: `docs/` only, no direct wiki
+  edits in the browser).
 
 ## Versioning Rules
 

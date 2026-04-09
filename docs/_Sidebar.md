@@ -10,3 +10,4 @@
 - [Troubleshooting](Troubleshooting)
 - [FAQ](FAQ)
 - [Contributing](Contributing)
+- [Wiki guidelines](Wiki-Guidelines)
