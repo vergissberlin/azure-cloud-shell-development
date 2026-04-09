@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.11.0...1.11.1) (2026-04-09)
+
+
+### Documentation
+
+* **Troubleshooting.md:** add section for handling missing cshell binary error ([1dc884f](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1dc884fe432458c7daf6bf08ff8b5eb3e0988ec4))
+
 ## [1.11.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.10.0...1.11.0) (2026-04-09)
 
 
