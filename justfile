@@ -28,6 +28,8 @@ check: syntax lint fmt-check bats
 
 alias ci := check
 
+alias test := bats
+
 # Generate dist/cshell and dist/install.sh (embeds lib/*.sh + CLI utils)
 build:
 	#!/usr/bin/env bash
