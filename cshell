@@ -128,6 +128,7 @@ append_line_if_missing() {
 install_bash_completion() {
   local bash_completion_dir="${HOME}/.local/share/bash-completion/completions"
   local bash_completion_file="${bash_completion_dir}/${SCRIPT_NAME}"
+  local bashrc_file="${HOME}/.bashrc"
   local command_list="${CSHELL_COMMANDS[*]}"
 
   mkdir -p "${bash_completion_dir}"
@@ -140,7 +141,14 @@ _${SCRIPT_NAME}_completions() {
 }
 complete -F _${SCRIPT_NAME}_completions ${SCRIPT_NAME}
 EOF
+
+  append_line_if_missing "${bashrc_file}" ""
+  append_line_if_missing "${bashrc_file}" "# Added by cshell setup: bash completion"
+  append_line_if_missing "${bashrc_file}" "[[ -r /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion"
+  append_line_if_missing "${bashrc_file}" "[[ -r ${bash_completion_file} ]] && . ${bash_completion_file}"
+
   success "Bash completion installed: ${bash_completion_file}"
+  info "Run 'source ~/.bashrc' or start a new bash session to load completion."
 }
 
 install_shell_completion() {
