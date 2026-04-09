@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.12.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.11.1...1.12.0) (2026-04-09)
+
+
+### Features
+
+* **setup:** set default Helm charts directory to ~/apigee-hybrid/helm-charts ([93b9a64](https://github.com/vergissberlin/azure-cloud-shell-development/commit/93b9a6418f41aa1b4bd5c77a9472300c1d3a0cb8))
+
+
+### Documentation
+
+* update documentation to reflect new default Helm charts directory ([93b9a64](https://github.com/vergissberlin/azure-cloud-shell-development/commit/93b9a6418f41aa1b4bd5c77a9472300c1d3a0cb8))
+
+
+### Chores
+
+* update cshell script to use new default Helm charts directory ([93b9a64](https://github.com/vergissberlin/azure-cloud-shell-development/commit/93b9a6418f41aa1b4bd5c77a9472300c1d3a0cb8))
+
 ## [1.11.1](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.11.0...1.11.1) (2026-04-09)
 
 
