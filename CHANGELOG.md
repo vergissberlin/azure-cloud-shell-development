@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.6.0...1.7.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add function to download support libs from raw GitHub ([81811e3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/81811e39556e918442a0f3e2581a85f17dd48bd6))
+
+
+### Documentation
+
+* update documentation for raw fallback library download ([81811e3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/81811e39556e918442a0f3e2581a85f17dd48bd6))
+
 ## [1.6.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.5.0...1.6.0) (2026-04-09)
 
 
