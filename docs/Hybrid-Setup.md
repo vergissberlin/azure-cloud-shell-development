@@ -72,6 +72,17 @@ Set **`NO_COLOR`** (or pipe stdout) for plain text without ANSI colors. Use
 **`cshell hybrid --check --json`** for a single machine-readable JSON document on
 stdout (same exit rules as `--check`); see **Command Reference**.
 
+## One step at a time (`hybrid --step`)
+
+Use **`cshell hybrid --step N`** (with **N** from **1** to **13**) to print only checklist
+item **N** (same status heuristics as `hybrid --check`) and run the small slice of
+automation cshell supports for that item — for example **`--step 3`** to pull Helm
+charts only, **`--step 5`** to prepare **`service-accounts/`** and see expected key paths,
+or **`--step 7`** to lay out TLS paths and optionally generate a trial self-signed cert
+when **`APIGEE_TLS_SELF_SIGNED=1`**. Step **1** only requires a readable, non-empty
+**`~/.cshell.env`**; steps **2–13** need the same required Hybrid variables as
+**`hybrid --check`**. See **Command Reference** for the full matrix.
+
 ## Non-production environments
 
 For a **non-prod** Apigee hybrid runtime, Google’s install guide expects an

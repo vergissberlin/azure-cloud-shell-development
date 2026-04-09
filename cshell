@@ -858,10 +858,12 @@ cshell_hybrid_json_step() {
 # Print numbered Hybrid v1.16 install checklist (docs order). Uses current shell state after cshell_env_load.
 # $1: "1" when invoked from hybrid --check --strict (banner / JSON strict field only).
 # $2: "1" for machine-readable JSON on stdout (no ANSI, no human banners).
+# $3: emit only this step number (1–13) for human output; "0" = print all rows (default). Ignored when json_mode is 1.
 # Sets hybrid_checklist_fail_count to the number of rows with HYBRID_CHK_FAIL (for --strict).
 cmd_hybrid_install_checklist_print() {
 	local strict_banner="${1:-0}"
 	local json_mode="${2:-0}"
+	local emit_only_step="${3:-0}"
 
 	local sym_done="${HYBRID_CHK_PASS}"
 	local sym_fail="${HYBRID_CHK_FAIL}"
@@ -869,7 +871,7 @@ cmd_hybrid_install_checklist_print() {
 
 	hybrid_checklist_fail_count=0
 
-	if [[ "${json_mode}" != "1" ]]; then
+	if [[ "${json_mode}" != "1" && "${emit_only_step}" == "0" ]]; then
 		if [[ "${strict_banner}" == "1" ]]; then
 			info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ${HYBRID_CHK_FAIL} below (${HYBRID_CHK_SKIP} is not a failure)."
 		else
@@ -926,6 +928,29 @@ cmd_hybrid_install_checklist_print() {
 
 	cshell_hybrid_eval_checklist_steps_5_13 "${sym_done}" "${sym_fail}" "${sym_skip}" "${DOC_INSTALL_HYBRID}"
 
+	if [[ "${emit_only_step}" != "0" && "${json_mode}" != "1" ]]; then
+		case "${emit_only_step}" in
+			1) cshell_hybrid_checklist_emit_step 1 "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" "" ;;
+			2) cshell_hybrid_checklist_emit_step 2 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}" ;;
+			3) cshell_hybrid_checklist_emit_step 3 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" "" ;;
+			4) cshell_hybrid_checklist_emit_step 4 "Create namespace" "${DOC_INSTALL_CREATE_NAMESPACE}" "${step4_sym}" "${step4_note}" ;;
+			5) cshell_hybrid_checklist_emit_step 5 "Service accounts" "${DOC_INSTALL_SERVICE_ACCOUNTS}" "${HYBRID_STEP5_SYM}" "${HYBRID_STEP5_NOTE}" ;;
+			6) cshell_hybrid_checklist_emit_step 6 "Service account authentication" "${DOC_INSTALL_SA_AUTH}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP6_NOTE}" ;;
+			7) cshell_hybrid_checklist_emit_step 7 "TLS certificates" "${DOC_INSTALL_TLS}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP7_NOTE}" ;;
+			8) cshell_hybrid_checklist_emit_step 8 "Overrides" "${DOC_INSTALL_OVERRIDES}" "${HYBRID_STEP8_SYM}" "${HYBRID_STEP8_NOTE}" ;;
+			9) cshell_hybrid_checklist_emit_step 9 "Control plane access" "${DOC_INSTALL_CONTROL_PLANE}" "${HYBRID_STEP9_SYM}" "${HYBRID_STEP9_NOTE}" ;;
+			10) cshell_hybrid_checklist_emit_step 10 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}" ;;
+			11) cshell_hybrid_checklist_emit_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}" ;;
+			12) cshell_hybrid_checklist_emit_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}" ;;
+			13) cshell_hybrid_checklist_emit_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}" ;;
+			*)
+				error "Internal error: invalid emit_only_step '${emit_only_step}'."
+				return 1
+				;;
+		esac
+		return 0
+	fi
+
 	local _sym
 	for _sym in "${step1_sym}" "${step2_sym}" "${step3_sym}" "${step4_sym}" \
 		"${HYBRID_STEP5_SYM}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP8_SYM}" \
@@ -968,6 +993,223 @@ cmd_hybrid_install_checklist_print() {
 	cshell_hybrid_checklist_emit_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}"
 	cshell_hybrid_checklist_emit_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}"
 	info "Vault-only or Workload Identity setups may not show ${HYBRID_CHK_PASS} for service-account rows; confirm against Google's docs if needed."
+}
+
+# Pull Apigee Hybrid OCI charts into $1 (helm on PATH, GCP registry auth). Returns 1 on fatal errors.
+cmd_hybrid_pull_apigee_charts() {
+	local helm_charts_home="$1"
+	if ! command_exists helm; then
+		error "helm is not installed. Install Helm v${HELM_MIN_VERSION}+ from ${DOC_HELM_INSTALL}"
+		return 1
+	fi
+	if ! helm_meets_min_version "${HELM_MIN_VERSION}"; then
+		error "helm must be version ${HELM_MIN_VERSION} or newer (Apigee Hybrid v1.16). Found: $(helm version --short 2>/dev/null || echo 'unknown')"
+		info "Upgrade: ${DOC_HELM_INSTALL}"
+		return 1
+	fi
+	info "Pulling OCI charts requires GCP auth for ${CHART_REPO} (e.g. gcloud auth login or gcloud auth application-default login). See: ${DOC_DOWNLOAD_CHARTS}"
+	info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
+	(
+		cd "${helm_charts_home}" || exit 1
+		local chart
+		for chart in "${APIGEE_CHARTS[@]}"; do
+			info "Pulling ${chart} ..."
+			rm -rf "${chart}"
+			helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
+		done
+	)
+	success "Helm charts downloaded to ${helm_charts_home}"
+	return 0
+}
+
+# Run automated slice for hybrid --step N (env already loaded and validated when required).
+cmd_hybrid_run_step_actions() {
+	local n="$1"
+	case "${n}" in
+		1)
+			success "All required Hybrid environment variables are set in ${ENV_FILE}."
+			;;
+		2)
+			info "Kubernetes cluster setup: ${DOC_INSTALL_CREATE_CLUSTER}"
+			# shellcheck disable=SC2153
+			cshell_hybrid_fetch_aks_kubeconfig "${AKS_RESOURCE_GROUP:-}" "${CLUSTER_NAME}"
+			;;
+		3)
+			mkdir -p "${APIGEE_HELM_CHARTS_HOME}"
+			cmd_hybrid_pull_apigee_charts "${APIGEE_HELM_CHARTS_HOME}" || return 1
+			;;
+		4)
+			if ! command_exists kubectl; then
+				warn "kubectl not in PATH — create namespace ${APIGEE_NAMESPACE} on the cluster manually. ${DOC_INSTALL_CREATE_NAMESPACE}"
+				return 0
+			fi
+			if kubectl get namespace "${APIGEE_NAMESPACE}" --request-timeout=5s &>/dev/null; then
+				info "Namespace '${APIGEE_NAMESPACE}' already exists."
+			else
+				if kubectl create namespace "${APIGEE_NAMESPACE}" --request-timeout=30s; then
+					success "Created namespace '${APIGEE_NAMESPACE}'."
+				else
+					warn "kubectl create namespace failed — see ${DOC_INSTALL_CREATE_NAMESPACE}"
+					return 1
+				fi
+			fi
+			;;
+		5)
+			local sa_dir="${APIGEE_HELM_CHARTS_HOME}/service-accounts"
+			mkdir -p "${sa_dir}"
+			info "Service account key directory: ${sa_dir}"
+			info "Documentation: ${DOC_INSTALL_SERVICE_ACCOUNTS}"
+			local prefer_nonprod=0
+			if cshell_hybrid_detect_nonprod; then
+				prefer_nonprod=1
+			elif [[ "${ENVIRONMENT_NAME:-}" =~ [Nn]on[-_]?[Pp]rod ]]; then
+				prefer_nonprod=1
+			fi
+			if [[ "${prefer_nonprod}" == "1" ]]; then
+				bullet_list \
+					"Non-prod: place ${PROJECT_ID}-apigee-non-prod.json in ${sa_dir}/" \
+					"Create the Apigee non-prod service account and download the key per Google docs."
+			else
+				local sfx paths=()
+				for sfx in "${HYBRID_PROD_SA_SUFFIXES[@]}"; do
+					paths+=("${sa_dir}/${PROJECT_ID}-apigee-${sfx}.json")
+				done
+				bullet_list "Production: expected key file paths (one per Apigee service account):" "${paths[@]}"
+			fi
+			;;
+		6)
+			info "Kubernetes secrets from keys: ${DOC_INSTALL_SA_AUTH}"
+			local np_secret="${APIGEE_NONPROD_SA_SECRET:-apigee-non-prod-svc-account}"
+			local np_json="${APIGEE_HELM_CHARTS_HOME}/service-accounts/${PROJECT_ID}-apigee-non-prod.json"
+			info "Non-prod example: kubectl create secret generic ${np_secret} -n ${APIGEE_NAMESPACE} --from-file=service_account.json=${np_json}"
+			;;
+		7)
+			local vhost="${APIGEE_HELM_CHARTS_HOME}/apigee-virtualhost"
+			local crt_rel="${APIGEE_OVERRIDE_TLS_CERT_REL:-certs/tls.crt}"
+			local key_rel="${APIGEE_OVERRIDE_TLS_KEY_REL:-certs/tls.key}"
+			local crt_abs="${vhost}/${crt_rel}"
+			local key_abs="${vhost}/${key_rel}"
+			mkdir -p "$(dirname "${crt_abs}")" "$(dirname "${key_abs}")"
+			info "TLS paths under apigee-virtualhost: ${crt_rel} and ${key_rel}"
+			info "Full paths: ${crt_abs} ; ${key_abs}"
+			info "Documentation: ${DOC_INSTALL_TLS}"
+			if [[ "${APIGEE_TLS_SELF_SIGNED:-0}" == "1" ]]; then
+				if [[ -z "${DOMAIN:-}" ]]; then
+					warn "APIGEE_TLS_SELF_SIGNED=1 but DOMAIN is empty — skipping openssl."
+				elif ! command_exists openssl; then
+					warn "openssl not in PATH — cannot generate a self-signed certificate automatically."
+				elif [[ -f "${crt_abs}" && -f "${key_abs}" ]]; then
+					info "Certificate files already exist; not overwriting."
+				else
+					if openssl req -x509 -newkey rsa:2048 -keyout "${key_abs}" -out "${crt_abs}" -days 365 -nodes -subj "/CN=${DOMAIN}"; then
+						success "Generated self-signed TLS certificate (CN=${DOMAIN})."
+					else
+						warn "openssl failed — add certificate material manually per Google docs."
+					fi
+				fi
+			else
+				info "To generate a trial self-signed cert here, set APIGEE_TLS_SELF_SIGNED=1 (existing files are not overwritten)."
+			fi
+			;;
+		8)
+			local helm_charts_home="${APIGEE_HELM_CHARTS_HOME}"
+			local ov_out="${helm_charts_home}/overrides.yaml"
+			local ov_write=1
+			if [[ -f "${ov_out}" && -s "${ov_out}" ]]; then
+				if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
+					if [[ "${APIGEE_OVERRIDES_OVERWRITE:-0}" != "1" ]]; then
+						ov_write=0
+						warn "Existing overrides.yaml kept (set APIGEE_OVERRIDES_OVERWRITE=1 to replace in non-interactive mode)."
+					fi
+				else
+					if declare -F confirm >/dev/null 2>&1 && ! confirm "Overwrite existing overrides.yaml?" "n"; then
+						ov_write=0
+						info "Kept existing overrides.yaml."
+					fi
+				fi
+			fi
+			if [[ "${ov_write}" != "1" ]]; then
+				return 0
+			fi
+			if [[ -z "${APIGEE_INSTANCE_ID:-}" ]]; then
+				error "APIGEE_INSTANCE_ID is missing from ${ENV_FILE}. Run '${SCRIPT_NAME} hybrid' once or use '${SCRIPT_NAME} config set APIGEE_INSTANCE_ID <value>'."
+				return 1
+			fi
+			local apigee_nonprod_sa_secret="${APIGEE_NONPROD_SA_SECRET:-apigee-non-prod-svc-account}"
+			local ingress_gateway_name="${APIGEE_INGRESS_NAME:-$(cshell_hybrid_suggest_ingress_name "${ENVIRONMENT_NAME}")}"
+			if ! cshell_hybrid_validate_ingress_name "${ingress_gateway_name}"; then
+				ingress_gateway_name="apigee-ingress"
+			fi
+			local override_tls_cert_rel="${APIGEE_OVERRIDE_TLS_CERT_REL:-certs/tls.crt}"
+			local override_tls_key_rel="${APIGEE_OVERRIDE_TLS_KEY_REL:-certs/tls.key}"
+			local ingress_svc_ann_key="${APIGEE_INGRESS_SVC_ANNOTATION_KEY:-}"
+			local ingress_svc_ann_val="${APIGEE_INGRESS_SVC_ANNOTATION_VALUE:-}"
+			if [[ -z "${ingress_svc_ann_key}" || -z "${ingress_svc_ann_val}" ]]; then
+				ingress_svc_ann_key=""
+				ingress_svc_ann_val=""
+			fi
+			local override_runtime_tag="${APIGEE_OVERRIDE_RUNTIME_TAG:-${CHART_VERSION%%-*}}"
+			local override_large_payload="${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}"
+			local control_plane_location="${CONTROL_PLANE_LOCATION:-}"
+			# shellcheck disable=SC2153
+			if cshell_hybrid_atomic_write_nonprod_overrides "${helm_charts_home}" "1" \
+				"${APIGEE_INSTANCE_ID}" "${APIGEE_NAMESPACE}" "${PROJECT_ID}" "${ANALYTICS_REGION}" \
+				"${CLUSTER_NAME}" "${CLUSTER_REGION}" "${ORG_NAME}" \
+				"${ENVIRONMENT_NAME}" "${ENV_GROUP}" "${control_plane_location}" \
+				"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
+				"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
+				"${override_runtime_tag}" "${override_large_payload}"; then
+				success "Wrote non-prod ${ov_out}"
+			else
+				error "Could not write overrides.yaml (is ${helm_charts_home} writable and present?)."
+				return 1
+			fi
+			;;
+		9)
+			info "Apigee control plane access: ${DOC_INSTALL_CONTROL_PLANE}"
+			;;
+		10)
+			info "cert-manager install: ${DOC_INSTALL_CERT_MANAGER}"
+			;;
+		11)
+			info "Apigee CRDs: ${DOC_INSTALL_CRDS}"
+			;;
+		12)
+			info "Helm install for Hybrid charts: ${DOC_INSTALL_HELM_CHARTS}"
+			;;
+		13)
+			info "Community install guide: ${DOC_INSTALL_HYBRID}"
+			;;
+		*)
+			error "Invalid step number '${n}'."
+			return 1
+			;;
+	esac
+	return 0
+}
+
+cmd_hybrid_step() {
+	local step_num="$1"
+	step_num=$((10#${step_num}))
+	section "HYBRID" "Apigee Hybrid install — step ${step_num} of 13" "cyan"
+
+	if [[ "${step_num}" -eq 1 ]]; then
+		cmd_hybrid_env_file_must_exist || exit 1
+		cshell_env_load "${ENV_FILE}"
+		cmd_hybrid_env_fill_missing_array
+		cmd_hybrid_install_checklist_print 0 0 1 || exit 1
+		if [[ "${#hybrid_missing_required[@]}" -gt 0 ]]; then
+			cmd_hybrid_env_report_missing_vars
+			exit 1
+		fi
+		cmd_hybrid_run_step_actions 1 || exit 1
+		return 0
+	fi
+
+	cmd_hybrid_env_validate || exit 1
+	cmd_hybrid_env_fill_missing_array
+	cmd_hybrid_install_checklist_print 0 0 "${step_num}" || exit 1
+	cmd_hybrid_run_step_actions "${step_num}" || exit 1
 }
 
 cmd_hybrid_check() {
@@ -1072,6 +1314,22 @@ cmd_hybrid() {
 			exit 1
 		fi
 		cmd_hybrid_export "${hybrid_export_print}"
+		return
+	fi
+
+	if [[ "${1:-}" == "--step" ]]; then
+		shift
+		local hybrid_step_num="${1:-}"
+		shift
+		if [[ ! "${hybrid_step_num}" =~ ^[0-9]+$ ]] || ((hybrid_step_num < 1 || hybrid_step_num > 13)); then
+			error "hybrid --step requires a number from 1 to 13 (got '${hybrid_step_num:-}')."
+			exit 1
+		fi
+		if (($# > 0)); then
+			error "Unexpected argument(s): $* — use '${SCRIPT_NAME} hybrid --step <1-13>'."
+			exit 1
+		fi
+		cmd_hybrid_step "${hybrid_step_num}"
 		return
 	fi
 
@@ -1246,28 +1504,9 @@ cmd_hybrid() {
 	echo ""
 
 	# ── 2. Download Helm charts ───────────────────────────────────────────────
-	if ! command_exists helm; then
-		error "helm is not installed. Install Helm v${HELM_MIN_VERSION}+ from ${DOC_HELM_INSTALL}"
+	if ! cmd_hybrid_pull_apigee_charts "${helm_charts_home}"; then
 		exit 1
 	fi
-	if ! helm_meets_min_version "${HELM_MIN_VERSION}"; then
-		error "helm must be version ${HELM_MIN_VERSION} or newer (Apigee Hybrid v1.16). Found: $(helm version --short 2>/dev/null || echo 'unknown')"
-		info "Upgrade: ${DOC_HELM_INSTALL}"
-		exit 1
-	fi
-
-	info "Pulling OCI charts requires GCP auth for ${CHART_REPO} (e.g. gcloud auth login or gcloud auth application-default login). See: ${DOC_DOWNLOAD_CHARTS}"
-	info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
-	(
-		cd "${helm_charts_home}"
-		for chart in "${APIGEE_CHARTS[@]}"; do
-			info "Pulling ${chart} ..."
-			# helm pull --untar fails if the chart directory already exists (re-runs / partial pulls).
-			rm -rf "${chart}"
-			helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
-		done
-	)
-	success "Helm charts downloaded to ${helm_charts_home}"
 
 	local ov_out="${helm_charts_home}/overrides.yaml"
 	local ov_write=1
@@ -1673,7 +1912,7 @@ Global options:
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud and configure Azure Blob Storage
-  hybrid   Hybrid env + chart pull; flags: --check [--strict] [--json], --export [--print], or interactive
+  hybrid   Hybrid env + chart pull; flags: --check [--strict] [--json], --export [--print], --step <1-13>, or interactive
   backup   Backup home directory to archive.zip (and upload to Azure) [--dry-run|-n] [--verbose|-v]
   restore  Restore home directory from archive.zip (download from Azure if needed) [--dry-run|-n] [--verbose|-v]
   update   Update cshell to latest release and print installed version (tarball+SHA256 when available)

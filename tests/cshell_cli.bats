@@ -467,3 +467,114 @@ EOF
 	run_cshell hybrid --export extra
 	[ "$status" -eq 1 ]
 }
+
+@test "hybrid --step requires a number 1-13" {
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
+	run_cshell hybrid --step
+	[ "$status" -eq 1 ]
+	run_cshell hybrid --step 0
+	[ "$status" -eq 1 ]
+	run_cshell hybrid --step 14
+	[ "$status" -eq 1 ]
+	run_cshell hybrid --step foo
+	[ "$status" -eq 1 ]
+}
+
+@test "hybrid --step rejects trailing arguments" {
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
+	run_cshell hybrid --step 3 extra
+	[ "$status" -eq 1 ]
+}
+
+@test "hybrid --step 1 exits 1 when required vars missing" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=desc
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+EOF
+	run_cshell hybrid --step 1
+	[ "$status" -eq 1 ]
+	[[ "$output" == *"1. Before you begin"* ]] || [[ "$output" == *"01. Before you begin"* ]]
+	[[ "$output" == *Missing* ]]
+}
+
+@test "hybrid --step 1 succeeds when all required vars are set" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --step 1
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"Before you begin"* ]]
+	[[ "$output" == *"All required"* ]] || [[ "$output" == *".cshell.env"* ]]
+}
+
+@test "hybrid --step 3 uses helm from PATH (stub)" {
+	export_home_tmp
+	local stub_bin charts hp
+	stub_bin="$(mktemp -d)"
+	charts="${HOME}/hybrid-charts"
+	mkdir -p "${charts}"
+	cat >"${stub_bin}/helm" <<'EOF'
+#!/bin/sh
+if [ "$1" = "version" ] && [ "$2" = "--short" ]; then
+	printf '%s\n' "v3.14.0"
+	exit 0
+fi
+if [ "$1" = "pull" ]; then
+	exit 0
+fi
+exit 1
+EOF
+	chmod +x "${stub_bin}/helm"
+	hp="$(hybrid_path_for_local_files_only)"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	run env PATH="${stub_bin}:${hp}" bash "${REPO_ROOT}/cshell" hybrid --step 3
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"Download Helm charts"* ]] || [[ "$output" == *"Helm charts"* ]]
+}

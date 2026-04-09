@@ -132,6 +132,33 @@ list (same as `cshell docs`).
   `eval "$(cshell hybrid --export --print)"` to load allowlisted variables into
   the **current** shell in one step. **Requires bash 4+**.
 
+- `hybrid --step <1-13>`: run a **single** Hybrid install checklist item (same numbering
+  and **Doc:** URLs as `hybrid --check`). Prints that row’s status (✓ / ✗ / ○), then runs
+  the matching automation where cshell can do so safely:
+  - **1** — same required-variable gate as `--check` for step 1 only (exits **1** if any
+    required Hybrid variable is missing); no chart or cluster changes.
+  - **2** — prints the cluster doc link; runs `az aks get-credentials` when
+    **`AKS_RESOURCE_GROUP`** and **`CLUSTER_NAME`** are set (same behavior as the end of
+    interactive `hybrid`).
+  - **3** — **Helm v3.14+** check and `helm pull` for all bundled Apigee charts into
+    **`APIGEE_HELM_CHARTS_HOME`** (needs GCP OCI auth).
+  - **4** — `kubectl create namespace` for **`APIGEE_NAMESPACE`** when `kubectl` is available
+    and the namespace is missing; otherwise warns with the namespace doc link.
+  - **5** — creates **`…/service-accounts`** and lists expected key paths (non-prod vs
+    seven production keys); does not create Google service accounts.
+  - **6** — hints and a non-prod **kubectl** secret example; does not apply secrets
+    automatically.
+  - **7** — ensures TLS directories for **`APIGEE_OVERRIDE_TLS_CERT_REL`** /
+    **`APIGEE_OVERRIDE_TLS_KEY_REL`** under **`apigee-virtualhost`**; with
+    **`APIGEE_TLS_SELF_SIGNED=1`**, **`DOMAIN`** set, `openssl` on `PATH`, and missing cert
+    files, generates a **trial** self-signed cert (does not overwrite existing files).
+  - **8** — writes **`overrides.yaml`** like interactive `hybrid` (needs
+    **`APIGEE_INSTANCE_ID`** and other override keys in **`~/.cshell.env`**; respects the
+    same overwrite rules as **`APIGEE_SETUP_NONINTERACTIVE`** / **`APIGEE_OVERRIDES_OVERWRITE`**
+    / confirm).
+  - **9–13** — prints the relevant documentation link; complete those steps on the
+    cluster / in GCP per Google’s guides.
+
 ## `cshell backup`
 
 - creates `~/archive.zip`
