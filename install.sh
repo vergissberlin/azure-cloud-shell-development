@@ -101,6 +101,12 @@ curl -fsSL "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
 chmod +x "${INSTALL_PATH}"
 
 success "${SCRIPT_NAME} installed to ${INSTALL_PATH}"
+installed_version="$("${INSTALL_PATH}" --version 2>/dev/null || true)"
+if [[ -n "${installed_version}" ]]; then
+  info "Installed version: ${installed_version}"
+else
+  warn "Installed version could not be detected (${INSTALL_PATH} --version failed)."
+fi
 section "NEXT STEPS" "Complete first-time setup" "green"
 if [[ ":${PATH}:" != *":${INSTALL_DIR}:"* ]]; then
   info "Add ${INSTALL_DIR} to your PATH to use '${SCRIPT_NAME}' globally."

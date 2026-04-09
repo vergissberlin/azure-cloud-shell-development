@@ -5,6 +5,7 @@
 set -euo pipefail
 
 SCRIPT_NAME="cshell"
+SCRIPT_VERSION="0.1.0"
 INSTALL_PATH_DEFAULT="/usr/bin/${SCRIPT_NAME}"
 INSTALL_PATH_USER="${HOME}/.local/bin/${SCRIPT_NAME}"
 ENV_FILE="${HOME}/.cshell.env"
@@ -671,6 +672,9 @@ EOF
 }
 
 case "${1:-}" in
+  --version|-v)
+    echo "${SCRIPT_NAME} ${SCRIPT_VERSION}"
+    ;;
   init)    cmd_init    ;;
   setup)   cmd_setup   ;;
   hybrid)  cmd_hybrid  ;;
