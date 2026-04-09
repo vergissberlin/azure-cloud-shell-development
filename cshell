@@ -1367,7 +1367,53 @@ cmd_hybrid_export() {
 	success "Hybrid allowlisted variables are in ${HOME}/.cshell-env-exports.sh — new bash sessions load it automatically; this shell: source \"${HOME}/.cshell-env-exports.sh\""
 }
 
+cmd_hybrid_help() {
+	cat <<EOF
+Usage: ${SCRIPT_NAME} hybrid [--help | -h]
+       ${SCRIPT_NAME} hybrid --check [--strict] [--json]
+       ${SCRIPT_NAME} hybrid --export [--print]
+       ${SCRIPT_NAME} hybrid --step <1-13>
+       ${SCRIPT_NAME} hybrid
+
+  (no subcommand)  Interactive Apigee Hybrid v1.16 wizard: writes the Hybrid block
+                   in ${ENV_FILE}, optional Helm overrides, pulls charts when
+                   applicable (Helm 3.14+, GCP auth). Same documentation link list
+                   as '${SCRIPT_NAME} docs'.
+
+  --check          Read-only: require ${ENV_FILE} with all required Hybrid
+                   variables non-empty, then print the numbered install checklist
+                   (items 1–13). Exit status reflects env validation; checklist
+                   symbols are informational unless --strict.
+
+  --strict         With --check: exit 1 if any checklist row is ${HYBRID_CHK_FAIL}.
+                   Rows marked ${HYBRID_CHK_SKIP} do not fail --strict.
+
+  --json           With --check: print one JSON object on stdout (schema
+                   cshell.hybrid_check.v1). Combine with --strict in either order.
+                   No ANSI on stdout for the JSON payload.
+
+  --export         Validate required Hybrid variables, then regenerate
+                   ${HOME}/.cshell-env-exports.sh and refresh shell hooks (bash 4+).
+
+  --print          With --export: only print 'export ...' lines to stdout (for
+                   eval "\$(${SCRIPT_NAME} hybrid --export --print)"). Requires bash 4+.
+
+  --step N         Run a single checklist item (1–13): print that row's status,
+                   then run supported automation (charts pull, namespace, TLS hints,
+                   etc.). Numbering matches '${SCRIPT_NAME} hybrid --check'; cshell
+                   step 7 aligns with Google Hybrid docs "Create TLS certificates".
+
+Full heuristics, exit codes, and step details: ${SCRIPT_NAME} help, ${SCRIPT_NAME} docs,
+and docs/Command-Reference.md (section ${SCRIPT_NAME} hybrid).
+EOF
+}
+
 cmd_hybrid() {
+	if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+		cmd_hybrid_help
+		return 0
+	fi
+
 	if [[ "${1:-}" == "--check" ]]; then
 		shift
 		local hybrid_strict_mode=0
@@ -2005,7 +2051,7 @@ Global options:
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud and configure Azure Blob Storage
-  hybrid   Hybrid env + chart pull; flags: --check [--strict] [--json], --export [--print], --step <1-13>, or interactive
+  hybrid   Hybrid env + chart pull; ${SCRIPT_NAME} hybrid --help lists flags (--check, --export, --step, interactive)
   backup   Backup home directory to archive.zip (and upload to Azure) [--dry-run|-n] [--verbose|-v]
   restore  Restore home directory from archive.zip (download from Azure if needed) [--dry-run|-n] [--verbose|-v]
   update   Update cshell to latest release and print installed version (tarball+SHA256 when available)

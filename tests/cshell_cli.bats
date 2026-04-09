@@ -91,6 +91,22 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "hybrid --help prints flag summary and exits 0" {
+	run_cshell hybrid --help
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"--check"* ]]
+	[[ "$output" == *"--step"* ]]
+	[[ "$output" == *"--export"* ]]
+	[[ "$output" == *"--strict"* ]]
+}
+
+@test "hybrid -h prints flag summary and exits 0" {
+	run_cshell hybrid -h
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"--check"* ]]
+	[[ "$output" == *"--step"* ]]
+}
+
 @test "hybrid --check succeeds when all required vars are set" {
 	export_home_tmp
 	cat >"${HOME}/.cshell.env" <<'EOF'

@@ -67,6 +67,9 @@ intact. Requires **Helm v3.14+** and GCP auth to pull OCI charts. With
 `~/.cshell.env` (no prompts). Prints the full Google Hybrid v1.16 install link
 list (same as `cshell docs`).
 
+- `hybrid --help` / `hybrid -h`: print a concise description of hybrid flags and
+  subcommands on stdout (exit 0).
+
 - `hybrid --check`: read-only validation that `~/.cshell.env` exists and all
   required Hybrid variables are **non-empty** (`PROJECT_ID`, `ORG_*`,
   `ANALYTICS_REGION`, `RUNTIMETYPE`, `CLUSTER_*`, `APIGEE_NAMESPACE`,
