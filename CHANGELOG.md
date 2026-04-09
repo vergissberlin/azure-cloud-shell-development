@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.15.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.14.0...1.15.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add support for AKS kubeconfig merge ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+* **lib:** add script to merge AKS credentials into kubeconfig ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+
+
+### Documentation
+
+* update documentation for AKS integration ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+
+
+### Code Refactoring
+
+* **hybrid-aks-kubeconfig.sh:** replace command_exists with direct command check for az to simplify code ([fac90ba](https://github.com/vergissberlin/azure-cloud-shell-development/commit/fac90ba94c9966e36ac7890fe32f6b4d7cf1807e))
+
+
+### Tests
+
+* add config set test for AKS_RESOURCE_GROUP ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+* add tests for hybrid AKS kubeconfig script ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+
+
+### Build System
+
+* include hybrid-aks-kubeconfig in standalone scripts ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+* include hybrid-aks-kubeconfig.sh in shell scripts ([ee0154c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ee0154cf549e40dab84a98307b0fef698111f16f))
+
+
+### Chores
+
+* **tests:** remove unused portable.sh source from test scripts to clean up dependencies ([fac90ba](https://github.com/vergissberlin/azure-cloud-shell-development/commit/fac90ba94c9966e36ac7890fe32f6b4d7cf1807e))
+
 ## [1.14.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.13.0...1.14.0) (2026-04-09)
 
 
