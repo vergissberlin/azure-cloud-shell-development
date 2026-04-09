@@ -13,6 +13,7 @@ LIB_FILES=(
 	"${ROOT_DIR}/lib/env-file.sh"
 	"${ROOT_DIR}/lib/portable.sh"
 	"${ROOT_DIR}/lib/config-cmd.sh"
+	"${ROOT_DIR}/lib/hybrid-checklist.sh"
 )
 
 if [[ ! -f "${UTILS_FILE}" ]]; then

@@ -117,6 +117,8 @@ source "${_CSHELL_LIB_ROOT}/lib/env-file.sh"
 source "${_CSHELL_LIB_ROOT}/lib/portable.sh"
 # shellcheck source=lib/config-cmd.sh
 source "${_CSHELL_LIB_ROOT}/lib/config-cmd.sh"
+# shellcheck source=lib/hybrid-checklist.sh
+source "${_CSHELL_LIB_ROOT}/lib/hybrid-checklist.sh"
 # END_CSHELL_LIBS
 
 ask() {
@@ -717,10 +719,16 @@ cmd_hybrid_env_validate() {
 }
 
 # Print numbered Hybrid v1.16 install checklist (docs order). Uses current shell state after cshell_env_load.
+# Optional $1: "1" when invoked from hybrid --check --strict (banner text only).
+# Sets hybrid_checklist_fail_count to the number of rows with ✗ (for --strict).
 cmd_hybrid_install_checklist_print() {
+	local strict_banner="${1:-0}"
+
 	local sym_done="${CHECKMARK}"
 	local sym_fail="${CROSS}"
 	local sym_skip="—"
+
+	hybrid_checklist_fail_count=0
 
 	local step1_sym="${sym_done}"
 	((${#hybrid_missing_required[@]} > 0)) && step1_sym="${sym_fail}"
@@ -769,37 +777,65 @@ cmd_hybrid_install_checklist_print() {
 		fi
 	fi
 
-	local nv_label="not verified automatically"
+	cshell_hybrid_eval_checklist_steps_5_13 "${sym_done}" "${sym_fail}" "${sym_skip}" "${DOC_INSTALL_HYBRID}"
 
-	info "Hybrid v1.16 install checklist (documentation order; exit status still reflects only ${ENV_FILE} required variables):"
+	local _sym
+	for _sym in "${step1_sym}" "${step2_sym}" "${step3_sym}" "${step4_sym}" \
+		"${HYBRID_STEP5_SYM}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP8_SYM}" \
+		"${HYBRID_STEP9_SYM}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP13_SYM}"; do
+		[[ "${_sym}" == "${sym_fail}" ]] && hybrid_checklist_fail_count=$((hybrid_checklist_fail_count + 1))
+	done
+
+	if [[ "${strict_banner}" == "1" ]]; then
+		info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ✗ below (— is not a failure)."
+	else
+		info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
+	fi
 	printf '  [%s] %2d. Before you begin — %s\n' "${step1_sym}" 1 "${DOC_BEFORE_BEGIN}"
 	printf '  [%s] %2d. Create cluster — %s\n' "${step2_sym}" 2 "${DOC_INSTALL_CREATE_CLUSTER}"
 	[[ -n "${step2_note}" ]] && printf '      %s\n' "${step2_note}"
 	printf '  [%s] %2d. Download Helm charts — %s\n' "${step3_sym}" 3 "${DOC_DOWNLOAD_CHARTS}"
 	printf '  [%s] %2d. Create namespace — %s\n' "${step4_sym}" 4 "${DOC_INSTALL_CREATE_NAMESPACE}"
 	[[ -n "${step4_note}" ]] && printf '      %s\n' "${step4_note}"
-	printf '  [%s] %2d. Service accounts (%s) — %s\n' "${sym_skip}" 5 "${nv_label}" "${DOC_INSTALL_SERVICE_ACCOUNTS}"
-	printf '  [%s] %2d. Service account authentication (%s) — %s\n' "${sym_skip}" 6 "${nv_label}" "${DOC_INSTALL_SA_AUTH}"
-	printf '  [%s] %2d. TLS certificates (%s) — %s\n' "${sym_skip}" 7 "${nv_label}" "${DOC_INSTALL_TLS}"
-	printf '  [%s] %2d. Overrides (%s) — %s\n' "${sym_skip}" 8 "${nv_label}" "${DOC_INSTALL_OVERRIDES}"
-	printf '  [%s] %2d. Control plane access (%s) — %s\n' "${sym_skip}" 9 "${nv_label}" "${DOC_INSTALL_CONTROL_PLANE}"
-	printf '  [%s] %2d. cert-manager (%s) — %s\n' "${sym_skip}" 10 "${nv_label}" "${DOC_INSTALL_CERT_MANAGER}"
-	printf '  [%s] %2d. CRDs (%s) — %s\n' "${sym_skip}" 11 "${nv_label}" "${DOC_INSTALL_CRDS}"
-	printf '  [%s] %2d. Helm install (Hybrid) (%s) — %s\n' "${sym_skip}" 12 "${nv_label}" "${DOC_INSTALL_HELM_CHARTS}"
-	printf '  [%s] %2d. Community install guide — %s\n' "${sym_skip}" 13 "${DOC_INSTALL_HYBRID}"
+	printf '  [%s] %2d. Service accounts — %s\n' "${HYBRID_STEP5_SYM}" 5 "${DOC_INSTALL_SERVICE_ACCOUNTS}"
+	[[ -n "${HYBRID_STEP5_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP5_NOTE}"
+	printf '  [%s] %2d. Service account authentication — %s\n' "${HYBRID_STEP6_SYM}" 6 "${DOC_INSTALL_SA_AUTH}"
+	[[ -n "${HYBRID_STEP6_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP6_NOTE}"
+	printf '  [%s] %2d. TLS certificates — %s\n' "${HYBRID_STEP7_SYM}" 7 "${DOC_INSTALL_TLS}"
+	[[ -n "${HYBRID_STEP7_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP7_NOTE}"
+	printf '  [%s] %2d. Overrides — %s\n' "${HYBRID_STEP8_SYM}" 8 "${DOC_INSTALL_OVERRIDES}"
+	[[ -n "${HYBRID_STEP8_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP8_NOTE}"
+	printf '  [%s] %2d. Control plane access — %s\n' "${HYBRID_STEP9_SYM}" 9 "${DOC_INSTALL_CONTROL_PLANE}"
+	[[ -n "${HYBRID_STEP9_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP9_NOTE}"
+	printf '  [%s] %2d. cert-manager — %s\n' "${HYBRID_STEP10_SYM}" 10 "${DOC_INSTALL_CERT_MANAGER}"
+	[[ -n "${HYBRID_STEP10_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP10_NOTE}"
+	printf '  [%s] %2d. CRDs — %s\n' "${HYBRID_STEP11_SYM}" 11 "${DOC_INSTALL_CRDS}"
+	[[ -n "${HYBRID_STEP11_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP11_NOTE}"
+	printf '  [%s] %2d. Helm install (Hybrid) — %s\n' "${HYBRID_STEP12_SYM}" 12 "${DOC_INSTALL_HELM_CHARTS}"
+	[[ -n "${HYBRID_STEP12_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP12_NOTE}"
+	printf '  [%s] %2d. Community install guide — %s\n' "${HYBRID_STEP13_SYM}" 13 "${DOC_INSTALL_HYBRID}"
+	[[ -n "${HYBRID_STEP13_NOTE}" ]] && printf '      %s\n' "${HYBRID_STEP13_NOTE}"
+	info "Vault-only or Workload Identity setups may not show ✓ for service-account rows; confirm against Google's docs if needed."
 }
 
 cmd_hybrid_check() {
+	local hybrid_strict="${1:-0}"
+
 	section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
 
 	cmd_hybrid_env_file_must_exist || exit 1
 
 	cshell_env_load "${ENV_FILE}"
 	cmd_hybrid_env_fill_missing_array
-	cmd_hybrid_install_checklist_print
+	cmd_hybrid_install_checklist_print "${hybrid_strict}"
 
 	if [[ "${#hybrid_missing_required[@]}" -gt 0 ]]; then
 		cmd_hybrid_env_report_missing_vars
+		exit 1
+	fi
+
+	if [[ "${hybrid_strict}" == "1" ]] && [[ "${hybrid_checklist_fail_count:-0}" -gt 0 ]]; then
+		error "Checklist has ${hybrid_checklist_fail_count} failed item(s) (✗). Fix the issues above or run without --strict."
 		exit 1
 	fi
 
@@ -842,11 +878,16 @@ cmd_hybrid_export() {
 cmd_hybrid() {
 	if [[ "${1:-}" == "--check" ]]; then
 		shift
+		local hybrid_strict_mode=0
+		if [[ "${1:-}" == "--strict" ]]; then
+			shift
+			hybrid_strict_mode=1
+		fi
 		if (($# > 0)); then
-			error "Unexpected argument(s): $* — use only '${SCRIPT_NAME} hybrid --check'."
+			error "Unexpected argument(s): $* — use '${SCRIPT_NAME} hybrid --check' or '${SCRIPT_NAME} hybrid --check --strict'."
 			exit 1
 		fi
-		cmd_hybrid_check
+		cmd_hybrid_check "${hybrid_strict_mode}"
 		return
 	fi
 

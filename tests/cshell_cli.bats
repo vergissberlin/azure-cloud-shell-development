@@ -106,7 +106,7 @@ EOF
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"install checklist"* ]]
 	[[ "$output" == *"[✓]"*"1. Before you begin"* ]]
-	[[ "$output" == *"[—]"*"13. Community install guide"* ]]
+	[[ "$output" == *"13. Community install guide"* ]]
 	[[ "$output" == *"All required"* ]]
 }
 
@@ -138,6 +138,98 @@ EOF
 	export_home_tmp
 	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
 	run_cshell hybrid --check extra
+	[ "$status" -eq 1 ]
+}
+
+hybrid_make_chart_fixture() {
+	local charts="$1"
+	mkdir -p "${charts}/service-accounts"
+	mkdir -p "${charts}/apigee-virtualhost/certs"
+	touch "${charts}/apigee-virtualhost/certs/tls.crt" "${charts}/apigee-virtualhost/certs/tls.key"
+	touch "${charts}/service-accounts/p-demo-apigee-non-prod.json"
+	printf '%s\n' 'projectID: p-demo' >"${charts}/overrides.yaml"
+	local c
+	for c in apigee-operator apigee-datastore apigee-env apigee-ingress-manager apigee-org apigee-redis apigee-telemetry apigee-virtualhost; do
+		mkdir -p "${charts}/${c}"
+	done
+}
+
+# Drop dirs that expose kubectl/helm/gcloud so heuristic checks stay — (not ✗) without a real cluster.
+hybrid_path_for_local_files_only() {
+	local out="" d
+	local IFS=':'
+	# shellcheck disable=SC2206
+	local -a parts=(${PATH:-})
+	IFS=' '
+	for d in "${parts[@]}"; do
+		[[ -z "${d}" ]] && continue
+		[[ -x "${d}/kubectl" ]] && continue
+		[[ -x "${d}/helm" ]] && continue
+		[[ -x "${d}/gcloud" ]] && continue
+		out="${out:+$out:}${d}"
+	done
+	printf '%s\n' "${out:-/usr/bin:/bin:/usr/sbin:/sbin}"
+}
+
+@test "hybrid --check --strict succeeds when checklist has no failures" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts"
+	hybrid_make_chart_fixture "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	PATH="$(hybrid_path_for_local_files_only)" run_cshell hybrid --check --strict
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"All required"* ]]
+}
+
+@test "hybrid --check --strict fails when a checklist step fails" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts"
+	hybrid_make_chart_fixture "${charts}"
+	rm -f "${charts}/overrides.yaml"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	PATH="$(hybrid_path_for_local_files_only)" run_cshell hybrid --check --strict
+	[ "$status" -eq 1 ]
+	[[ "$output" == *"failed item"* ]]
+}
+
+@test "hybrid --check --strict rejects extra arguments" {
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
+	run_cshell hybrid --check --strict extra
 	[ "$status" -eq 1 ]
 }
 
