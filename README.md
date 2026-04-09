@@ -18,16 +18,36 @@ curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-dev
 ```
 
 This bootstrap installer resolves the latest release tag and installs `cshell`
-from that tag by default.
+from that tag by default. When GitHub release assets include
+`cshell-<version>.tar.gz` plus matching `.sha256` files (published by CI),
+`install.sh` verifies the checksum before extracting the standalone `cshell`
+binary. If verification is not possible, it falls back to downloading the raw
+`cshell` script from the tag (no integrity check — prefer official releases).
 
-#### Manual download and install
+#### Verify a release tarball manually (optional)
 
 ```bash
-# Download a specific release tag (no `v` prefix)
+VERSION="1.4.0"
+curl -fsSL -O "https://github.com/vergissberlin/azure-cloud-shell-development/releases/download/${VERSION}/cshell-${VERSION}.tar.gz"
+curl -fsSL -O "https://github.com/vergissberlin/azure-cloud-shell-development/releases/download/${VERSION}/cshell-${VERSION}.tar.gz.sha256"
+sha256sum -c "cshell-${VERSION}.tar.gz.sha256"
+tar -xzf "cshell-${VERSION}.tar.gz"
+chmod +x cshell
+```
+
+#### Manual download and install (raw script)
+
+Requires a writable install directory (`/usr/local/bin` when permitted, otherwise
+`$HOME/.local/bin`):
+
+```bash
+# Download a specific release tag (tags use plain SemVer, e.g. 1.0.0)
 TAG="1.0.0"
+INSTALL_DIR="${HOME}/.local/bin"
+mkdir -p "${INSTALL_DIR}"
 curl -fsSL "https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/${TAG}/cshell" \
-  -o /usr/local/bin/cshell
-chmod +x /usr/local/bin/cshell
+  -o "${INSTALL_DIR}/cshell"
+chmod +x "${INSTALL_DIR}/cshell"
 ```
 
 #### Download install script first, then run
@@ -44,12 +64,13 @@ chmod +x install.sh
 - Releases are created with Release Please.
 - Git tags use plain SemVer (`1.2.3`) without a `v` prefix.
 - `cshell --version` matches the released tag version.
-- On each published release, GitHub Actions uploads
-  `cshell-<version>.tar.gz` as a release asset.
+- On each published release, GitHub Actions uploads `cshell-<version>.tar.gz`,
+  its `sha256` checksum, and checksum-matched `install-<version>.sh` assets.
 
 ### Build model (source vs generated assets)
 
-- Source scripts in the repository stay readable and modular.
+- Source scripts in the repository stay readable and modular (`lib/*.sh` modules
+  are vendored into the generated standalone `dist/cshell` during CI).
 - CI generates standalone release scripts in `dist/` by embedding shared CLI
   helpers from `scripts/misc-cli-utils.sh`.
 - Generated artifacts are not committed; they are produced during workflows.
@@ -63,15 +84,20 @@ chmod +x install.sh
 bash cshell setup
 ```
 
-This installs `cshell` to `/usr/bin/cshell` so it is available system-wide.
+- Running **as root**: installs to `/usr/bin/cshell`.
+- Running **without root** (typical in Azure Cloud Shell): installs to
+  `~/.local/bin/cshell` and warns if that directory is not on `PATH`.
+
+Use `cshell --no-update-check …` (or `export CSHELL_NO_UPDATE_CHECK=1`) to skip
+the GitHub release hint. The hint is cached for 24 hours by default
+(`CSHELL_UPDATE_CHECK_TTL_SECONDS` overrides the TTL).
 
 ---
 
 ## Commands
 
-All task commands (`init`, `setup`, `hybrid`, `backup`, `restore`, `update`) check
-for a newer release first. If a newer revision is available, `cshell` prints a
-non-blocking hint to run `cshell update`.
+Most task commands (`init`, `setup`, `hybrid`, `backup`, `restore`, `update`)
+may print a cached GitHub release hint when a newer `cshell` version exists.
 
 ### `cshell init`
 
@@ -94,7 +120,7 @@ cshell init
 |---|---|
 | Azure Subscription ID or name | current subscription |
 | Resource group name | `rg-cshell` |
-| Azure region | `westeurope` |
+| Azure region | `germanywestcentral` |
 | Storage Account name | – |
 | Blob container name | `backups` |
 | Storage SKU | `Standard_LRS` |
@@ -105,7 +131,7 @@ cshell init
 
 Performs first-time setup:
 
-1. Installs `cshell` to `/usr/bin`
+1. Installs `cshell` to `/usr/bin` when root, otherwise `~/.local/bin`
 2. Automatically installs shell autocomplete for `cshell` (Bash)
 3. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
 4. Interactively configures the **Azure Blob Storage** account used for backups
@@ -156,11 +182,8 @@ apigee-operator · apigee-datastore · apigee-env · apigee-ingress-manager
 apigee-org · apigee-redis · apigee-telemetry · apigee-virtualhost
 ```
 
-Source the generated file before running further Apigee steps:
-
-```bash
-source ~/.cshell.env
-```
+Inspect values with `cshell config show` instead of `source ~/.cshell.env`
+(`source` executes the file as shell code — only if every line is trusted).
 
 **Documentation links:**
 
@@ -177,6 +200,8 @@ to the configured Azure Blob Storage container:
 
 ```bash
 cshell backup
+cshell backup --dry-run   # plan only
+cshell backup --verbose   # extra context before zip
 ```
 
 - Excludes `.cache/` and other non-essential directories
@@ -191,6 +216,7 @@ Restores the home directory from `~/archive.zip`:
 
 ```bash
 cshell restore
+cshell restore --dry-run
 ```
 
 - If `archive.zip` is not found locally, it is downloaded automatically from
@@ -208,6 +234,8 @@ the installed version at the end.
 cshell update
 ```
 
+- Prefers a verified `cshell-<version>.tar.gz` + `.sha256` asset when `python3`
+  and `sha256sum` are available
 - Uses latest release tag when available
 - Falls back to `main` if release metadata cannot be resolved
 - Chooses a writable install target automatically (`$PATH` binary, then
@@ -228,11 +256,23 @@ cshell docs
 
 ---
 
+### `cshell config`
+
+- `cshell config show` — print allowlisted keys (secrets masked)
+- `cshell config set KEY VALUE …` — update an allowlisted key (empty value removes the line)
+- `cshell config validate` — basic Azure CLI / storage sanity checks
+
+---
+
 ## Environment file
 
-All configuration is stored in `~/.cshell.env`. You can edit it manually at
-any time. Re-running `cshell setup` or `cshell hybrid` will regenerate or
-extend this file.
+All configuration is stored in `~/.cshell.env`. The file is written with
+`chmod 600` whenever `cshell` updates it. **Do not `source` this file from an
+untrusted editor session** — treat it like credentials on disk and prefer
+`cshell config show` for inspection.
+
+You can edit it manually when needed. Re-running `cshell setup` or `cshell hybrid`
+updates managed blocks without duplicating previous `setup` storage entries.
 
 Storage auth fallback order:
 

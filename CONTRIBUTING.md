@@ -19,8 +19,8 @@ Thank you for your interest in contributing to **azure-cloud-shell-development**
    git checkout -b feat/my-improvement
    ```
 
-3. Make your changes to `cshell` (or other files) and test them locally (see
-   [Testing](#testing) below).
+3. Make your changes to `cshell`, `lib/*.sh`, `install.sh`, or other files and
+   test them locally (see [Testing](#testing) below).
 
 4. Open a **pull request** against the `main` branch.
 
@@ -37,24 +37,32 @@ Thank you for your interest in contributing to **azure-cloud-shell-development**
   - Add a `require_root` guard to any function that needs elevated privileges.
 - New subcommands go into their own `cmd_<name>()` function and must be wired
   up in the `case` block at the bottom of the script and documented in
-  `usage()`.
+  `usage()` and `docs/Command-Reference.md`.
+- Shared, testable helpers should live under `lib/*.sh` (embedded into
+  `dist/cshell` by `scripts/build-standalone-scripts.sh`).
 
 ---
 
 ## Testing
 
-There are no automated tests yet. Before submitting a pull request, please
-verify your changes manually:
+Pull requests run **`bash -n`**, **`shellcheck`**, **`shfmt -d`**, and **Bats**
+smoke tests via GitHub Actions. Locally:
 
 ```bash
-# Run syntax check
-bash -n cshell
+# Syntax (repository + generated standalone)
+bash -n cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
+./scripts/build-standalone-scripts.sh
+bash -n dist/cshell dist/install.sh
 
-# Run shellcheck (if installed)
-shellcheck cshell
+# Linters (install from distro packages or upstream releases)
+shellcheck -x cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
+shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
 
-# Smoke-test locally (setup step requires and a real Azure subscription)
-bash cshell --help 2>/dev/null || bash cshell invalid_command
+# Bats (example: install bats-core, then)
+bats tests/cshell_cli.bats
+
+# Manual smoke (init/setup need a real Azure subscription when exercised)
+CSHELL_NO_UPDATE_CHECK=1 bash cshell help
 ```
 
 ---
