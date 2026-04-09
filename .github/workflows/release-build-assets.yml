@@ -42,9 +42,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist
-          chmod +x cshell
-          tar -czf "dist/${ASSET_NAME}" cshell
+          chmod +x scripts/build-standalone-scripts.sh
+          scripts/build-standalone-scripts.sh
+          tar -czf "dist/${ASSET_NAME}" -C dist cshell
 
       - name: Upload archive to GitHub release
         uses: softprops/action-gh-release@v2

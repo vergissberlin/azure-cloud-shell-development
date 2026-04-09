@@ -45,6 +45,7 @@ if [[ -f "${CLI_UTILS_PATH}" ]]; then
   source "${CLI_UTILS_PATH}"
 fi
 
+# BEGIN_CLI_UTILS_FALLBACK
 # Fallback for globally installed script where shared utils are unavailable.
 if ! declare -F info >/dev/null 2>&1; then
   RESET='\033[0m'
@@ -97,6 +98,7 @@ if ! declare -F info >/dev/null 2>&1; then
   }
   bullet_list() { local line; for line in "$@"; do echo -e "  ${ARROW} ${line}"; done; }
 fi
+# END_CLI_UTILS_FALLBACK
 
 ask() {
   local prompt="$1"

@@ -48,6 +48,7 @@ resolve_release_ref() {
   fi
 }
 
+# BEGIN_CLI_UTILS_FALLBACK
 # Fallback for standalone curl execution where shared utils are unavailable.
 if ! declare -F info >/dev/null 2>&1; then
   RESET='\033[0m'
@@ -98,6 +99,7 @@ if ! declare -F info >/dev/null 2>&1; then
     echo -e "${tone}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
   }
 fi
+# END_CLI_UTILS_FALLBACK
 
 section "PRECHECK" "Validate dependencies and install target" "cyan"
 

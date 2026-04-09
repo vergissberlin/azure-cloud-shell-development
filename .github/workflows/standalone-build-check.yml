@@ -1,0 +1,46 @@
+name: standalone-build-check
+
+on:
+  pull_request:
+    paths:
+      - "cshell"
+      - "install.sh"
+      - "scripts/misc-cli-utils.sh"
+      - "scripts/build-standalone-scripts.sh"
+      - ".github/workflows/standalone-build-check.yml"
+      - ".github/workflows/release-build-assets.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "cshell"
+      - "install.sh"
+      - "scripts/misc-cli-utils.sh"
+      - "scripts/build-standalone-scripts.sh"
+      - ".github/workflows/standalone-build-check.yml"
+      - ".github/workflows/release-build-assets.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-standalone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build standalone scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x scripts/build-standalone-scripts.sh
+          scripts/build-standalone-scripts.sh
+
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n cshell install.sh scripts/build-standalone-scripts.sh
+          bash -n dist/cshell dist/install.sh

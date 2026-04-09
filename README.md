@@ -47,6 +47,16 @@ chmod +x install.sh
 - On each published release, GitHub Actions uploads
   `cshell-<version>.tar.gz` as a release asset.
 
+### Build model (source vs generated assets)
+
+- Source scripts in the repository stay readable and modular.
+- CI generates standalone release scripts in `dist/` by embedding shared CLI
+  helpers from `scripts/misc-cli-utils.sh`.
+- Generated artifacts are not committed; they are produced during workflows.
+- The public install entrypoint remains unchanged:
+  `curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | bash`
+  and `install.sh` in the default branch remains self-contained for this flow.
+
 ### From a local clone
 
 ```bash
