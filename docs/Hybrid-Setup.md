@@ -67,8 +67,15 @@ Inspect saved values (recommended):
 cshell config show
 ```
 
-To export variables into an interactive shell session, you may still
-`source ~/.cshell.env` **only if you trust every line** in that file.
+To get allowlisted variables into **`env`** in Bash, prefer the generated snippet
+(after `cshell hybrid` / `setup` / `init` / `config set`):
+
+```bash
+source ~/.cshell-env-exports.sh
+```
+
+New Bash sessions load it via `~/.bashrc` (bash 4+). Avoid `source ~/.cshell.env`
+unless you trust every line in that file.
 
 ## Official References
 

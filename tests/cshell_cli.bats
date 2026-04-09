@@ -43,6 +43,19 @@ setup() {
 	[[ "$output" == *Usage:* ]]
 }
 
+@test "config set refreshes ~/.cshell-env-exports.sh (bash 4+)" {
+	if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+		skip "requires bash 4+ for export snippet"
+	fi
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=before" >"${HOME}/.cshell.env"
+	run_cshell config set PROJECT_ID after
+	[ "$status" -eq 0 ]
+	[ -f "${HOME}/.cshell-env-exports.sh" ]
+	run grep -q '^export PROJECT_ID=' "${HOME}/.cshell-env-exports.sh"
+	[ "$status" -eq 0 ]
+}
+
 @test "config show masks storage account key" {
 	export_home_tmp
 	{

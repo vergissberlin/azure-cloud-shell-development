@@ -29,6 +29,16 @@
 - Verify:
   - `gcloud --version`
 
+## Hybrid / Apigee variables missing from `env`
+
+`~/.cshell.env` is **not** executed by your shell automatically. After `cshell setup`, `cshell hybrid`, `cshell init`, or **`cshell config set`**, cshell refreshes **`~/.cshell-env-exports.sh`** and hooks **`~/.bashrc`** so **new** Bash sessions export allowlisted variables (then `env | grep PROJECT` etc. works). **Requires bash 4+** (Azure Cloud Shell is fine). In the **current** session run:
+
+```bash
+source ~/.cshell-env-exports.sh
+```
+
+Or open a new Cloud Shell / run `source ~/.bashrc`.
+
 ## Version Mismatch in CI
 
 - Ensure `SCRIPT_VERSION` in `cshell` matches root version in `.release-please-manifest.json`.

@@ -135,7 +135,7 @@ Performs first-time setup:
 2. Automatically installs shell autocomplete for `cshell` (Bash)
 3. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
 4. Interactively configures the **Azure Blob Storage** account used for backups
-5. Writes **`APIGEE_HELM_CHARTS_HOME`** to `~/.cshell.env` as the **current working directory** at setup time (canonical path), creates `~/.cshell-helm-charts-home.sh` with `export APIGEE_HELM_CHARTS_HOME=…`, and adds a **one-time** `~/.bashrc` hook so new Bash sessions pick it up — run `cshell setup` from the directory where chart pulls should live
+5. Writes **`APIGEE_HELM_CHARTS_HOME`** to `~/.cshell.env` from the **current working directory** at setup time (canonical path), regenerates **`~/.cshell-env-exports.sh`** for all allowlisted variables, and ensures **`~/.bashrc`** sources it once so **new Bash sessions** have those values in `env` — run `cshell setup` from the directory where chart pulls should live (bash 4+; in this shell: `source ~/.cshell-env-exports.sh`)
 
 Autocomplete is installed to user-space paths and setup is idempotent. Re-running
 `cshell setup` updates completion files safely.

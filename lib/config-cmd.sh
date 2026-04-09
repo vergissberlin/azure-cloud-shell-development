@@ -63,6 +63,9 @@ cmd_config_set() {
 	fi
 	mv "${tmp}" "${ENV_FILE}"
 	cshell_env_ensure_permissions "${ENV_FILE}"
+	if declare -F cshell_env_sync_exports >/dev/null 2>&1; then
+		cshell_env_sync_exports || warn "Could not refresh shell export snippet."
+	fi
 	success "Updated ${ENV_FILE} (${key})"
 }
 
