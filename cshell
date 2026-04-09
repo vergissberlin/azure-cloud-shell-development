@@ -30,6 +30,7 @@ APIGEE_CHARTS=(
   apigee-telemetry
   apigee-virtualhost
 )
+CSHELL_COMMANDS=(init setup hybrid backup restore)
 
 DOC_BEFORE_BEGIN="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin"
 DOC_DOWNLOAD_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts"
@@ -119,6 +120,87 @@ require_root() {
 
 command_exists() {
   command -v "$1" &>/dev/null
+}
+
+append_line_if_missing() {
+  local target_file="$1"
+  local line="$2"
+
+  touch "${target_file}"
+  if ! grep -Fqx "${line}" "${target_file}"; then
+    echo "${line}" >> "${target_file}"
+  fi
+}
+
+install_bash_completion() {
+  local bash_completion_dir="${HOME}/.local/share/bash-completion/completions"
+  local bash_completion_file="${bash_completion_dir}/${SCRIPT_NAME}"
+  local command_list="${CSHELL_COMMANDS[*]}"
+
+  mkdir -p "${bash_completion_dir}"
+  cat > "${bash_completion_file}" <<EOF
+_${SCRIPT_NAME}_completions() {
+  local cur
+  COMPREPLY=()
+  cur="\${COMP_WORDS[COMP_CWORD]}"
+  COMPREPLY=(\$(compgen -W "${command_list}" -- "\${cur}"))
+}
+complete -F _${SCRIPT_NAME}_completions ${SCRIPT_NAME}
+EOF
+  success "Bash completion installed: ${bash_completion_file}"
+}
+
+install_zsh_completion() {
+  local zsh_completion_dir="${HOME}/.zsh/completions"
+  local zsh_completion_file="${zsh_completion_dir}/_${SCRIPT_NAME}"
+  local zshrc_file="${HOME}/.zshrc"
+  local command_list="${CSHELL_COMMANDS[*]}"
+
+  mkdir -p "${zsh_completion_dir}"
+  cat > "${zsh_completion_file}" <<EOF
+#compdef ${SCRIPT_NAME}
+
+local -a commands
+commands=(${command_list})
+_describe 'command' commands
+EOF
+
+  append_line_if_missing "${zshrc_file}" ""
+  append_line_if_missing "${zshrc_file}" "# Added by cshell setup: user completion path"
+  append_line_if_missing "${zshrc_file}" "fpath=(\"${zsh_completion_dir}\" \$fpath)"
+  append_line_if_missing "${zshrc_file}" "autoload -Uz compinit"
+  append_line_if_missing "${zshrc_file}" "compinit"
+
+  success "Zsh completion installed: ${zsh_completion_file}"
+  info "Restart zsh or run 'exec zsh' to load new completion immediately."
+}
+
+install_shell_completion() {
+  local install_failed=0
+
+  if command_exists bash; then
+    if ! install_bash_completion; then
+      warn "Could not install bash completion for ${SCRIPT_NAME}."
+      install_failed=1
+    fi
+  else
+    warn "bash not found. Skipping bash completion setup."
+  fi
+
+  if command_exists zsh; then
+    if ! install_zsh_completion; then
+      warn "Could not install zsh completion for ${SCRIPT_NAME}."
+      install_failed=1
+    fi
+  else
+    warn "zsh not found. Skipping zsh completion setup."
+  fi
+
+  if [[ ${install_failed} -eq 1 ]]; then
+    warn "Completion setup finished with warnings."
+  else
+    success "Autocomplete setup completed for available shells."
+  fi
 }
 
 is_azure_cloud_shell() {
@@ -311,7 +393,11 @@ cmd_setup() {
     fi
   fi
 
-  # ── 2. Install gcloud CLI (Apigee hybrid development) ────────────────────
+  # ── 2. Configure shell completion ─────────────────────────────────────────
+  section "AUTOCOMPLETE" "Install command completion for cshell" "cyan"
+  install_shell_completion || warn "Autocomplete setup encountered an unexpected issue."
+
+  # ── 3. Install gcloud CLI (Apigee hybrid development) ────────────────────
   if command_exists gcloud; then
     success "gcloud is already installed ($(gcloud --version 2>&1 | head -1))"
   else
@@ -365,7 +451,7 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
     success "gcloud installed"
   fi
 
-  # ── 3. Install oh-my-zsh ─────────────────────────────────────────────────
+  # ── 4. Install oh-my-zsh ─────────────────────────────────────────────────
   if [[ -d "${HOME}/.oh-my-zsh" ]]; then
     success "oh-my-zsh is already installed"
   else
@@ -394,7 +480,7 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
     success "oh-my-zsh installed"
   fi
 
-  # ── 4. Interactive storage-account setup ─────────────────────────────────
+  # ── 5. Interactive storage-account setup ─────────────────────────────────
   section "AZURE STORAGE" "Backup configuration" "blue"
   local storage_account container_name storage_account_key
 
@@ -789,6 +875,7 @@ Commands:
   update   Update cshell to latest release and print installed version
 
 Environment file: ${ENV_FILE}
+Autocomplete: installed automatically for bash/zsh during 'cshell setup'
 
 Documentation:
   Apigee Hybrid before you begin : ${DOC_BEFORE_BEGIN}

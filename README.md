@@ -96,9 +96,13 @@ cshell init
 Performs first-time setup:
 
 1. Installs `cshell` to `/usr/bin`
-2. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
-3. Installs **oh-my-zsh**
-4. Interactively configures the **Azure Blob Storage** account used for backups
+2. Automatically installs shell autocomplete for `cshell` (Bash + Zsh, when available)
+3. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
+4. Installs **oh-my-zsh**
+5. Interactively configures the **Azure Blob Storage** account used for backups
+
+Autocomplete is installed to user-space paths and setup is idempotent. Re-running
+`cshell setup` updates completion files safely.
    (optional `AZURE_STORAGE_ACCOUNT_KEY` supported for key-based fallback)
 
 Backup upload command that is configured:
