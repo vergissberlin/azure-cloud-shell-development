@@ -106,6 +106,7 @@ EOF
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"install checklist"* ]]
 	[[ "$output" == *"[✓]"*"1. Before you begin"* ]]
+	[[ "$output" == *"Doc:"*install-before-begin* ]]
 	[[ "$output" == *"13. Community install guide"* ]]
 	[[ "$output" == *"All required"* ]]
 }

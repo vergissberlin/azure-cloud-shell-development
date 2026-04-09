@@ -54,7 +54,8 @@ install link list (same as `cshell docs`).
   `CONTROL_PLANE_LOCATION` is optional. `CHART_REPO` / `CHART_VERSION` need not
   appear in the file when built-in defaults apply. After loading the env file it
   prints a **numbered checklist** (items 1–13) in the same order as the Google
-  Apigee Hybrid v1.16 install topics (plus the community guide link). **✓** /
+  Apigee Hybrid v1.16 install topics (plus the community guide link), each item
+  with a separate **`Doc:`** line for the documentation URL. **✓** /
   **✗** / **—** use the following heuristics:
   1. Required Hybrid variables (before you begin).
   2. Cluster reachability (`kubectl cluster-info`) when `kubectl` is on `PATH`.
