@@ -18,6 +18,7 @@ cshell_env_is_allowed_key() {
 			APIGEE_OVERRIDE_TLS_CERT_REL | APIGEE_OVERRIDE_TLS_KEY_REL | \
 			APIGEE_INGRESS_SVC_ANNOTATION_KEY | APIGEE_INGRESS_SVC_ANNOTATION_VALUE | \
 			APIGEE_OVERRIDE_RUNTIME_TAG | APIGEE_OVERRIDE_LARGE_PAYLOAD | APIGEE_OVERRIDES_OVERWRITE | \
+			APIGEE_TLS_SELF_SIGNED | APIGEE_TLS_SKIP_SELF_SIGNED | \
 			APIGEE_HELM_CHARTS_HOME | CHART_REPO | CHART_VERSION)
 			return 0
 			;;
@@ -99,6 +100,31 @@ cshell_env_delete_assignment_lines() {
 	tmp="$(mktemp)"
 	grep -v "^${key}=" "${env_path}" >"${tmp}" || true
 	mv "${tmp}" "${env_path}"
+}
+
+# Remove prior KEY= lines, then append KEY=value (or omit value to delete key only).
+# KEY must be allowlisted. Used by config set and hybrid --step TLS helper.
+cshell_env_upsert_key() {
+	local env_path="$1"
+	local key="$2"
+	local val="${3-}"
+	[[ -n "${env_path}" && -n "${key}" ]] || return 1
+	if ! cshell_env_is_allowed_key "${key}"; then
+		return 1
+	fi
+	touch "${env_path}"
+	local tmp
+	tmp="$(mktemp)"
+	if [[ -f "${env_path}" ]]; then
+		grep -v "^${key}=" "${env_path}" >"${tmp}" || true
+	else
+		: >"${tmp}"
+	fi
+	if [[ -n "${val}" ]]; then
+		printf '%s=%s\n' "${key}" "${val}" >>"${tmp}"
+	fi
+	mv -f "${tmp}" "${env_path}"
+	return 0
 }
 
 # Idempotent storage snippet from `cshell setup` (replaces prior setup block).

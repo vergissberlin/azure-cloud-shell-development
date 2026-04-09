@@ -78,8 +78,11 @@ Use **`cshell hybrid --step N`** (with **N** from **1** to **13**) to print only
 item **N** (same status heuristics as `hybrid --check`) and run the small slice of
 automation cshell supports for that item — for example **`--step 3`** to pull Helm
 charts only, **`--step 5`** to prepare **`service-accounts/`** and see expected key paths,
-or **`--step 7`** to lay out TLS paths and optionally generate a trial self-signed cert
-when **`APIGEE_TLS_SELF_SIGNED=1`**. Step **1** only requires a readable, non-empty
+or **`--step 7`** for TLS (Google Part 2 **Step 6** in the install sidebar; cshell keeps
+**before you begin** as item **1**, so Google’s numbered steps map to **`--step` (N+1)** for
+**N = 1…11**). For **non-prod**, **`hybrid --step 7`** generates a quickstart self-signed
+**`keystore_<ENV_GROUP>.pem`/`.key`** by default and syncs **`APIGEE_OVERRIDE_TLS_*`**;
+set **`APIGEE_TLS_SKIP_SELF_SIGNED=1`** to disable. Step **1** only requires a readable, non-empty
 **`~/.cshell.env`**; steps **2–13** need the same required Hybrid variables as
 **`hybrid --check`**. See **Command Reference** for the full matrix.
 
@@ -92,8 +95,9 @@ a Kubernetes secret such as `apigee-non-prod-svc-account`. Align `ENVIRONMENT_NA
 with the environment you created in the Apigee UI.
 
 For trial-style installs, self-signed TLS in
-`$APIGEE_HELM_CHARTS_HOME/apigee-virtualhost/certs/` is acceptable; production
-should use properly signed certificates.
+`$APIGEE_HELM_CHARTS_HOME/apigee-virtualhost/certs/` is acceptable (Google’s quickstart uses
+`keystore_$ENV_GROUP.pem` / `keystore_$ENV_GROUP.key`); production should use properly signed
+certificates.
 
 ## Helm Chart Set
 

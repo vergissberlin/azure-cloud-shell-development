@@ -30,6 +30,21 @@ cshell_hybrid_suggest_instance_id() {
 	printf '%s' "${s}"
 }
 
+# Sanitize ENV_GROUP (or similar) for keystore_ENVGROUP.pem / .key. Returns 1 if empty after sanitize.
+cshell_hybrid_sanitize_keystore_slug() {
+	local s="${1:-}"
+	s="${s//[^a-zA-Z0-9._-]/-}"
+	while [[ "${s}" == *--* ]]; do
+		s="${s//--/-}"
+	done
+	s="${s#-}"
+	s="${s%-}"
+	s="${s#.}"
+	[[ -n "${s}" ]] || return 1
+	printf '%s' "${s}"
+	return 0
+}
+
 # Ingress name rules: max 17 chars, [a-z0-9.-], start/end alphanumeric.
 cshell_hybrid_validate_ingress_name() {
 	local n="$1"

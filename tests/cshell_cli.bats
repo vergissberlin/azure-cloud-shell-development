@@ -751,3 +751,104 @@ EOF
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"2. Create cluster"* ]] || [[ "$output" == *"Create cluster"* ]]
 }
+
+@test "hybrid --step 7 generates non-prod keystore and upserts TLS override paths (openssl)" {
+	if ! command -v openssl >/dev/null 2>&1; then
+		skip "openssl not available"
+	fi
+	export_home_tmp
+	local charts pem key
+	charts="${HOME}/hybrid-tls-s7"
+	mkdir -p "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=my-env-group
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --step 7
+	[ "$status" -eq 0 ]
+	pem="${charts}/apigee-virtualhost/certs/keystore_my-env-group.pem"
+	key="${charts}/apigee-virtualhost/certs/keystore_my-env-group.key"
+	[ -f "${pem}" ]
+	[ -f "${key}" ]
+	grep -qx 'APIGEE_OVERRIDE_TLS_CERT_REL=certs/keystore_my-env-group.pem' "${HOME}/.cshell.env"
+	grep -qx 'APIGEE_OVERRIDE_TLS_KEY_REL=certs/keystore_my-env-group.key' "${HOME}/.cshell.env"
+}
+
+@test "hybrid --step 7 skips auto self-signed when APIGEE_TLS_SKIP_SELF_SIGNED=1" {
+	if ! command -v openssl >/dev/null 2>&1; then
+		skip "openssl not available"
+	fi
+	export_home_tmp
+	local charts pem
+	charts="${HOME}/hybrid-tls-s7-skip"
+	mkdir -p "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+APIGEE_TLS_SKIP_SELF_SIGNED=1
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --step 7
+	[ "$status" -eq 0 ]
+	pem="${charts}/apigee-virtualhost/certs/keystore_envgroup.pem"
+	[ ! -f "${pem}" ]
+}
+
+@test "hybrid --step 7 does not auto-generate keystore for production-style environment name" {
+	if ! command -v openssl >/dev/null 2>&1; then
+		skip "openssl not available"
+	fi
+	export_home_tmp
+	local charts pem
+	charts="${HOME}/hybrid-tls-s7-prod"
+	mkdir -p "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=production
+ENV_GROUP=prodgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --step 7
+	[ "$status" -eq 0 ]
+	pem="${charts}/apigee-virtualhost/certs/keystore_prodgroup.pem"
+	[ ! -f "${pem}" ]
+}

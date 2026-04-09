@@ -1090,25 +1090,103 @@ cmd_hybrid_run_step_actions() {
 			local crt_abs="${vhost}/${crt_rel}"
 			local key_abs="${vhost}/${key_rel}"
 			mkdir -p "$(dirname "${crt_abs}")" "$(dirname "${key_abs}")"
-			info "TLS paths under apigee-virtualhost: ${crt_rel} and ${key_rel}"
+
+			local prefer_np=0
+			if cshell_hybrid_detect_nonprod; then
+				prefer_np=1
+			elif [[ "${ENVIRONMENT_NAME:-}" =~ [Nn]on[-_]?[Pp]rod ]]; then
+				prefer_np=1
+			fi
+
+			local eg_slug=""
+			if ! eg_slug="$(cshell_hybrid_sanitize_keystore_slug "${ENV_GROUP:-}")"; then
+				eg_slug=""
+			fi
+			local ks_pem_rel="" ks_key_rel="" ks_pem_abs="" ks_key_abs=""
+			if [[ -n "${eg_slug}" ]]; then
+				ks_pem_rel="certs/keystore_${eg_slug}.pem"
+				ks_key_rel="certs/keystore_${eg_slug}.key"
+				ks_pem_abs="${vhost}/${ks_pem_rel}"
+				ks_key_abs="${vhost}/${ks_key_rel}"
+				mkdir -p "$(dirname "${ks_pem_abs}")" "$(dirname "${ks_key_abs}")"
+			fi
+
+			info "TLS override paths (sslCertPath / sslKeyPath): ${crt_rel} and ${key_rel}"
 			info "Full paths: ${crt_abs} ; ${key_abs}"
-			info "Documentation: ${DOC_INSTALL_TLS}"
-			if [[ "${APIGEE_TLS_SELF_SIGNED:-0}" == "1" ]]; then
-				if [[ -z "${DOMAIN:-}" ]]; then
-					warn "APIGEE_TLS_SELF_SIGNED=1 but DOMAIN is empty — skipping openssl."
+			if [[ -n "${ks_pem_abs}" ]]; then
+				info "Google quickstart filenames (ENV_GROUP): ${ks_pem_rel} / ${ks_key_rel}"
+			elif [[ -z "${ENV_GROUP:-}" ]]; then
+				warn "ENV_GROUP is empty — cannot derive keystore_*.pem key names for the quickstart layout."
+			fi
+			info "Documentation: ${DOC_INSTALL_TLS} (Google Part 2 Step 6; cshell checklist item 7)"
+
+			local generated=0
+
+			# Non-prod: default self-signed at keystore_ENV_GROUP.pem / .key (Google quickstart).
+			if [[ "${prefer_np}" == "1" ]] && [[ "${APIGEE_TLS_SKIP_SELF_SIGNED:-0}" != "1" ]]; then
+				if [[ -z "${eg_slug}" ]]; then
+					warn "ENV_GROUP missing or invalid for keystore file names — skipping automatic self-signed cert."
+				elif [[ -z "${DOMAIN:-}" ]]; then
+					warn "DOMAIN is empty — skipping automatic self-signed certificate (non-prod)."
 				elif ! command_exists openssl; then
-					warn "openssl not in PATH — cannot generate a self-signed certificate automatically."
-				elif [[ -f "${crt_abs}" && -f "${key_abs}" ]]; then
-					info "Certificate files already exist; not overwriting."
+					warn "openssl not in PATH — skipping automatic self-signed certificate."
+				elif [[ -f "${ks_pem_abs}" && -f "${ks_key_abs}" ]]; then
+					info "Keystore files already exist; not overwriting."
 				else
-					if openssl req -x509 -newkey rsa:2048 -keyout "${key_abs}" -out "${crt_abs}" -days 365 -nodes -subj "/CN=${DOMAIN}"; then
-						success "Generated self-signed TLS certificate (CN=${DOMAIN})."
+					if openssl req -nodes -new -x509 \
+						-keyout "${ks_key_abs}" \
+						-out "${ks_pem_abs}" \
+						-subj "/CN=${DOMAIN}" \
+						-days 3650; then
+						success "Generated self-signed TLS (Google quickstart layout, CN=${DOMAIN})."
+						if cshell_env_upsert_key "${ENV_FILE}" APIGEE_OVERRIDE_TLS_CERT_REL "${ks_pem_rel}" \
+							&& cshell_env_upsert_key "${ENV_FILE}" APIGEE_OVERRIDE_TLS_KEY_REL "${ks_key_rel}"; then
+							cshell_env_ensure_permissions "${ENV_FILE}"
+							export APIGEE_OVERRIDE_TLS_CERT_REL="${ks_pem_rel}"
+							export APIGEE_OVERRIDE_TLS_KEY_REL="${ks_key_rel}"
+							if declare -F cshell_env_sync_exports >/dev/null 2>&1; then
+								cshell_env_sync_exports || warn "Could not refresh shell export snippet."
+							fi
+						else
+							warn "Could not update ${ENV_FILE} with APIGEE_OVERRIDE_TLS_* — set paths manually."
+						fi
+						generated=1
 					else
 						warn "openssl failed — add certificate material manually per Google docs."
 					fi
 				fi
-			else
-				info "To generate a trial self-signed cert here, set APIGEE_TLS_SELF_SIGNED=1 (existing files are not overwritten)."
+			fi
+
+			# Explicit trial: use APIGEE_OVERRIDE_TLS_* paths (e.g. production-style or custom layout).
+			if [[ "${generated}" != "1" ]] && [[ "${APIGEE_TLS_SELF_SIGNED:-0}" == "1" ]]; then
+				if [[ -z "${DOMAIN:-}" ]]; then
+					warn "APIGEE_TLS_SELF_SIGNED=1 but DOMAIN is empty — skipping openssl."
+				elif ! command_exists openssl; then
+					warn "openssl not in PATH — cannot generate a self-signed certificate."
+				elif [[ -f "${crt_abs}" && -f "${key_abs}" ]]; then
+					info "Certificate files already exist at override paths; not overwriting."
+				else
+					if openssl req -nodes -new -x509 \
+						-keyout "${key_abs}" \
+						-out "${crt_abs}" \
+						-subj "/CN=${DOMAIN}" \
+						-days 3650; then
+						success "Generated self-signed TLS at override paths (CN=${DOMAIN})."
+						generated=1
+					else
+						warn "openssl failed — add certificate material manually per Google docs."
+					fi
+				fi
+			fi
+
+			if [[ "${generated}" != "1" ]]; then
+				if [[ "${prefer_np}" == "1" ]] && [[ "${APIGEE_TLS_SKIP_SELF_SIGNED:-0}" == "1" ]]; then
+					info "Non-prod automatic TLS was skipped (APIGEE_TLS_SKIP_SELF_SIGNED=1). Use APIGEE_TLS_SELF_SIGNED=1 to generate at override paths or add certs manually."
+				elif [[ "${prefer_np}" == "1" ]]; then
+					info "Automatic non-prod TLS not generated; fix DOMAIN, ENV_GROUP, openssl, or use APIGEE_TLS_SKIP_SELF_SIGNED / APIGEE_TLS_SELF_SIGNED as needed."
+				else
+					info "For production-style installs use CA-signed certs. For a trial on override paths only, set APIGEE_TLS_SELF_SIGNED=1 (${crt_rel} / ${key_rel})."
+				fi
 			fi
 			;;
 		8)

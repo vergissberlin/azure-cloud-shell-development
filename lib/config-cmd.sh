@@ -29,6 +29,7 @@ cmd_config_show() {
 		APIGEE_OVERRIDE_TLS_CERT_REL APIGEE_OVERRIDE_TLS_KEY_REL \
 		APIGEE_INGRESS_SVC_ANNOTATION_KEY APIGEE_INGRESS_SVC_ANNOTATION_VALUE \
 		APIGEE_OVERRIDE_RUNTIME_TAG APIGEE_OVERRIDE_LARGE_PAYLOAD APIGEE_OVERRIDES_OVERWRITE \
+		APIGEE_TLS_SELF_SIGNED APIGEE_TLS_SKIP_SELF_SIGNED \
 		APIGEE_HELM_CHARTS_HOME CHART_REPO CHART_VERSION; do
 		# shellcheck disable=SC2248
 		if [[ -n "${!k:-}" ]]; then
@@ -57,18 +58,10 @@ cmd_config_set() {
 		error "Key '${key}' is not an allowlisted cshell configuration key."
 		exit 1
 	fi
-	touch "${ENV_FILE}"
-	local tmp
-	tmp="$(mktemp)"
-	if [[ -f "${ENV_FILE}" ]]; then
-		grep -v "^${key}=" "${ENV_FILE}" >"${tmp}" || true
-	else
-		: >"${tmp}"
+	if ! cshell_env_upsert_key "${ENV_FILE}" "${key}" "${val}"; then
+		error "Could not update ${ENV_FILE} (${key})."
+		exit 1
 	fi
-	if [[ -n "${val}" ]]; then
-		printf '%s=%s\n' "${key}" "${val}" >>"${tmp}"
-	fi
-	mv "${tmp}" "${ENV_FILE}"
 	cshell_env_ensure_permissions "${ENV_FILE}"
 	if declare -F cshell_env_sync_exports >/dev/null 2>&1; then
 		cshell_env_sync_exports || warn "Could not refresh shell export snippet."

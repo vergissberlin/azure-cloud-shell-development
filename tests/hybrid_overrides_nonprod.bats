@@ -19,6 +19,27 @@ setup() {
 	[[ "$status" -ne 0 ]]
 }
 
+@test "cshell_hybrid_sanitize_keystore_slug keeps safe env group names" {
+	source "${REPO_ROOT}/lib/hybrid-overrides-nonprod.sh"
+	local out
+	out="$(cshell_hybrid_sanitize_keystore_slug 'my-env-group')"
+	[[ "$out" == "my-env-group" ]]
+}
+
+@test "cshell_hybrid_sanitize_keystore_slug maps unsafe characters to hyphens" {
+	source "${REPO_ROOT}/lib/hybrid-overrides-nonprod.sh"
+	local out
+	out="$(cshell_hybrid_sanitize_keystore_slug 'weird name@x')"
+	[[ "$out" == *weird* ]]
+	[[ "$out" == *x* ]]
+}
+
+@test "cshell_hybrid_sanitize_keystore_slug fails when empty after sanitize" {
+	source "${REPO_ROOT}/lib/hybrid-overrides-nonprod.sh"
+	run bash -c 'source "${REPO_ROOT}/lib/hybrid-overrides-nonprod.sh"; cshell_hybrid_sanitize_keystore_slug "!!!"'
+	[[ "$status" -ne 0 ]]
+}
+
 @test "emit includes contractProvider when control plane location set" {
 	source "${REPO_ROOT}/lib/hybrid-overrides-nonprod.sh"
 	run cshell_hybrid_emit_nonprod_overrides_secretrefs \

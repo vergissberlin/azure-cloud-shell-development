@@ -133,8 +133,11 @@ list (same as `cshell docs`).
   the **current** shell in one step. **Requires bash 4+**.
 
 - `hybrid --step <1-13>`: run a **single** Hybrid install checklist item (same numbering
-  and **Doc:** URLs as `hybrid --check`). Prints that row’s status (✓ / ✗ / ○), then runs
-  the matching automation where cshell can do so safely:
+  and **Doc:** URLs as `hybrid --check`). This mirrors **Part 2: Hybrid runtime setup** in
+  Google’s sidebar: cshell **1** = *Before you begin*, cshell **2–12** = Google **Step 1–11**
+  (e.g. **`hybrid --step 7`** = Google **Step 6: Create TLS certificates**), and cshell **13**
+  is the extra community guide link. Prints that row’s status (✓ / ✗ / ○), then runs the
+  matching automation where cshell can do so safely:
   - **1** — same required-variable gate as `--check` for step 1 only (exits **1** if any
     required Hybrid variable is missing); no chart or cluster changes.
   - **2** — prints the cluster doc link; runs `az aks get-credentials` when
@@ -148,10 +151,16 @@ list (same as `cshell docs`).
     seven production keys); does not create Google service accounts.
   - **6** — hints and a non-prod **kubectl** secret example; does not apply secrets
     automatically.
-  - **7** — ensures TLS directories for **`APIGEE_OVERRIDE_TLS_CERT_REL`** /
-    **`APIGEE_OVERRIDE_TLS_KEY_REL`** under **`apigee-virtualhost`**; with
-    **`APIGEE_TLS_SELF_SIGNED=1`**, **`DOMAIN`** set, `openssl` on `PATH`, and missing cert
-    files, generates a **trial** self-signed cert (does not overwrite existing files).
+  - **7** — TLS (Google [Step 6](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-tls-certificates)):
+    ensures directories under **`apigee-virtualhost`**. For **non-prod** (non-prod key/setup
+    detection or **`ENVIRONMENT_NAME`** matching `non[-_]prod` / `nonprod`), **by default**
+    runs `openssl req -nodes -new -x509` for **`certs/keystore_<ENV_GROUP>.pem`** and
+    **`.key`** (**3650** days, **CN=`DOMAIN`**), then updates **`APIGEE_OVERRIDE_TLS_*`** in
+    **`~/.cshell.env`** and refreshes export hooks when possible. Set
+    **`APIGEE_TLS_SKIP_SELF_SIGNED=1`** to skip that automatic quickstart cert. Outside
+    non-prod (or after skipping), **`APIGEE_TLS_SELF_SIGNED=1`** generates at the paths from
+    **`APIGEE_OVERRIDE_TLS_CERT_REL`** / **`APIGEE_OVERRIDE_TLS_KEY_REL`** (defaults
+    **`certs/tls.crt`** / **`certs/tls.key`**). Existing files are not overwritten.
   - **8** — writes **`overrides.yaml`** like interactive `hybrid` (needs
     **`APIGEE_INSTANCE_ID`** and other override keys in **`~/.cshell.env`**; respects the
     same overwrite rules as **`APIGEE_SETUP_NONINTERACTIVE`** / **`APIGEE_OVERRIDES_OVERWRITE`**
