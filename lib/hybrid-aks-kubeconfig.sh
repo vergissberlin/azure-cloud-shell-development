@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # After cshell hybrid: optionally merge AKS credentials into ~/.kube/config.
-# Depends on command_exists (portable.sh), info/success/warn (misc-cli-utils or fallback).
+# Depends on info/success/warn (misc-cli-utils.sh or cshell fallback banner).
 # shellcheck shell=bash
 
 cshell_hybrid_fetch_aks_kubeconfig() {
 	local rg="${1:-}"
 	local cluster="${2:-}"
 	[[ -n "${rg}" && -n "${cluster}" ]] || return 0
-	if ! command_exists az; then
+	if ! command -v az &>/dev/null; then
 		info "Skipping AKS kubeconfig download (Azure CLI not found)."
 		return 0
 	fi

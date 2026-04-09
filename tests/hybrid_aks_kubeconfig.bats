@@ -24,8 +24,6 @@ STUB
 	# shellcheck source=/dev/null
 	source "${REPO_ROOT}/scripts/misc-cli-utils.sh"
 	# shellcheck source=/dev/null
-	source "${REPO_ROOT}/lib/portable.sh"
-	# shellcheck source=/dev/null
 	source "${REPO_ROOT}/lib/hybrid-aks-kubeconfig.sh"
 
 	PATH="${stub_bin}:${PATH}" cshell_hybrid_fetch_aks_kubeconfig "rg-hybrid" "aks-hybrid"
@@ -55,8 +53,6 @@ STUB
 
 	# shellcheck source=/dev/null
 	source "${REPO_ROOT}/scripts/misc-cli-utils.sh"
-	# shellcheck source=/dev/null
-	source "${REPO_ROOT}/lib/portable.sh"
 	# shellcheck source=/dev/null
 	source "${REPO_ROOT}/lib/hybrid-aks-kubeconfig.sh"
 
