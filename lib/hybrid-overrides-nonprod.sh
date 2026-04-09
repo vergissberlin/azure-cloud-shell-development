@@ -124,7 +124,7 @@ cshell_hybrid_emit_nonprod_overrides_secretrefs() {
 			printf '%s\n' "contractProvider: https://${control_plane_location}-apigee.googleapis.com"
 			printf '%s\n' ""
 		else
-			printf '%s\n' "# contractProvider: omit when not using data residency (set CONTROL_PLANE_LOCATION to add)"
+			printf '%s\n' "# No regional control plane URL: set CONTROL_PLANE_LOCATION for data residency."
 			printf '%s\n' ""
 		fi
 		printf '%s\n' "envs:"

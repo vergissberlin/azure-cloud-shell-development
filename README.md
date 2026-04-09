@@ -203,10 +203,12 @@ environment (`PROJECT_ID` required). To merge **AKS** credentials into
 | `ENV_GROUP`                | Environment group name (Helm `envgroup`)                                                                        | `envgroup`                                                                                                             |
 | `ENV_GROUP_RELEASE_NAME`   | Helm release name for `apigee-virtualhost`                                                                      | `apigee-virtualhost`                                                                                                   |
 | `DOMAIN`                   | Hostname for the environment group (TLS / virtual host)                                                         | –                                                                                                                      |
-| `CONTROL_PLANE_LOCATION`   | Optional; only for data residency (`contractProvider`)                                                          | `europe-west3`                                                                                                         |
+| `CONTROL_PLANE_LOCATION`   | Optional; only for data residency (`contractProvider` in generated `overrides.yaml`)                               | –                                                                                                                      |
 | `APIGEE_HELM_CHARTS_HOME`  | Local path to Helm charts directory                                                                             | `~/apigee-hybrid/helm-charts` (created by **`cshell setup`**); `cshell hybrid` uses the same default when prompting |
 | `CHART_REPO`               | OCI repo for Hybrid charts                                                                                      | built-in default                                                                                                       |
 | `CHART_VERSION`            | Chart version (e.g. `1.16.0-hotfix.1`)                                                                          | built-in default                                                                                                       |
+
+Optional variables for Helm `overrides.yaml` (for example `APIGEE_INSTANCE_ID`, `APIGEE_NONPROD_SA_SECRET`) are written by `cshell hybrid` when set; see [docs/Configuration.md](docs/Configuration.md).
 
 **Helm charts downloaded:**
 
