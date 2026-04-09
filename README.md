@@ -8,6 +8,34 @@ setup of common tooling.
 
 ## Installation
 
+### Quick install via curl (recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | sudo bash
+```
+
+This downloads `cshell` from the repository and installs it to `/usr/local/bin`.
+
+#### Manual download and install
+
+```bash
+# Download cshell directly
+curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/cshell \
+  -o /usr/local/bin/cshell
+chmod +x /usr/local/bin/cshell
+```
+
+#### Download install script first, then run
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh \
+  -o install.sh
+chmod +x install.sh
+sudo ./install.sh
+```
+
+### From a local clone
+
 ```bash
 sudo bash cshell setup
 ```
@@ -17,6 +45,33 @@ This installs `cshell` to `/usr/bin/cshell` so it is available system-wide.
 ---
 
 ## Commands
+
+### `cshell init`
+
+Creates the Azure infrastructure required for backups:
+
+1. Optionally sets the active Azure subscription
+2. Creates the **Resource Group** (if it does not exist)
+3. Creates the **Storage Account** (if it does not exist)
+4. Creates the **Blob container** (if it does not exist)
+5. Saves all configuration to `~/.cshell.env`
+
+```bash
+cshell init
+```
+
+**Interactive prompts:**
+
+| Prompt | Default |
+|---|---|
+| Azure Subscription ID or name | current subscription |
+| Resource group name | `cshell-rg` |
+| Azure region | `westeurope` |
+| Storage Account name | – |
+| Blob container name | `backups` |
+| Storage SKU | `Standard_LRS` |
+
+---
 
 ### `cshell setup`
 
@@ -125,8 +180,15 @@ extend this file.
 | Tool | Required for |
 |---|---|
 | `bash` ≥ 4 | All commands |
-| `az` (Azure CLI) | `setup`, `backup`, `restore` |
+| `az` (Azure CLI) | `init`, `setup`, `backup`, `restore` |
 | `gcloud` | `hybrid` |
 | `helm` ≥ 3.14 | `hybrid` |
 | `zip` / `unzip` | `backup`, `restore` |
 | `zsh` | `setup` (oh-my-zsh) |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to
+this project.
