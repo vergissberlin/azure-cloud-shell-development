@@ -750,6 +750,95 @@ EOF
 	[[ "$output" == *APIGEE_INSTANCE_ID* ]]
 }
 
+@test "hybrid --step 8 writes overrides.yaml in non-interactive mode" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts-step8-ni"
+	mkdir -p "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+APIGEE_INSTANCE_ID=hybrid-demo-id
+# END_CSHELL_HYBRID_ENV
+EOF
+	run env APIGEE_SETUP_NONINTERACTIVE=1 bash "${REPO_ROOT}/cshell" hybrid --step 8
+	[ "$status" -eq 0 ]
+	[ -f "${charts}/overrides.yaml" ]
+	grep -qx 'instanceID: hybrid-demo-id' "${charts}/overrides.yaml"
+	[[ "$output" != *'--- Proposed overrides.yaml'* ]]
+}
+
+@test "hybrid --step 8 interactive: decline write leaves overrides.yaml absent" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts-step8-decline"
+	mkdir -p "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+APIGEE_INSTANCE_ID=hybrid-demo-id
+# END_CSHELL_HYBRID_ENV
+EOF
+	run bash -c "printf '%s\n' n | bash \"${REPO_ROOT}/cshell\" hybrid --step 8"
+	[ "$status" -eq 0 ]
+	[[ ! -f "${charts}/overrides.yaml" ]]
+	[[ "$output" == *'Proposed overrides.yaml'* ]]
+	[[ "$output" == *'Skipped writing overrides.yaml'* ]]
+}
+
+@test "hybrid --step 8 interactive: confirm write creates overrides.yaml" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts-step8-confirm"
+	mkdir -p "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+APIGEE_INSTANCE_ID=hybrid-y-ok
+# END_CSHELL_HYBRID_ENV
+EOF
+	run bash -c "printf '%s\n' y | bash \"${REPO_ROOT}/cshell\" hybrid --step 8"
+	[ "$status" -eq 0 ]
+	[ -f "${charts}/overrides.yaml" ]
+	grep -qx 'instanceID: hybrid-y-ok' "${charts}/overrides.yaml"
+}
+
 @test "hybrid --step 2 succeeds with full env (smoke, no real cluster)" {
 	export_home_tmp
 	cat >"${HOME}/.cshell.env" <<'EOF'

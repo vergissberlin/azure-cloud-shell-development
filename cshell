@@ -1037,6 +1037,29 @@ cmd_hybrid_pull_apigee_charts() {
 	return 0
 }
 
+# Print proposed overrides.yaml, optionally prompt, then atomic write.
+# Args: charts_home then 18 args for cshell_hybrid_emit_nonprod_overrides_secretrefs.
+# Returns: 0 wrote OK, 1 write error, 2 user declined (interactive only; caller skips success line).
+cshell_hybrid_preview_confirm_write_nonprod_overrides() {
+	local charts_home="$1"
+	shift
+	local ov_out="${charts_home}/overrides.yaml"
+	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" != "1" ]]; then
+		printf '%s\n' "--- Proposed overrides.yaml (not yet written) ---"
+		cshell_hybrid_emit_nonprod_overrides_secretrefs "$@"
+		printf '%s\n' "--- end proposed overrides ---"
+		echo ""
+		if declare -F confirm >/dev/null 2>&1 && ! confirm "Write this to ${ov_out}?" "n"; then
+			info "Skipped writing overrides.yaml."
+			return 2
+		fi
+	fi
+	if cshell_hybrid_atomic_write_nonprod_overrides "${charts_home}" "1" "$@"; then
+		return 0
+	fi
+	return 1
+}
+
 # Run automated slice for hybrid --step N (env already loaded and validated when required).
 cmd_hybrid_run_step_actions() {
 	local n="$1"
@@ -1245,18 +1268,23 @@ cmd_hybrid_run_step_actions() {
 			local override_large_payload="${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}"
 			local control_plane_location="${CONTROL_PLANE_LOCATION:-}"
 			# shellcheck disable=SC2153
-			if cshell_hybrid_atomic_write_nonprod_overrides "${helm_charts_home}" "1" \
+			local wr=0
+			cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
 				"${APIGEE_INSTANCE_ID}" "${APIGEE_NAMESPACE}" "${PROJECT_ID}" "${ANALYTICS_REGION}" \
 				"${CLUSTER_NAME}" "${CLUSTER_REGION}" "${ORG_NAME}" \
 				"${ENVIRONMENT_NAME}" "${ENV_GROUP}" "${control_plane_location}" \
 				"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
 				"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
-				"${override_runtime_tag}" "${override_large_payload}"; then
-				success "Wrote non-prod ${ov_out}"
-			else
-				error "Could not write overrides.yaml (is ${helm_charts_home} writable and present?)."
-				return 1
-			fi
+				"${override_runtime_tag}" "${override_large_payload}"
+			wr=$?
+			case "${wr}" in
+				0) success "Wrote non-prod ${ov_out}" ;;
+				2) ;;
+				*)
+					error "Could not write overrides.yaml (is ${helm_charts_home} writable and present?)."
+					return 1
+					;;
+			esac
 			;;
 		9)
 			info "Apigee control plane access: ${DOC_INSTALL_CONTROL_PLANE}"
@@ -1663,17 +1691,20 @@ cmd_hybrid() {
 		fi
 	fi
 	if [[ "${ov_write}" == "1" ]]; then
-		if cshell_hybrid_atomic_write_nonprod_overrides "${helm_charts_home}" "1" \
+		local wr=0
+		cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
 			"${apigee_instance_id}" "${apigee_namespace}" "${project_id}" "${analytics_region}" \
 			"${cluster_name}" "${cluster_region}" "${org_name}" \
 			"${environment_name}" "${env_group}" "${control_plane_location}" \
 			"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
 			"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
-			"${override_runtime_tag}" "${override_large_payload}"; then
-			success "Wrote non-prod ${ov_out}"
-		else
-			warn "Could not write overrides.yaml (charts directory missing?)."
-		fi
+			"${override_runtime_tag}" "${override_large_payload}"
+		wr=$?
+		case "${wr}" in
+			0) success "Wrote non-prod ${ov_out}" ;;
+			2) ;;
+			*) warn "Could not write overrides.yaml (charts directory missing?)." ;;
+		esac
 	fi
 
 	cshell_hybrid_fetch_aks_kubeconfig "${aks_resource_group}" "${cluster_name}"
