@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.15.3](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.2...1.15.3) (2026-04-09)
+
+
+### Documentation
+
+* **Command-Reference.md, Hybrid-Setup.md:** update documentation to reflect new checklist formatting ([7fb8859](https://github.com/vergissberlin/azure-cloud-shell-development/commit/7fb88598d91ab3d313926c82800648f2f42e1041))
+
+
+### Styles
+
+* **cshell:** improve alignment and formatting of checklist output ([7fb8859](https://github.com/vergissberlin/azure-cloud-shell-development/commit/7fb88598d91ab3d313926c82800648f2f42e1041))
+
 ## [1.15.2](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.1...1.15.2) (2026-04-09)
 
 
