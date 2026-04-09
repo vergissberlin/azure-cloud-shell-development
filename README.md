@@ -135,7 +135,7 @@ Performs first-time setup:
 2. Automatically installs shell autocomplete for `cshell` (Bash)
 3. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
 4. Interactively configures the **Azure Blob Storage** account used for backups
-5. Creates **`~/apigee-hybrid/helm-charts`** if needed and writes **`APIGEE_HELM_CHARTS_HOME`** to `~/.cshell.env` (canonical path to that directory), regenerates **`~/.cshell-env-exports.sh`** for all allowlisted variables, and ensures **`~/.bashrc`** sources it once so **new Bash sessions** have those values in `env` (bash 4+; in this shell: `source ~/.cshell-env-exports.sh`)
+5. Creates **`~/apigee-hybrid/helm-charts`** if needed and writes **`APIGEE_HELM_CHARTS_HOME`** to `~/.cshell.env` (canonical path to that directory), regenerates **`~/.cshell-env-exports.sh`** for all allowlisted variables, and adds shell hooks so **new Bash sessions** load it (**`~/.bashrc`**, **`~/.profile`** for login bash, **`~/.bash_profile`** if present; bash 4+; in this shell: `. ~/.cshell-env-exports.sh`)
 
 Autocomplete is installed to user-space paths and setup is idempotent. Re-running
 `cshell setup` updates completion files safely.
@@ -173,7 +173,7 @@ unless you use **`cshell hybrid --check --strict`**, which fails when any checkl
 row is ✗ (rows marked — do not count as failures).
 
 Use **`cshell hybrid --export`** to re-run those checks and refresh
-**`~/.cshell-env-exports.sh`** (plus the `~/.bashrc` hook)—without pulling charts.
+**`~/.cshell-env-exports.sh`** (plus `~/.bashrc` / `~/.profile` / `~/.bash_profile` hooks)—without pulling charts.
 For the **current** session you can run **`eval "$(cshell hybrid --export --print)"`**
 (stdout is only `export` lines; requires bash **4+**).
 

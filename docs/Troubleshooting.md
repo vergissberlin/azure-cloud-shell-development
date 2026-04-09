@@ -48,9 +48,19 @@ This appears after **`rm -rf ~/.local`** (or similar): the binary is gone, but B
 - Verify:
   - `gcloud --version`
 
+## `Permission denied` when running `~/.cshell-env-exports.sh`
+
+That file is **not** an executable script. It is **`source`d** (dot-sourced) by your shell so exports apply to the **current** session:
+
+```bash
+. ~/.cshell-env-exports.sh
+```
+
+After any **`cshell`** run that refreshes exports (`setup`, `hybrid`, `init`, `config set`, `hybrid --export`), you should **not** need to do this in **new** terminals: cshell adds hooks to **`~/.bashrc`**, **`~/.profile`** (bash login shells), and **`~/.bash_profile`** (if that file already exists). Open a **new** Cloud Shell session or run `exec bash -l` / `source ~/.bashrc` once.
+
 ## Hybrid / Apigee variables missing from `env`
 
-`~/.cshell.env` is **not** executed by your shell automatically. After `cshell setup`, `cshell hybrid`, `cshell init`, **`cshell config set`**, or **`cshell hybrid --export`**, cshell refreshes **`~/.cshell-env-exports.sh`** and hooks **`~/.bashrc`** so **new** Bash sessions export allowlisted variables (then `env | grep PROJECT` etc. works). **Requires bash 4+** (Azure Cloud Shell is fine). In the **current** session run:
+`~/.cshell.env` is **not** executed by your shell automatically. After `cshell setup`, `cshell hybrid`, `cshell init`, **`cshell config set`**, or **`cshell hybrid --export`**, cshell refreshes **`~/.cshell-env-exports.sh`** and hooks **`~/.bashrc`**, **`~/.profile`**, and **`~/.bash_profile`** (when present) so **new** Bash sessions export allowlisted variables (then `env | grep PROJECT` etc. works). **Requires bash 4+** (Azure Cloud Shell is fine). In the **current** session run:
 
 ```bash
 source ~/.cshell-env-exports.sh

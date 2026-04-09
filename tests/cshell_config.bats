@@ -46,6 +46,17 @@ setup() {
 	grep -qx 'AKS_RESOURCE_GROUP=rg-h hybrid' "${HOME}/.cshell.env"
 }
 
+@test "config set installs env export hooks in bashrc and profile (bash 4+)" {
+	if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+		skip "requires bash 4+ for export snippet"
+	fi
+	export_home_tmp
+	run_cshell config set PROJECT_ID hook-profile-test
+	[ "$status" -eq 0 ]
+	grep -q 'cshell-env-exports.sh' "${HOME}/.bashrc"
+	grep -q 'cshell-env-exports.sh' "${HOME}/.profile"
+}
+
 @test "config show ignores non-allowlisted lines in file" {
 	export_home_tmp
 	{

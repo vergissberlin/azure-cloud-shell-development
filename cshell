@@ -240,7 +240,35 @@ cshell_install_bashrc_env_exports_hook() {
 	append_line_if_missing "${bashrc_file}" "[[ -r \"\${HOME}/.cshell-env-exports.sh\" ]] && . \"\${HOME}/.cshell-env-exports.sh\""
 }
 
-# Regenerate ~/.cshell-env-exports.sh from ENV_FILE and install the bashrc hook (bash 4+).
+# Login shells often read ~/.profile (and sometimes ~/.bash_profile) without ~/.bashrc — hook those too.
+cshell_install_profile_env_exports_hook() {
+	local profile_file="${HOME}/.profile"
+
+	touch "${profile_file}"
+	append_line_if_missing "${profile_file}" ""
+	append_line_if_missing "${profile_file}" "# Added by cshell: export allowlisted variables from ~/.cshell.env (bash login shells)"
+	# Literal \${…} is required in ~/.profile (do not expand at cshell install time).
+	# shellcheck disable=SC2016
+	append_line_if_missing "${profile_file}" 'if [ -n "${BASH_VERSION:-}" ]; then [[ -r "${HOME}/.cshell-env-exports.sh" ]] && . "${HOME}/.cshell-env-exports.sh"; fi'
+}
+
+cshell_install_bash_profile_env_exports_hook() {
+	local bpf="${HOME}/.bash_profile"
+
+	[[ -f "${bpf}" ]] || return 0
+	touch "${bpf}"
+	append_line_if_missing "${bpf}" ""
+	append_line_if_missing "${bpf}" "# Added by cshell: export allowlisted variables from ~/.cshell.env"
+	append_line_if_missing "${bpf}" "[[ -r \"\${HOME}/.cshell-env-exports.sh\" ]] && . \"\${HOME}/.cshell-env-exports.sh\""
+}
+
+cshell_install_shell_env_exports_hooks() {
+	cshell_install_bashrc_env_exports_hook
+	cshell_install_profile_env_exports_hook
+	cshell_install_bash_profile_env_exports_hook
+}
+
+# Regenerate ~/.cshell-env-exports.sh from ENV_FILE and install shell hooks (bash 4+).
 cshell_env_sync_exports() {
 	local exports="${HOME}/.cshell-env-exports.sh"
 
@@ -252,9 +280,9 @@ cshell_env_sync_exports() {
 		return 1
 	fi
 	if command_exists bash; then
-		cshell_install_bashrc_env_exports_hook
+		cshell_install_shell_env_exports_hooks
 	fi
-	info "Shell export snippet: ${exports} (new bash sessions: ~/.bashrc; this shell: source ${exports})"
+	info "Shell export snippet: ${exports} — new bash sessions load it from ~/.bashrc (and ~/.profile for login bash; ~/.bash_profile if present). This shell: source \"${exports}\" or open a new terminal."
 }
 
 install_shell_completion() {
@@ -988,7 +1016,7 @@ cmd_hybrid_export() {
 	if ! cshell_env_sync_exports; then
 		exit 1
 	fi
-	success "Hybrid allowlisted variables are available via ${HOME}/.cshell-env-exports.sh — in this shell: source \"${HOME}/.cshell-env-exports.sh\""
+	success "Hybrid allowlisted variables are in ${HOME}/.cshell-env-exports.sh — new bash sessions load it automatically; this shell: source \"${HOME}/.cshell-env-exports.sh\""
 }
 
 cmd_hybrid() {

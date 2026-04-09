@@ -90,11 +90,15 @@ To get allowlisted variables into **`env`** in Bash, prefer the generated snippe
 (after `cshell hybrid` / `setup` / `init` / `config set`):
 
 ```bash
-source ~/.cshell-env-exports.sh
+. ~/.cshell-env-exports.sh
 ```
 
-New Bash sessions load it via `~/.bashrc` (bash 4+). Avoid `source ~/.cshell.env`
-unless you trust every line in that file.
+New Bash sessions load it automatically via hooks in **`~/.bashrc`**, **`~/.profile`**
+(login shells), and **`~/.bash_profile`** (if that file exists) after you run any
+command that syncs exports (`hybrid`, `setup`, `config set`, `hybrid --export`, …);
+**bash 4+** required for snippet generation. Do not run the snippet path as a
+program (`./…`)—use **`.`** / **`source`**. Avoid `source ~/.cshell.env` unless you
+trust every line in that file.
 
 ## Official References
 
