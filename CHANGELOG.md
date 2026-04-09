@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.14.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.13.0...1.14.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add cshell_cli_colors_active function to check if colors are active ([6a6d432](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6a6d432e321c4f0a94fe6eb1aa6e4148b8109cd2))
+* **cshell:** add JSON escape function for safe string handling ([404dd6d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/404dd6d5a6b4131b25bc0b92a36eb3fc0ec2c48e))
+* **cshell:** add JSON output option for hybrid checklist ([404dd6d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/404dd6d5a6b4131b25bc0b92a36eb3fc0ec2c48e))
+
+
+### Bug Fixes
+
+* **cshell:** conditionally set dim variable based on color activity ([6a6d432](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6a6d432e321c4f0a94fe6eb1aa6e4148b8109cd2))
+* **cshell:** strip ANSI colors for non-TTY and NO_COLOR ([404dd6d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/404dd6d5a6b4131b25bc0b92a36eb3fc0ec2c48e))
+
+
+### Documentation
+
+* **Command-Reference.md, Hybrid-Setup.md:** update documentation to include NO_COLOR and JSON output options for hybrid --check command ([404dd6d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/404dd6d5a6b4131b25bc0b92a36eb3fc0ec2c48e))
+* **cshell:** update usage and exit codes for hybrid command ([404dd6d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/404dd6d5a6b4131b25bc0b92a36eb3fc0ec2c48e))
+
+
+### Tests
+
+* **cshell_cli.bats:** add tests for NO_COLOR and JSON output options in hybrid --check command ([404dd6d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/404dd6d5a6b4131b25bc0b92a36eb3fc0ec2c48e))
+* **cshell_cli:** update tests to verify NO_COLOR handling and improve subprocess isolation ([6a6d432](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6a6d432e321c4f0a94fe6eb1aa6e4148b8109cd2))
+
 ## [1.13.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.12.0...1.13.0) (2026-04-09)
 
 
