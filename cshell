@@ -787,8 +787,11 @@ cmd_hybrid_env_validate() {
 # Args: step_num title url status_symbol [note]
 cshell_hybrid_checklist_emit_step() {
 	local num="$1" title="$2" url="$3" sym="$4" note="${5:-}"
-	local cont_ind='            '
-	local dim=''
+	local num_fmt title_prefix cont_ind dim=''
+	num_fmt="$(printf '%2d' "${num}")"
+	# Unstyled prefix before title must match line 1 (colors have zero display width).
+	title_prefix="  ${sym}  ${num_fmt}. "
+	cont_ind=$(printf '%*s' "${#title_prefix}" '')
 	if cshell_cli_colors_active; then
 		dim="${DIM:-\033[2m}"
 	fi
@@ -802,7 +805,7 @@ cshell_hybrid_checklist_emit_step() {
 		title_color="${YELLOW}"
 	fi
 
-	echo -e "  ${sym_color}${sym}${RESET}  ${title_color}$(printf '%2d' "${num}"). ${title}${RESET}"
+	echo -e "  ${sym_color}${sym}${RESET}  ${title_color}${num_fmt}. ${title}${RESET}"
 	echo -e "${cont_ind}${dim}Doc: ${url}${RESET}"
 
 	if [[ -n "${note}" ]]; then

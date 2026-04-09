@@ -43,8 +43,8 @@ accounts, TLS, overrides, control plane access, cert-manager, CRDs, Helm install
 
 `cshell hybrid --check` prints that order as a **checklist** (with ✓ / ✗ / ○) after
 loading `~/.cshell.env`. Each step is **multi-line**: status glyph and step title on the
-first line (no square brackets around the symbol), then a more-indented dimmed **`Doc:`**
-line with the URL, then an optional hint (for failures and skips).
+first line (no square brackets around the symbol), then a dimmed **`Doc:`** line with the URL
+and, when needed, a **`↳`** hint — both indented to align with the **first character of the step title**.
 The checklist includes automated hints for every step
 (Helm chart layout, service-account keys or `gcloud`, Kubernetes secrets, TLS
 material, `overrides.yaml`, Apigee control-plane access, cert-manager, CRDs, Helm

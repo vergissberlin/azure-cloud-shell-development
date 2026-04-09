@@ -73,7 +73,8 @@ list (same as `cshell docs`).
   appear in the file when built-in defaults apply. After loading the env file it
   prints a **numbered checklist** (items 1–13) in the same order as the Google
   Apigee Hybrid v1.16 install topics (plus the community guide link), each item
-  with a separate, further-indented **`Doc:`** line for the documentation URL. **✓** /
+  with a separate **`Doc:`** line for the documentation URL (and optional **`↳`** notes), indented to
+  match the **first character of the step title**. **✓** /
   **✗** / **○** use the following heuristics (status on the first line without `[` `]`):
   1. Required Hybrid variables (before you begin).
   2. Cluster reachability (`kubectl cluster-info`) when `kubectl` is on `PATH`.
