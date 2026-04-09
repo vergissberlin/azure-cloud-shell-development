@@ -285,14 +285,18 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 
   # ── 4. Interactive storage-account setup ─────────────────────────────────
   section "AZURE STORAGE" "Backup configuration" "blue"
-  local storage_account container_name
+  local storage_account container_name storage_account_key
 
   storage_account=$(ask "Azure Storage Account name")
   container_name=$(ask "Azure Blob Container name" "backups")
+  storage_account_key=$(ask "Azure Storage Account key (optional; enables upload fallback without RBAC role)" "${AZURE_STORAGE_ACCOUNT_KEY:-}")
 
   {
     echo "AZURE_STORAGE_ACCOUNT=${storage_account}"
     echo "AZURE_STORAGE_CONTAINER=${container_name}"
+    if [[ -n "${storage_account_key}" ]]; then
+      echo "AZURE_STORAGE_ACCOUNT_KEY=${storage_account_key}"
+    fi
   } >> "${ENV_FILE}"
 
   success "Storage config saved to ${ENV_FILE}"
@@ -346,6 +350,7 @@ cmd_hybrid() {
   # Preserve any existing Azure storage config before overwriting the file
   local azure_storage_account="${AZURE_STORAGE_ACCOUNT:-}"
   local azure_storage_container="${AZURE_STORAGE_CONTAINER:-}"
+  local azure_storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
 
   # Persist to .env
   cat > "${ENV_FILE}" <<EOF
@@ -374,6 +379,9 @@ EOF
       echo "# Azure Blob Storage (preserved from previous setup)"
       echo "AZURE_STORAGE_ACCOUNT=${azure_storage_account}"
       echo "AZURE_STORAGE_CONTAINER=${azure_storage_container}"
+      if [[ -n "${azure_storage_account_key}" ]]; then
+        echo "AZURE_STORAGE_ACCOUNT_KEY=${azure_storage_account_key}"
+      fi
     } >> "${ENV_FILE}"
   fi
 
@@ -417,7 +425,7 @@ cmd_init() {
     source "${ENV_FILE}"
   fi
 
-  local subscription resource_group location storage_account container_name sku access_tier allow_cross_tenant_replication
+  local subscription resource_group location storage_account container_name sku access_tier allow_cross_tenant_replication storage_account_key
 
   subscription=$(ask    "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
   resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-rg-cshell}")
@@ -484,6 +492,25 @@ cmd_init() {
     success "Blob container '${container_name}' created"
   fi
 
+  # ── Try to resolve account key for auth fallback ───────────────────────────
+  storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
+  if [[ -z "${storage_account_key}" ]]; then
+    info "Trying to resolve storage account key for fallback auth ..."
+    storage_account_key="$(
+      az storage account keys list \
+        --resource-group "${resource_group}" \
+        --account-name "${storage_account}" \
+        --query "[0].value" \
+        --output tsv 2>/dev/null || true
+    )"
+    if [[ -n "${storage_account_key}" ]]; then
+      success "Storage account key resolved and will be saved to ${ENV_FILE}"
+    else
+      warn "Could not resolve storage account key automatically."
+      warn "You can set AZURE_STORAGE_ACCOUNT_KEY manually in ${ENV_FILE}."
+    fi
+  fi
+
   # ── Persist config to env file (remove any previous cshell init block) ───
   if [[ -f "${ENV_FILE}" ]]; then
     # Strip previous block written by cshell init to avoid duplicate entries
@@ -498,6 +525,9 @@ cmd_init() {
     echo "AZURE_LOCATION=${location}"
     echo "AZURE_STORAGE_ACCOUNT=${storage_account}"
     echo "AZURE_STORAGE_CONTAINER=${container_name}"
+    if [[ -n "${storage_account_key}" ]]; then
+      echo "AZURE_STORAGE_ACCOUNT_KEY=${storage_account_key}"
+    fi
     echo "AZURE_STORAGE_SKU=${sku}"
     echo "AZURE_STORAGE_ACCESS_TIER=${access_tier}"
     echo "AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=${allow_cross_tenant_replication}"

@@ -57,7 +57,8 @@ Creates the Azure infrastructure required for backups:
 2. Creates the **Resource Group** (if it does not exist)
 3. Creates the **Storage Account** (if it does not exist)
 4. Creates the **Blob container** (if it does not exist)
-5. Saves all configuration to `~/.cshell.env`
+5. Tries to resolve and save `AZURE_STORAGE_ACCOUNT_KEY` for auth fallback
+6. Saves all configuration to `~/.cshell.env`
 
 ```bash
 cshell init
@@ -84,6 +85,7 @@ Performs first-time setup:
 2. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
 3. Installs **oh-my-zsh**
 4. Interactively configures the **Azure Blob Storage** account used for backups
+   (optional `AZURE_STORAGE_ACCOUNT_KEY` supported for key-based fallback)
 
 Backup upload command that is configured:
 
@@ -175,6 +177,11 @@ cshell restore
 All configuration is stored in `~/.cshell.env`. You can edit it manually at
 any time. Re-running `cshell setup` or `cshell hybrid` will regenerate or
 extend this file.
+
+Storage auth fallback order:
+
+1. Azure AD login (`--auth-mode login`)
+2. Account key (`--auth-mode key`) when `AZURE_STORAGE_ACCOUNT_KEY` is set
 
 ---
 
