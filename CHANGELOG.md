@@ -1,5 +1,52 @@
 # Changelog
 
+## [1.11.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.10.0...1.11.0) (2026-04-09)
+
+
+### Features
+
+* add validation steps for hybrid deployment ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+* **build-standalone-scripts.sh:** add hybrid-checklist.sh to LIB_FILES for enhanced functionality ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+* **cshell:** integrate hybrid-checklist.sh for enhanced checklist validation ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+* **lib:** add hybrid-checklist.sh for automated Apigee Hybrid install checks ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+
+
+### Bug Fixes
+
+* **cshell:** remove existing chart directories before pulling to prevent errors during re-runs or partial pulls ([8157d26](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8157d267bc65d64777d1089c7e8e18d5b98f7702))
+* **hybrid-checklist.sh:** add missing braces for conditional blocks to improve code clarity and consistency ([e18d421](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e18d421da4fe89903c8404b71df59c707e3093c3))
+* **tests:** ensure core utilities are available in CI by appending symlinks to PATH ([906bcec](https://github.com/vergissberlin/azure-cloud-shell-development/commit/906bcece3c4f4cb5574564e496349cb422b52741))
+
+
+### Documentation
+
+* update Hybrid-Setup.md with checklist automation details ([47fb090](https://github.com/vergissberlin/azure-cloud-shell-development/commit/47fb090c2edd40cd86a517663a1fcb8ebce77175))
+* update README and command reference for enhanced checklist ([47fb090](https://github.com/vergissberlin/azure-cloud-shell-development/commit/47fb090c2edd40cd86a517663a1fcb8ebce77175))
+* update Release-and-CI.md for hybrid-checklist.sh inclusion ([47fb090](https://github.com/vergissberlin/azure-cloud-shell-development/commit/47fb090c2edd40cd86a517663a1fcb8ebce77175))
+
+
+### Code Refactoring
+
+* **cshell:** move strict banner info message to improve readability and reduce redundancy ([e18d421](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e18d421da4fe89903c8404b71df59c707e3093c3))
+* **tests:** use run_cshell_with_path to simplify PATH handling ([906bcec](https://github.com/vergissberlin/azure-cloud-shell-development/commit/906bcece3c4f4cb5574564e496349cb422b52741))
+
+
+### Tests
+
+* **cshell_cli.bats:** add tests for hybrid --check --strict command to ensure proper functionality and error handling ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+* **cshell_cli.bats:** update test to remove unnecessary checklist marker ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+* refactor path handling in cshell_cli.bats for clarity ([47fb090](https://github.com/vergissberlin/azure-cloud-shell-development/commit/47fb090c2edd40cd86a517663a1fcb8ebce77175))
+
+
+### Continuous Integration
+
+* **workflows:** add hybrid-checklist.sh to standalone build check for improved validation ([ed67bb7](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ed67bb7e17ec7c8198a8148ccaf2b66754317925))
+
+
+### Chores
+
+* **hybrid-checklist.sh:** add comments and disable shellcheck warning for ORG_NAME usage to clarify code intent and prevent false positives ([e18d421](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e18d421da4fe89903c8404b71df59c707e3093c3))
+
 ## [1.10.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.9.0...1.10.0) (2026-04-09)
 
 
