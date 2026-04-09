@@ -988,6 +988,8 @@ cmd_hybrid() {
 		cd "${helm_charts_home}"
 		for chart in "${APIGEE_CHARTS[@]}"; do
 			info "Pulling ${chart} ..."
+			# helm pull --untar fails if the chart directory already exists (re-runs / partial pulls).
+			rm -rf "${chart}"
 			helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
 		done
 	)
