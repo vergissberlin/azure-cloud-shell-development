@@ -20,9 +20,20 @@ INSTALL_DIR="${DEFAULT_INSTALL_DIR}"
 SCRIPT_NAME="cshell"
 INSTALL_PATH="${INSTALL_DIR}/${SCRIPT_NAME}"
 
-info()    { echo -e "\033[1;34m[INFO]\033[0m  $*"; }
-success() { echo -e "\033[1;32m[OK]\033[0m    $*"; }
-error()   { echo -e "\033[1;31m[ERROR]\033[0m $*" >&2; }
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLI_UTILS_PATH="${SCRIPT_DIR}/scripts/misc-cli-utils.sh"
+
+if [[ -f "${CLI_UTILS_PATH}" ]]; then
+  # shellcheck source=/dev/null
+  source "${CLI_UTILS_PATH}"
+fi
+
+# Fallback for standalone curl execution where shared utils are unavailable.
+if ! declare -F info >/dev/null 2>&1; then
+  info()    { echo -e "\033[1;34m[INFO]\033[0m  $*"; }
+  success() { echo -e "\033[1;32m[OK]\033[0m    $*"; }
+  error()   { echo -e "\033[1;31m[ERROR]\033[0m $*" >&2; }
+fi
 
 # ---------------------------------------------------------------------------
 # Preflight checks
@@ -43,7 +54,11 @@ fi
 # Download and install
 # ---------------------------------------------------------------------------
 
-info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} …"
+if declare -F section >/dev/null 2>&1; then
+  section "INSTALL" "Download and install ${SCRIPT_NAME}" "cyan"
+fi
+
+info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} ..."
 mkdir -p "${INSTALL_DIR}"
 curl -fsSL "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
 chmod +x "${INSTALL_PATH}"

@@ -4,6 +4,9 @@ A bash helper script (`cshell`) for Azure Cloud Shell that covers Apigee Hybrid
 development workflows, backup/restore of the home directory, and first-time
 setup of common tooling.
 
+CLI output styling is standardized through shared helpers in
+`scripts/misc-cli-utils.sh` to keep command feedback consistent across scripts.
+
 ---
 
 ## Installation
