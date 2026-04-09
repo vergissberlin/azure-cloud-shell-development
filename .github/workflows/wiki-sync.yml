@@ -1,0 +1,102 @@
+name: wiki-sync
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/wiki-sync.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/wiki-sync.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate-docs:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate markdown links in docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib
+          import re
+          import sys
+
+          root = pathlib.Path("docs")
+          link_re = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
+          errors = []
+
+          for md_file in root.rglob("*.md"):
+            content = md_file.read_text(encoding="utf-8")
+            for raw_target in link_re.findall(content):
+              target = raw_target.strip()
+              if not target or target.startswith("#"):
+                continue
+              if "://" in target or target.startswith("mailto:"):
+                continue
+              target = target.split("#", 1)[0].strip()
+              if not target:
+                continue
+
+              resolved = (md_file.parent / target).resolve()
+              candidates = [resolved]
+              if resolved.suffix == "":
+                candidates.append(pathlib.Path(str(resolved) + ".md"))
+
+              if not any(path.exists() for path in candidates):
+                rel_file = md_file.as_posix()
+                errors.append(f"{rel_file}: broken link target '{raw_target}'")
+
+          if errors:
+            print("Documentation link validation failed:", file=sys.stderr)
+            for err in errors:
+              print(f" - {err}", file=sys.stderr)
+            sys.exit(1)
+
+          print("Documentation link validation passed.")
+          PY
+
+  sync-wiki:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clone wiki repository
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.wiki.git" wiki
+
+      - name: Sync docs to wiki
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -av --delete --exclude ".git/" docs/ wiki/
+
+      - name: Commit and push wiki changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd wiki
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "No wiki changes detected."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "docs: sync wiki from docs"
+          git push origin HEAD

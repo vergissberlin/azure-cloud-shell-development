@@ -550,7 +550,7 @@ EOF
 }
 
 cmd_docs() {
-  section "DOCS" "Project and Apigee documentation" "cyan"
+  section "docs" "Project and Apigee documentation" "cyan"
   bullet_list \
     "Project README: ${DOC_PROJECT_README}" \
     "Releases: ${DOC_PROJECT_RELEASES}" \

@@ -257,3 +257,10 @@ Storage auth fallback order:
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute to
 this project.
+
+## Documentation
+
+- Comprehensive project docs live in [docs/](docs/).
+- The GitHub Wiki is synchronized from `docs/` by the `wiki-sync` workflow:
+  - Pull requests validate links and structure.
+  - Pushes to `main` and manual runs publish updates to the native wiki repository.
