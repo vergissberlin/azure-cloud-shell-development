@@ -70,6 +70,10 @@ command_exists() {
   command -v "$1" &>/dev/null
 }
 
+is_azure_cloud_shell() {
+  [[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
+}
+
 upload_blob_with_fallback() {
   local account_name="$1"
   local container_name="$2"
@@ -161,6 +165,10 @@ cmd_setup() {
 
   # ── 1. Install cshell binary ──────────────────────────────────────────────
   local install_path
+  if is_azure_cloud_shell; then
+    info "Azure Cloud Shell detected. Using user-space install defaults."
+  fi
+
   if [[ $EUID -eq 0 ]]; then
     install_path="${INSTALL_PATH_DEFAULT}"
   else
