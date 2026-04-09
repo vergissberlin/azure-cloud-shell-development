@@ -56,9 +56,12 @@ name, environment group, hostname, optional **`AKS_RESOURCE_GROUP`** for Azure
 Kubernetes Service, and optional control-plane location for data residency),
 prompts for non-prod **Helm `overrides.yaml`** settings (with defaults from the
 same wizard / `~/.cshell.env` where applicable), then pulls required Helm charts and
-writes **`${APIGEE_HELM_CHARTS_HOME}/overrides.yaml`** (non-prod, Kubernetes Secrets)
-unless the file already exists and you decline replacement, or in non-interactive
-mode unless **`APIGEE_OVERRIDES_OVERWRITE=1`**. When **`AKS_RESOURCE_GROUP`** and
+writes **`${APIGEE_HELM_CHARTS_HOME}/overrides.yaml`** (non-prod, Kubernetes Secrets).
+In **interactive** mode, cshell prints the **full rendered YAML** and asks **Write this
+to …?** (default **no**) before writing; if **`overrides.yaml`** already exists, you are
+still asked first whether to replace it. With **`APIGEE_SETUP_NONINTERACTIVE=1`**, there
+is no preview or write prompt; an existing file is left unchanged unless
+**`APIGEE_OVERRIDES_OVERWRITE=1`**. When **`AKS_RESOURCE_GROUP`** and
 **`CLUSTER_NAME`** are set and **`az`** is on `PATH`, merges kubeconfig with
 `az aks get-credentials --overwrite-existing` (non-fatal if the command fails).
 Replaces only the Hybrid block in `~/.cshell.env` so unrelated Azure keys stay
@@ -165,9 +168,10 @@ list (same as `cshell docs`).
     **`APIGEE_OVERRIDE_TLS_CERT_REL`** / **`APIGEE_OVERRIDE_TLS_KEY_REL`** (defaults
     **`certs/tls.crt`** / **`certs/tls.key`**). Existing files are not overwritten.
   - **8** — writes **`overrides.yaml`** like interactive `hybrid` (needs
-    **`APIGEE_INSTANCE_ID`** and other override keys in **`~/.cshell.env`**; respects the
-    same overwrite rules as **`APIGEE_SETUP_NONINTERACTIVE`** / **`APIGEE_OVERRIDES_OVERWRITE`**
-    / confirm).
+    **`APIGEE_INSTANCE_ID`** and other override keys in **`~/.cshell.env`**). In interactive
+    mode, prints the full proposed YAML and asks for confirmation before writing (default
+    **no**); respects the same overwrite rules as **`APIGEE_SETUP_NONINTERACTIVE`** /
+    **`APIGEE_OVERRIDES_OVERWRITE`** / **`confirm`** for existing files.
   - **9–13** — prints the relevant documentation link; complete those steps on the
     cluster / in GCP per Google’s guides.
 

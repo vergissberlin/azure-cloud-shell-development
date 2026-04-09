@@ -1267,8 +1267,8 @@ cmd_hybrid_run_step_actions() {
 			local override_runtime_tag="${APIGEE_OVERRIDE_RUNTIME_TAG:-${CHART_VERSION%%-*}}"
 			local override_large_payload="${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}"
 			local control_plane_location="${CONTROL_PLANE_LOCATION:-}"
-			# shellcheck disable=SC2153
 			local wr=0
+			# shellcheck disable=SC2153
 			cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
 				"${APIGEE_INSTANCE_ID}" "${APIGEE_NAMESPACE}" "${PROJECT_ID}" "${ANALYTICS_REGION}" \
 				"${CLUSTER_NAME}" "${CLUSTER_REGION}" "${ORG_NAME}" \

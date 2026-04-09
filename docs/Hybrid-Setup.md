@@ -25,9 +25,10 @@ cshell hybrid
   under **`APIGEE_HELM_CHARTS_HOME`** using the **Kubernetes Secrets** pattern
   (`serviceAccountSecretRefs` / `serviceAccountRef`), with a single valid `runtime:`
   block (Google’s docs show two `runtime:` keys; the generator merges them when
-  large-payload tuning is enabled). If **`overrides.yaml`** already exists, you are
-  asked whether to replace it; in non-interactive mode it is left unchanged unless
-  **`APIGEE_OVERRIDES_OVERWRITE=1`**
+  large-payload tuning is enabled). In interactive mode, cshell **prints the full file**
+  and asks for confirmation before writing (default **no**). If **`overrides.yaml`**
+  already exists, you are asked whether to replace it first; in non-interactive mode it
+  is left unchanged unless **`APIGEE_OVERRIDES_OVERWRITE=1`**
 - when **`AKS_RESOURCE_GROUP`** is non-empty and **`CLUSTER_NAME`** matches your AKS
   cluster, runs **`az aks get-credentials --resource-group … --name …
   --overwrite-existing`** so `kubectl` can use that cluster (requires Azure CLI on
@@ -46,6 +47,7 @@ With `APIGEE_SETUP_NONINTERACTIVE=1`, `cshell hybrid` does not read from the TTY
 it uses the default shown in each prompt, typically from existing environment
 variables or from `~/.cshell.env` (load a complete Hybrid block first).
 `PROJECT_ID` must be non-empty; if `DOMAIN` is empty, a warning is printed.
+**`overrides.yaml`** is written **without** a terminal preview or extra write confirmation.
 Existing **`overrides.yaml`** files are not overwritten unless **`APIGEE_OVERRIDES_OVERWRITE=1`**.
 Use **`APIGEE_OVERRIDE_LARGE_PAYLOAD=1`** to enable large-payload runtime tuning without
 a confirmation prompt.
