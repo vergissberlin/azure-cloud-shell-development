@@ -111,6 +111,90 @@ EOF
 	[[ "$output" == *"All required"* ]]
 }
 
+@test "hybrid --check omits ANSI escapes when NO_COLOR is set" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+# END_CSHELL_HYBRID_ENV
+EOF
+	run env NO_COLOR=1 bash "${REPO_ROOT}/cshell" hybrid --check
+	[ "$status" -eq 0 ]
+	[[ "$output" != *$'\e'* ]]
+	[[ "$output" != *$'\033'* ]]
+}
+
+@test "hybrid --check --json prints schema and steps on stdout" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --check --json
+	[ "$status" -eq 0 ]
+	[[ "$output" == *'"schema":"cshell.hybrid_check.v1"'* ]]
+	[[ "$output" == *'"checklist_fail_count"'* ]]
+	[[ "$output" == *'"steps"'* ]]
+	[[ "$output" == *'"id":1'* ]]
+	[[ "$output" == *'"status":"pass"'* ]]
+	[[ "$output" != *"install checklist"* ]]
+	[[ "$output" != *$'\e'* ]]
+}
+
+@test "hybrid --check --strict --json emits strict true in JSON" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts"
+	hybrid_make_chart_fixture "${charts}"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --check --strict --json
+	[ "$status" -eq 0 ]
+	[[ "$output" == *'"strict":true'* ]]
+}
+
 @test "hybrid --check fails when a required var is missing" {
 	export_home_tmp
 	cat >"${HOME}/.cshell.env" <<'EOF'
@@ -139,6 +223,13 @@ EOF
 	export_home_tmp
 	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
 	run_cshell hybrid --check extra
+	[ "$status" -eq 1 ]
+}
+
+@test "hybrid --check --json rejects extra arguments" {
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
+	run_cshell hybrid --check --json trailing
 	[ "$status" -eq 1 ]
 }
 
@@ -231,6 +322,36 @@ EOF
 	run_cshell_with_path "$(hybrid_path_for_local_files_only)" hybrid --check --strict
 	[ "$status" -eq 1 ]
 	[[ "$output" == *"failed item"* ]]
+}
+
+@test "hybrid --check --strict --json still prints JSON before strict failure" {
+	export_home_tmp
+	local charts="${HOME}/hybrid-charts"
+	hybrid_make_chart_fixture "${charts}"
+	rm -f "${charts}/overrides.yaml"
+	cat >"${HOME}/.cshell.env" <<EOF
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=${charts}
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell_with_path "$(hybrid_path_for_local_files_only)" hybrid --check --strict --json
+	[ "$status" -eq 1 ]
+	[[ "$output" == *'"schema":"cshell.hybrid_check.v1"'* ]]
+	[[ "$output" == *'"checklist_fail_count":'* ]]
+	[[ "$output" != *"install checklist"* ]]
 }
 
 @test "hybrid --check --strict rejects extra arguments" {

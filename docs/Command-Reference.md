@@ -3,10 +3,24 @@
 ## Global
 
 - `cshell --version`: print current script version
-- `cshell help`: print usage, command list, and documentation links
+- `cshell help`: print usage, command list, documentation links, and exit-code summary
 - `cshell docs`: print project and Apigee documentation links
 - `cshell --no-update-check` (or `CSHELL_NO_UPDATE_CHECK=1`): skip the optional
   “newer release available” hint (cached by default for 24 hours)
+- **`NO_COLOR`**: when set and non-empty, or when stdout is not a terminal, `cshell`
+  omits ANSI colors (pipe- and log-friendly output).
+
+### Exit codes
+
+- **0** — success
+- **1** — error (missing env file, validation failure, unknown command, etc.)
+- **`cshell hybrid --check`**: **1** if `~/.cshell.env` is missing or empty, any required
+  Hybrid variable is missing or empty, or (with **`--strict`**) any checklist row is **✗**.
+  Rows **—** do not fail `--strict`. Without `--strict`, the numbered checklist is
+  informational for exit status except for the required-variable / env-file errors above.
+
+**Note:** `-v` at the top level means `--version`. `backup` / `restore` use `-v` as
+`--verbose`.
 
 ## `cshell config`
 
@@ -88,6 +102,13 @@ install link list (same as `cshell docs`).
   Without `--strict`, **exit status** still reflects **only** required-variable
   validation (and env file presence), not the checklist. No file writes and no chart
   downloads.
+
+  **`hybrid --check --json`:** prints one JSON object on **stdout** (schema
+  `cshell.hybrid_check.v1`) with `strict`, `checklist_fail_count`, and a `steps`
+  array (`id`, `title`, `url`, `symbol`, `status` as `pass` / `fail` / `skip`, `note`).
+  No ANSI styling or banner lines on stdout (errors still go to **stderr**). Can be
+  combined with **`--strict`** (either order after `--check`). **Exit codes** match the non-JSON
+  `--check` behavior.
 
 - `hybrid --export`: same required-variable checks as `--check`, then regenerates
   **`~/.cshell-env-exports.sh`** and ensures the **`~/.bashrc`** hook sources it

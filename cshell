@@ -112,6 +112,26 @@ if ! declare -F info >/dev/null 2>&1; then
 fi
 # END_CLI_UTILS_FALLBACK
 
+# Strip ANSI colors for NO_COLOR, non-TTY stdout, or pipes (CLI UX: machine-readable streams).
+cshell_cli_color_init() {
+	if [[ -n "${NO_COLOR:-}" ]] || [[ ! -t 1 ]]; then
+		RESET=''
+		BLACK=''
+		DIM=''
+		CYAN=''
+		GREEN=''
+		YELLOW=''
+		RED=''
+		BLUE=''
+		BG_CYAN=''
+		BG_GREEN=''
+		BG_YELLOW=''
+		BG_RED=''
+		BG_BLUE=''
+	fi
+}
+cshell_cli_color_init
+
 # BEGIN_CSHELL_LIBS
 _CSHELL_LIB_ROOT="${SCRIPT_DIR}"
 # shellcheck source=lib/env-file.sh
@@ -752,11 +772,44 @@ cshell_hybrid_checklist_emit_step() {
 	echo
 }
 
+# Escape a string for use inside JSON double quotes (minimal: \ " CR LF).
+cshell_json_escape() {
+	local s="$1"
+	s="${s//\\/\\\\}"
+	s="${s//\"/\\\"}"
+	s="${s//$'\n'/\\n}"
+	s="${s//$'\r'/\\r}"
+	printf '%s' "${s}"
+}
+
+cshell_hybrid_step_status_from_sym() {
+	local sym="$1"
+	if [[ "${sym}" == "${CHECKMARK}" ]]; then
+		printf '%s' pass
+	elif [[ "${sym}" == "${CROSS}" ]]; then
+		printf '%s' fail
+	else
+		printf '%s' skip
+	fi
+}
+
+# One checklist step as JSON object (single line).
+cshell_hybrid_json_step() {
+	local id="$1" title="$2" url="$3" sym="$4" note="$5"
+	local st
+	st="$(cshell_hybrid_step_status_from_sym "${sym}")"
+	printf '{"id":%s,"title":"%s","url":"%s","symbol":"%s","status":"%s","note":"%s"}' \
+		"${id}" "$(cshell_json_escape "${title}")" "$(cshell_json_escape "${url}")" \
+		"$(cshell_json_escape "${sym}")" "${st}" "$(cshell_json_escape "${note}")"
+}
+
 # Print numbered Hybrid v1.16 install checklist (docs order). Uses current shell state after cshell_env_load.
-# Optional $1: "1" when invoked from hybrid --check --strict (banner text only).
+# $1: "1" when invoked from hybrid --check --strict (banner / JSON strict field only).
+# $2: "1" for machine-readable JSON on stdout (no ANSI, no human banners).
 # Sets hybrid_checklist_fail_count to the number of rows with ✗ (for --strict).
 cmd_hybrid_install_checklist_print() {
 	local strict_banner="${1:-0}"
+	local json_mode="${2:-0}"
 
 	local sym_done="${CHECKMARK}"
 	local sym_fail="${CROSS}"
@@ -764,10 +817,12 @@ cmd_hybrid_install_checklist_print() {
 
 	hybrid_checklist_fail_count=0
 
-	if [[ "${strict_banner}" == "1" ]]; then
-		info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ✗ below (— is not a failure)."
-	else
-		info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
+	if [[ "${json_mode}" != "1" ]]; then
+		if [[ "${strict_banner}" == "1" ]]; then
+			info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ✗ below (— is not a failure)."
+		else
+			info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
+		fi
 	fi
 
 	local step1_sym="${sym_done}"
@@ -826,6 +881,27 @@ cmd_hybrid_install_checklist_print() {
 		[[ "${_sym}" == "${sym_fail}" ]] && hybrid_checklist_fail_count=$((hybrid_checklist_fail_count + 1))
 	done
 
+	if [[ "${json_mode}" == "1" ]]; then
+		local strict_js='false'
+		[[ "${strict_banner}" == "1" ]] && strict_js='true'
+		local sj_out
+		sj_out="$(cshell_hybrid_json_step 1 "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" "")"
+		sj_out+=",$(cshell_hybrid_json_step 2 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}")"
+		sj_out+=",$(cshell_hybrid_json_step 3 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" "")"
+		sj_out+=",$(cshell_hybrid_json_step 4 "Create namespace" "${DOC_INSTALL_CREATE_NAMESPACE}" "${step4_sym}" "${step4_note}")"
+		sj_out+=",$(cshell_hybrid_json_step 5 "Service accounts" "${DOC_INSTALL_SERVICE_ACCOUNTS}" "${HYBRID_STEP5_SYM}" "${HYBRID_STEP5_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 6 "Service account authentication" "${DOC_INSTALL_SA_AUTH}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP6_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 7 "TLS certificates" "${DOC_INSTALL_TLS}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP7_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 8 "Overrides" "${DOC_INSTALL_OVERRIDES}" "${HYBRID_STEP8_SYM}" "${HYBRID_STEP8_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 9 "Control plane access" "${DOC_INSTALL_CONTROL_PLANE}" "${HYBRID_STEP9_SYM}" "${HYBRID_STEP9_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 10 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}")"
+		printf '%s\n' "{\"schema\":\"cshell.hybrid_check.v1\",\"strict\":${strict_js},\"checklist_fail_count\":${hybrid_checklist_fail_count},\"steps\":[${sj_out}]}"
+		return 0
+	fi
+
 	cshell_hybrid_checklist_emit_step 1 "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" ""
 	cshell_hybrid_checklist_emit_step 2 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}"
 	cshell_hybrid_checklist_emit_step 3 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" ""
@@ -844,14 +920,17 @@ cmd_hybrid_install_checklist_print() {
 
 cmd_hybrid_check() {
 	local hybrid_strict="${1:-0}"
+	local hybrid_json="${2:-0}"
 
-	section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
+	if [[ "${hybrid_json}" != "1" ]]; then
+		section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
+	fi
 
 	cmd_hybrid_env_file_must_exist || exit 1
 
 	cshell_env_load "${ENV_FILE}"
 	cmd_hybrid_env_fill_missing_array
-	cmd_hybrid_install_checklist_print "${hybrid_strict}"
+	cmd_hybrid_install_checklist_print "${hybrid_strict}" "${hybrid_json}"
 
 	if [[ "${#hybrid_missing_required[@]}" -gt 0 ]]; then
 		cmd_hybrid_env_report_missing_vars
@@ -863,7 +942,9 @@ cmd_hybrid_check() {
 		exit 1
 	fi
 
-	success "All required Hybrid environment variables are set in ${ENV_FILE}."
+	if [[ "${hybrid_json}" != "1" ]]; then
+		success "All required Hybrid environment variables are set in ${ENV_FILE}."
+	fi
 }
 
 # Regenerate ~/.cshell-env-exports.sh after validation. Optional --print: stdout is only `export` lines for eval.
@@ -903,15 +984,27 @@ cmd_hybrid() {
 	if [[ "${1:-}" == "--check" ]]; then
 		shift
 		local hybrid_strict_mode=0
-		if [[ "${1:-}" == "--strict" ]]; then
-			shift
-			hybrid_strict_mode=1
-		fi
+		local hybrid_json_mode=0
+		while (($# > 0)); do
+			case "$1" in
+				--strict)
+					hybrid_strict_mode=1
+					shift
+					;;
+				--json)
+					hybrid_json_mode=1
+					shift
+					;;
+				*)
+					break
+					;;
+			esac
+		done
 		if (($# > 0)); then
-			error "Unexpected argument(s): $* — use '${SCRIPT_NAME} hybrid --check' or '${SCRIPT_NAME} hybrid --check --strict'."
+			error "Unexpected argument(s): $* — use '${SCRIPT_NAME} hybrid --check [--strict] [--json]'."
 			exit 1
 		fi
-		cmd_hybrid_check "${hybrid_strict_mode}"
+		cmd_hybrid_check "${hybrid_strict_mode}" "${hybrid_json_mode}"
 		return
 	fi
 
@@ -1435,16 +1528,25 @@ Usage: ${SCRIPT_NAME} [--no-update-check] <command> [args]
 
 Global options:
   --no-update-check   Skip the GitHub version notice (also env CSHELL_NO_UPDATE_CHECK=1)
+  NO_COLOR            When non-empty, disable ANSI colors (also when stdout is not a TTY)
 
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud and configure Azure Blob Storage
-  hybrid   Hybrid env + chart pull (--check | --export [--print] | default interactive)
+  hybrid   Hybrid env + chart pull; flags: --check [--strict] [--json], --export [--print], or interactive
   backup   Backup home directory to archive.zip (and upload to Azure) [--dry-run|-n] [--verbose|-v]
   restore  Restore home directory from archive.zip (download from Azure if needed) [--dry-run|-n] [--verbose|-v]
   update   Update cshell to latest release and print installed version (tarball+SHA256 when available)
   config   Inspect or change ${ENV_FILE} (show | set | validate)
   docs     Print project and Apigee documentation links
+
+Exit codes:
+  0  Success
+  1  Error (missing env file, validation failure, unknown command, etc.)
+  hybrid --check: exit 1 if ${ENV_FILE} is missing/empty, required Hybrid vars are missing/empty, or (with
+      --strict) any checklist row is ✗. Rows marked — do not fail --strict. Without --strict, checklist
+      rows are informational for exit status except required-variable errors above.
+  Top-level -v is short for --version; backup/restore use -v for --verbose (see their help text).
 
 Environment file: ${ENV_FILE} (use "${SCRIPT_NAME} config show" — avoid sourcing unless you trust every line)
 Autocomplete: installed automatically for bash during 'cshell setup'

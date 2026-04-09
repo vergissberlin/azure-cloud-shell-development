@@ -47,6 +47,10 @@ releases, and the community doc link). **Exit status** still depends only on req
 Hybrid variables unless you pass **`--strict`**, in which case any **✗** row fails the
 command (rows marked **—** do not).
 
+Set **`NO_COLOR`** (or pipe stdout) for plain text without ANSI colors. Use
+**`cshell hybrid --check --json`** for a single machine-readable JSON document on
+stdout (same exit rules as `--check`); see **Command Reference**.
+
 ## Non-production environments
 
 For a **non-prod** Apigee hybrid runtime, Google’s install guide expects an
