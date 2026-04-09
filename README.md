@@ -17,13 +17,15 @@ CLI output styling is standardized through shared helpers in
 curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | bash
 ```
 
-This downloads `cshell` from the repository and installs it to `/usr/local/bin`.
+This bootstrap installer resolves the latest release tag and installs `cshell`
+from that tag by default.
 
 #### Manual download and install
 
 ```bash
-# Download cshell directly
-curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/cshell \
+# Download a specific release tag (no `v` prefix)
+TAG="1.0.0"
+curl -fsSL "https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/${TAG}/cshell" \
   -o /usr/local/bin/cshell
 chmod +x /usr/local/bin/cshell
 ```
@@ -36,6 +38,12 @@ curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-dev
 chmod +x install.sh
 ./install.sh
 ```
+
+### Versioning and releases
+
+- Releases are created with Release Please.
+- Git tags use plain SemVer (`1.2.3`) without a `v` prefix.
+- `cshell --version` matches the released tag version.
 
 ### From a local clone
 

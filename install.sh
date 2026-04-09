@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # install.sh – Download cshell and install it to a writable bin directory
+# Defaults to the latest GitHub release tag (without `v` prefix).
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | bash
@@ -12,8 +13,10 @@
 set -euo pipefail
 
 REPO="vergissberlin/azure-cloud-shell-development"
-BRANCH="main"
-RAW_BASE="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
+DEFAULT_REF="main"
+RELEASE_REF=""
+RAW_BASE=""
+LATEST_RELEASE_API="https://api.github.com/repos/${REPO}/releases/latest"
 DEFAULT_INSTALL_DIR="/usr/local/bin"
 FALLBACK_INSTALL_DIR="${HOME}/.local/bin"
 INSTALL_DIR="${DEFAULT_INSTALL_DIR}"
@@ -27,6 +30,22 @@ if [[ -f "${CLI_UTILS_PATH}" ]]; then
   # shellcheck source=/dev/null
   source "${CLI_UTILS_PATH}"
 fi
+
+resolve_release_ref() {
+  local latest_json latest_tag
+  latest_json="$(curl -fsSL "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+  latest_tag="$(printf '%s' "${latest_json}" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+
+  if [[ -n "${latest_tag}" ]]; then
+    RELEASE_REF="${latest_tag}"
+    RAW_BASE="https://raw.githubusercontent.com/${REPO}/${RELEASE_REF}"
+    info "Using latest release tag: ${RELEASE_REF}"
+  else
+    RELEASE_REF="${DEFAULT_REF}"
+    RAW_BASE="https://raw.githubusercontent.com/${REPO}/${RELEASE_REF}"
+    warn "Could not resolve latest release tag; falling back to ${DEFAULT_REF}."
+  fi
+}
 
 # Fallback for standalone curl execution where shared utils are unavailable.
 if ! declare -F info >/dev/null 2>&1; then
@@ -86,6 +105,8 @@ if ! command -v curl &>/dev/null; then
   error "curl is required but not installed"
   exit 1
 fi
+
+resolve_release_ref
 
 if [[ ! -w "${INSTALL_DIR}" ]]; then
   warn "${INSTALL_DIR} is not writable. Falling back to ${FALLBACK_INSTALL_DIR}"
