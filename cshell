@@ -509,6 +509,10 @@ cmd_hybrid() {
   # ── Documentation links ──────────────────────────────────────────────────
   info "Relevant documentation:"
   bullet_list \
+    "Project README: ${DOC_PROJECT_README}" \
+    "Releases: ${DOC_PROJECT_RELEASES}" \
+    "Issues: ${DOC_PROJECT_ISSUES}" \
+    "Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
     "Before you begin: ${DOC_BEFORE_BEGIN}" \
     "Download charts: ${DOC_DOWNLOAD_CHARTS}" \
     "Install guide: ${DOC_INSTALL_HYBRID}"
