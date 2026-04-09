@@ -56,3 +56,30 @@ setup() {
 	[[ "$output" == *"[dry-run]"* ]]
 	[ ! -f "${HOME}/archive.zip" ]
 }
+
+@test "backup upload invokes az storage blob upload with --overwrite" {
+	export_home_tmp
+	local stub_bin="${HOME}/stub-bin"
+	mkdir -p "${stub_bin}"
+	cat >"${stub_bin}/az" <<'STUB'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"${AZ_STUB_LOG}"
+exit 0
+STUB
+	chmod +x "${stub_bin}/az"
+
+	export AZ_STUB_LOG="${HOME}/az-invocation.log"
+	: >"${AZ_STUB_LOG}"
+
+	{
+		echo 'AZURE_STORAGE_ACCOUNT=testacct'
+		echo 'AZURE_STORAGE_CONTAINER=testcnt'
+	} >"${HOME}/.cshell.env"
+
+	run env PATH="${stub_bin}:${PATH}" CSHELL_NO_UPDATE_CHECK=1 bash "${REPO_ROOT}/cshell" backup
+	[ "$status" -eq 0 ]
+	run grep -q 'storage blob upload' "${AZ_STUB_LOG}"
+	[ "$status" -eq 0 ]
+	run grep -q -- '--overwrite' "${AZ_STUB_LOG}"
+	[ "$status" -eq 0 ]
+}

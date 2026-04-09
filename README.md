@@ -148,7 +148,8 @@ az storage blob upload \
   --account-name <storage-account-name> \
   --container-name <container-name> \
   --name archive.zip \
-  --file ~/archive.zip
+  --file ~/archive.zip \
+  --overwrite
 ```
 
 ---

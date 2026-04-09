@@ -171,7 +171,7 @@ list (same as `cshell docs`).
 ## `cshell backup`
 
 - creates `~/archive.zip`
-- uploads archive to configured Azure Blob container
+- uploads archive to configured Azure Blob container (replaces an existing `archive.zip` blob)
 - uses login auth first, then account-key fallback if available
 - `--dry-run` / `-n`: print the plan without creating `archive.zip` or uploading
 - `--verbose` / `-v`: print extra context before archiving
