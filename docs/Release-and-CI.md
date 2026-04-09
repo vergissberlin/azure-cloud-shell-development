@@ -9,14 +9,20 @@
 ## Existing Workflows
 
 - `version-sync-check`: verifies script/manifest version consistency
-- `release-build-assets`: builds and uploads `cshell-<version>.tar.gz` on release publish
+- `release-build-assets`: on release publish, builds standalone `dist/cshell`,
+  ships `cshell-<version>.tar.gz`, a matching `.sha256` file, plus
+  `install-<version>.sh` and its checksum
+- `standalone-build-check`: builds standalone scripts, runs `bash -n`,
+  `shellcheck`, `shfmt -d`, and Bats smoke tests
 
 ## Update Path
 
 `cshell update` attempts:
 
-1. latest release tag
-2. fallback to `main` when release metadata cannot be resolved
+1. download the release tarball + checksum and verify with `sha256sum` when
+   `python3`, release assets, and tooling are available
+2. latest release tag metadata from the GitHub API
+3. fallback raw download from `main` when release metadata cannot be resolved
 
 Install target selection favors writable locations.
 

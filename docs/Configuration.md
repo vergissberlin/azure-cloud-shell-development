@@ -37,3 +37,12 @@ You can manually edit `~/.cshell.env` and rerun:
 - `cshell hybrid` for Apigee settings
 
 Both commands are designed to be re-runnable and safe for updates.
+
+## Security and inspection
+
+- `cshell` only **loads** `~/.cshell.env` with an allowlisted parser (it does **not**
+  `source` the file), so arbitrary shell snippets in values are not executed when
+  running `cshell` commands.
+- After writes, `cshell` attempts `chmod 600` on `~/.cshell.env`.
+- Prefer `cshell config show` to inspect values (secrets are masked). Avoid
+  `source ~/.cshell.env` unless you fully trust every line in the file.

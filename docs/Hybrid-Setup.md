@@ -27,11 +27,14 @@ cshell hybrid
 
 ## After Setup
 
-Load variables into your session:
+Inspect saved values (recommended):
 
 ```bash
-source ~/.cshell.env
+cshell config show
 ```
+
+To export variables into an interactive shell session, you may still
+`source ~/.cshell.env` **only if you trust every line** in that file.
 
 ## Official References
 
