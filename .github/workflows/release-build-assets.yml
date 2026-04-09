@@ -1,0 +1,53 @@
+name: release-build-assets
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+  packages: write
+  checks: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Resolve version from release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          RAW_TAG="${{ github.event.release.tag_name }}"
+          if [[ -z "${RAW_TAG}" ]]; then
+            echo "release tag_name is empty"
+            exit 1
+          fi
+          VERSION="${RAW_TAG#v}"
+          if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "invalid semver tag: ${RAW_TAG}"
+            exit 1
+          fi
+          echo "VERSION=${VERSION}" >> "${GITHUB_ENV}"
+          echo "ASSET_NAME=cshell-${VERSION}.tar.gz" >> "${GITHUB_ENV}"
+
+      - name: Build release archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          chmod +x cshell
+          tar -czf "dist/${ASSET_NAME}" cshell
+
+      - name: Upload archive to GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: dist/${{ env.ASSET_NAME }}

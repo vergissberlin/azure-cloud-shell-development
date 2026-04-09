@@ -44,6 +44,8 @@ chmod +x install.sh
 - Releases are created with Release Please.
 - Git tags use plain SemVer (`1.2.3`) without a `v` prefix.
 - `cshell --version` matches the released tag version.
+- On each published release, GitHub Actions uploads
+  `cshell-<version>.tar.gz` as a release asset.
 
 ### From a local clone
 
