@@ -162,6 +162,12 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 2. Downloads the Apigee Hybrid Helm charts as described in the
    [official documentation](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts)
 
+Use **`cshell hybrid --check`** to verify that `~/.cshell.env` has all required
+Hybrid variables **set and non-empty** (read-only; no writes, no chart pull). This
+includes a **non-empty `DOMAIN`** (stricter than `APIGEE_SETUP_NONINTERACTIVE`,
+which only warns if `DOMAIN` is empty). See the command reference for the full
+list.
+
 **Prerequisites:** Helm **v3.14+** and GCP credentials that can pull from the
 Apigee Hybrid OCI registry (see the download-charts page). For automation, set
 `APIGEE_SETUP_NONINTERACTIVE=1` and provide values via `~/.cshell.env` / the

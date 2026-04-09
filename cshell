@@ -652,7 +652,66 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 # hybrid
 # ---------------------------------------------------------------------------
 
+# Variables that must be non-empty for a useful Hybrid env (see hybrid block write). Not listed:
+# CONTROL_PLANE_LOCATION (optional). CHART_REPO / CHART_VERSION use script defaults if unset in file.
+cmd_hybrid_check() {
+	section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
+
+	if [[ ! -f "${ENV_FILE}" || ! -r "${ENV_FILE}" ]]; then
+		error "${ENV_FILE} is missing or not readable. Run '${SCRIPT_NAME} hybrid' to create it, or create the file manually."
+		exit 1
+	fi
+	if [[ ! -s "${ENV_FILE}" ]]; then
+		error "${ENV_FILE} is empty. Run '${SCRIPT_NAME} hybrid' to create it, or add configuration manually."
+		exit 1
+	fi
+
+	cshell_env_load "${ENV_FILE}"
+
+	local k
+	local -a required=(
+		PROJECT_ID
+		ORG_NAME
+		ORG_DISPLAY_NAME
+		ORGANIZATION_DESCRIPTION
+		ANALYTICS_REGION
+		RUNTIMETYPE
+		CLUSTER_NAME
+		CLUSTER_REGION
+		APIGEE_NAMESPACE
+		ENVIRONMENT_NAME
+		ENV_GROUP
+		ENV_GROUP_RELEASE_NAME
+		DOMAIN
+		APIGEE_HELM_CHARTS_HOME
+	)
+	local -a missing=()
+
+	for k in "${required[@]}"; do
+		# shellcheck disable=SC2248
+		[[ -n "${!k:-}" ]] || missing+=("${k}")
+	done
+
+	if [[ "${#missing[@]}" -gt 0 ]]; then
+		error "Missing or empty Hybrid environment variable(s): ${missing[*]}"
+		info "Set them in ${ENV_FILE} (Hybrid block) or run '${SCRIPT_NAME} hybrid' interactively."
+		exit 1
+	fi
+
+	success "All required Hybrid environment variables are set in ${ENV_FILE}."
+}
+
 cmd_hybrid() {
+	if [[ "${1:-}" == "--check" ]]; then
+		shift
+		if (($# > 0)); then
+			error "Unexpected argument(s): $* — use only '${SCRIPT_NAME} hybrid --check'."
+			exit 1
+		fi
+		cmd_hybrid_check
+		return
+	fi
+
 	section "HYBRID" "Apigee Hybrid v1.16 setup" "cyan"
 
 	# ── Documentation links ──────────────────────────────────────────────────
@@ -1143,7 +1202,7 @@ Global options:
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud and configure Azure Blob Storage
-  hybrid   Download Apigee Hybrid Helm charts and set up environment variables
+  hybrid   Hybrid env + chart pull (use hybrid --check to validate ~/.cshell.env without writing or pulling)
   backup   Backup home directory to archive.zip (and upload to Azure) [--dry-run|-n] [--verbose|-v]
   restore  Restore home directory from archive.zip (download from Azure if needed) [--dry-run|-n] [--verbose|-v]
   update   Update cshell to latest release and print installed version (tarball+SHA256 when available)

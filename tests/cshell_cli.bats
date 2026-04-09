@@ -68,3 +68,73 @@ setup() {
 	run_cshell backup --not-a-flag
 	[ "$status" -eq 1 ]
 }
+
+@test "hybrid --check succeeds when all required vars are set" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+# BEGIN_CSHELL_HYBRID_ENV
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+# END_CSHELL_HYBRID_ENV
+EOF
+	run_cshell hybrid --check
+	[ "$status" -eq 0 ]
+	[[ "$output" == *"All required"* ]]
+}
+
+@test "hybrid --check fails when a required var is missing" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=desc
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+EOF
+	run_cshell hybrid --check
+	[ "$status" -eq 1 ]
+	[[ "$output" == *Missing* ]]
+	[[ "$output" == *DOMAIN* ]]
+}
+
+@test "hybrid --check rejects extra arguments" {
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
+	run_cshell hybrid --check extra
+	[ "$status" -eq 1 ]
+}
+
+@test "hybrid --check fails when env file is missing" {
+	export_home_tmp
+	run_cshell hybrid --check
+	[ "$status" -eq 1 ]
+	[[ "$output" == *missing* ]] || [[ "$output" == *Missing* ]]
+}
+
+@test "hybrid --check fails when env file is empty" {
+	export_home_tmp
+	: >"${HOME}/.cshell.env"
+	run_cshell hybrid --check
+	[ "$status" -eq 1 ]
+	[[ "$output" == *empty* ]] || [[ "$output" == *Empty* ]]
+}

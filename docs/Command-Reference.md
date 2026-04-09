@@ -43,6 +43,17 @@ to pull OCI charts. With `APIGEE_SETUP_NONINTERACTIVE=1`, uses defaults from the
 environment / `~/.cshell.env` (no prompts). Prints the full Google Hybrid v1.16
 install link list (same as `cshell docs`).
 
+- `hybrid --check`: read-only validation that `~/.cshell.env` exists and all
+  required Hybrid variables are **non-empty** (`PROJECT_ID`, `ORG_*`,
+  `ANALYTICS_REGION`, `RUNTIMETYPE`, `CLUSTER_*`, `APIGEE_NAMESPACE`,
+  `ENVIRONMENT_NAME`, `ENV_GROUP`, `ENV_GROUP_RELEASE_NAME`, `DOMAIN`,
+  `APIGEE_HELM_CHARTS_HOME`). **DOMAIN must be set** for a successful check (stricter
+  than `APIGEE_SETUP_NONINTERACTIVE`, which only warns when `DOMAIN` is empty).
+  `CONTROL_PLANE_LOCATION` is optional. `CHART_REPO` / `CHART_VERSION` need not
+  appear in the file when built-in defaults apply. Exits `0` if OK, `1` if the
+  file is missing, empty, or any required variable is missing. No file writes
+  and no chart downloads.
+
 ## `cshell backup`
 
 - creates `~/archive.zip`
