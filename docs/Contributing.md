@@ -9,6 +9,8 @@
 
 ## Project Conventions
 
+- **Tests:** behavioral changes should include new or updated Bats tests under
+  `tests/`; keep `just check` green (see root `CONTRIBUTING.md`).
 - Keep shell code portable and readable.
 - Prefer user-space install behavior for Cloud Shell compatibility.
 - Avoid assumptions about root access.
