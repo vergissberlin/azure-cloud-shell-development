@@ -45,7 +45,10 @@ cmd_config_set() {
 		exit 1
 	fi
 	shift
-	local val="${*}"
+	local val=""
+	if (($# > 0)); then
+		val="$*"
+	fi
 	if ! cshell_env_is_allowed_key "${key}"; then
 		error "Key '${key}' is not an allowlisted cshell configuration key."
 		exit 1

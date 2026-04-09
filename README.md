@@ -168,6 +168,11 @@ includes a **non-empty `DOMAIN`** (stricter than `APIGEE_SETUP_NONINTERACTIVE`,
 which only warns if `DOMAIN` is empty). See the command reference for the full
 list.
 
+Use **`cshell hybrid --export`** to re-run those checks and refresh
+**`~/.cshell-env-exports.sh`** (plus the `~/.bashrc` hook)—without pulling charts.
+For the **current** session you can run **`eval "$(cshell hybrid --export --print)"`**
+(stdout is only `export` lines; requires bash **4+**).
+
 **Prerequisites:** Helm **v3.14+** and GCP credentials that can pull from the
 Apigee Hybrid OCI registry (see the download-charts page). For automation, set
 `APIGEE_SETUP_NONINTERACTIVE=1` and provide values via `~/.cshell.env` / the

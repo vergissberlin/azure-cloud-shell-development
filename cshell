@@ -657,16 +657,15 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 
 # Variables that must be non-empty for a useful Hybrid env (see hybrid block write). Not listed:
 # CONTROL_PLANE_LOCATION (optional). CHART_REPO / CHART_VERSION use script defaults if unset in file.
-cmd_hybrid_check() {
-	section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
-
+# Load ENV_FILE and ensure all Hybrid vars required for install/check/export are non-empty. Returns 1 on error.
+cmd_hybrid_env_validate() {
 	if [[ ! -f "${ENV_FILE}" || ! -r "${ENV_FILE}" ]]; then
 		error "${ENV_FILE} is missing or not readable. Run '${SCRIPT_NAME} hybrid' to create it, or create the file manually."
-		exit 1
+		return 1
 	fi
 	if [[ ! -s "${ENV_FILE}" ]]; then
 		error "${ENV_FILE} is empty. Run '${SCRIPT_NAME} hybrid' to create it, or add configuration manually."
-		exit 1
+		return 1
 	fi
 
 	cshell_env_load "${ENV_FILE}"
@@ -698,10 +697,51 @@ cmd_hybrid_check() {
 	if [[ "${#missing[@]}" -gt 0 ]]; then
 		error "Missing or empty Hybrid environment variable(s): ${missing[*]}"
 		info "Set them in ${ENV_FILE} (Hybrid block) or run '${SCRIPT_NAME} hybrid' interactively."
-		exit 1
+		return 1
 	fi
 
+	return 0
+}
+
+cmd_hybrid_check() {
+	section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
+
+	cmd_hybrid_env_validate || exit 1
+
 	success "All required Hybrid environment variables are set in ${ENV_FILE}."
+}
+
+# Regenerate ~/.cshell-env-exports.sh after validation. Optional --print: stdout is only `export` lines for eval.
+cmd_hybrid_export() {
+	local print_only="${1:-0}"
+
+	if [[ "${print_only}" != "1" ]]; then
+		section "HYBRID" "Sync shell exports for Hybrid variables (~/.cshell-env-exports.sh)" "cyan"
+	fi
+
+	cmd_hybrid_env_validate || exit 1
+
+	if [[ "${print_only}" == "1" ]]; then
+		if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+			error "bash 4+ required for hybrid --export --print (export snippet uses associative arrays)."
+			exit 1
+		fi
+		if ! cshell_env_write_export_snippet "${ENV_FILE}"; then
+			exit 1
+		fi
+		local exports="${HOME}/.cshell-env-exports.sh"
+		if [[ ! -f "${exports}" ]]; then
+			error "Export snippet was not created at ${exports}."
+			exit 1
+		fi
+		grep '^export ' "${exports}"
+		return 0
+	fi
+
+	if ! cshell_env_sync_exports; then
+		exit 1
+	fi
+	success "Hybrid allowlisted variables are available via ${HOME}/.cshell-env-exports.sh — in this shell: source \"${HOME}/.cshell-env-exports.sh\""
 }
 
 cmd_hybrid() {
@@ -712,6 +752,21 @@ cmd_hybrid() {
 			exit 1
 		fi
 		cmd_hybrid_check
+		return
+	fi
+
+	if [[ "${1:-}" == "--export" ]]; then
+		shift
+		local hybrid_export_print=0
+		if [[ "${1:-}" == "--print" ]]; then
+			shift
+			hybrid_export_print=1
+		fi
+		if (($# > 0)); then
+			error "Unexpected argument(s): $* — use '${SCRIPT_NAME} hybrid --export' or '${SCRIPT_NAME} hybrid --export --print'."
+			exit 1
+		fi
+		cmd_hybrid_export "${hybrid_export_print}"
 		return
 	fi
 
@@ -1215,7 +1270,7 @@ Global options:
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud and configure Azure Blob Storage
-  hybrid   Hybrid env + chart pull (use hybrid --check to validate ~/.cshell.env without writing or pulling)
+  hybrid   Hybrid env + chart pull (--check | --export [--print] | default interactive)
   backup   Backup home directory to archive.zip (and upload to Azure) [--dry-run|-n] [--verbose|-v]
   restore  Restore home directory from archive.zip (download from Azure if needed) [--dry-run|-n] [--verbose|-v]
   update   Update cshell to latest release and print installed version (tarball+SHA256 when available)
@@ -1251,7 +1306,11 @@ while (($#)); do
 			;;
 	esac
 done
-set -- "${_main_rest[@]}"
+if ((${#_main_rest[@]} > 0)); then
+	set -- "${_main_rest[@]}"
+else
+	set --
+fi
 unset _main_rest
 
 main_cmd="${1:-}"

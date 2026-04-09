@@ -151,3 +151,90 @@ EOF
 	[ "$status" -eq 1 ]
 	[[ "$output" == *empty* ]] || [[ "$output" == *Empty* ]]
 }
+
+@test "hybrid --export refreshes export snippet (bash 4+)" {
+	if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+		skip "requires bash 4+ for export snippet"
+	fi
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+EOF
+	run_cshell hybrid --export
+	[ "$status" -eq 0 ]
+	[ -f "${HOME}/.cshell-env-exports.sh" ]
+	run grep -q '^export DOMAIN=' "${HOME}/.cshell-env-exports.sh"
+	[ "$status" -eq 0 ]
+	[[ "$output" == *".cshell-env-exports.sh"* ]]
+}
+
+@test "hybrid --export --print writes only export lines to stdout (bash 4+)" {
+	if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+		skip "requires bash 4+ for export snippet"
+	fi
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+EOF
+	run_cshell hybrid --export --print
+	[ "$status" -eq 0 ]
+	local bad
+	bad="$(printf '%s\n' "${output}" | grep '.' | grep -v '^export ' || true)"
+	[[ -z "${bad}" ]]
+	[[ "${output}" == *"export DOMAIN="* ]]
+}
+
+@test "hybrid --export fails when a required var is missing" {
+	export_home_tmp
+	cat >"${HOME}/.cshell.env" <<'EOF'
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=desc
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+EOF
+	run_cshell hybrid --export
+	[ "$status" -eq 1 ]
+	[[ "$output" == *Missing* ]]
+}
+
+@test "hybrid --export rejects extra arguments" {
+	export_home_tmp
+	printf '%s\n' "PROJECT_ID=x" >"${HOME}/.cshell.env"
+	run_cshell hybrid --export extra
+	[ "$status" -eq 1 ]
+}

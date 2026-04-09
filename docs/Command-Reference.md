@@ -54,6 +54,18 @@ install link list (same as `cshell docs`).
   file is missing, empty, or any required variable is missing. No file writes
   and no chart downloads.
 
+- `hybrid --export`: same required-variable checks as `--check`, then regenerates
+  **`~/.cshell-env-exports.sh`** and ensures the **`~/.bashrc`** hook sources it
+  (same as `cshell_env_sync_exports` after setup/hybrid/config). Use this when
+  you only want exports refreshed without running the full interactive hybrid
+  flow. In the **current** shell, run `source ~/.cshell-env-exports.sh` (or
+  `source ~/.bashrc`). **Requires bash 4+** for the snippet writer.
+
+- `hybrid --export --print`: after the same validation, writes the snippet file and
+  prints **only** `export …` lines to **stdout** (no banners). Intended for:
+  `eval "$(cshell hybrid --export --print)"` to load allowlisted variables into
+  the **current** shell in one step. **Requires bash 4+**.
+
 ## `cshell backup`
 
 - creates `~/archive.zip`
