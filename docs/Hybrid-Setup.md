@@ -13,7 +13,8 @@ cshell hybrid
 - prompts for required Apigee environment values (including namespace, environment
   group, and hostname for non-prod TLS steps)
 - updates the Apigee Hybrid block in `~/.cshell.env` without removing unrelated keys
-- downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME`
+- downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME` (default
+  `~/apigee-hybrid/helm-charts`, created by `cshell setup` with `mkdir -p` when needed)
 
 ## Requirements
 

@@ -31,6 +31,8 @@ Performs first-time setup:
 - installs `cshell`
 - configures Bash completion
 - installs `gcloud` if missing
+- creates **`~/apigee-hybrid/helm-charts`** if needed and writes **`APIGEE_HELM_CHARTS_HOME`**
+  (canonical path) to `~/.cshell.env`
 - prompts for Azure Blob backup parameters
 
 ## `cshell hybrid`

@@ -98,7 +98,7 @@ cshell_env_delete_assignment_lines() {
 }
 
 # Idempotent storage snippet from `cshell setup` (replaces prior setup block).
-# Optional 5th arg: APIGEE_HELM_CHARTS_HOME (canonical dir at setup time, usually $PWD).
+# Optional 5th arg: APIGEE_HELM_CHARTS_HOME (canonical dir; default ~/apigee-hybrid/helm-charts from setup).
 cshell_env_write_setup_storage_block() {
 	local env_path="$1"
 	local storage_account="$2"

@@ -23,6 +23,8 @@ CSHELL_NO_UPDATE_CHECK="${CSHELL_NO_UPDATE_CHECK:-0}"
 
 CHART_REPO="oci://us-docker.pkg.dev/apigee-release/apigee-hybrid-helm-charts"
 CHART_VERSION="1.16.0-hotfix.1"
+# Default Hybrid Helm chart directory (non-interactive defaults and `cshell setup`).
+DEFAULT_APIGEE_HELM_CHARTS_HOME="${HOME}/apigee-hybrid/helm-charts"
 APIGEE_CHARTS=(
 	apigee-operator
 	apigee-datastore
@@ -627,9 +629,10 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 		cshell_env_load "${ENV_FILE}"
 	fi
 
-	helm_charts_home_setup="$(pwd -P 2>/dev/null || pwd)"
-	info "Using current directory as default Apigee Helm charts home: ${helm_charts_home_setup}"
-	info "Run setup from the folder where you want chart pulls to live (or change APIGEE_HELM_CHARTS_HOME later)."
+	mkdir -p "${DEFAULT_APIGEE_HELM_CHARTS_HOME}"
+	helm_charts_home_setup="$(cshell_realpath "${DEFAULT_APIGEE_HELM_CHARTS_HOME}" 2>/dev/null || printf '%s\n' "${DEFAULT_APIGEE_HELM_CHARTS_HOME}")"
+	info "Apigee Helm charts home (default): ${helm_charts_home_setup}"
+	info "Override with APIGEE_HELM_CHARTS_HOME in ${ENV_FILE} if you need a different path."
 
 	storage_account=$(ask "Azure Storage Account name" "${AZURE_STORAGE_ACCOUNT:-}")
 	container_name=$(ask "Azure Blob Container name" "${AZURE_STORAGE_CONTAINER:-backups}")
@@ -952,7 +955,7 @@ cmd_hybrid() {
 	runtime_type=$(ask "Runtime type" "${RUNTIMETYPE:-HYBRID}")
 	cluster_name=$(ask "Kubernetes cluster name" "${CLUSTER_NAME:-aks-hybrid}")
 	cluster_region=$(ask "Kubernetes cluster region (maps to CLUSTER_LOCATION in Google docs)" "${CLUSTER_REGION:-${analytics_region}}")
-	helm_charts_home=$(ask "Local Helm charts directory" "${APIGEE_HELM_CHARTS_HOME:-${HOME}/apigee-hybrid/helm-charts}")
+	helm_charts_home=$(ask "Local Helm charts directory" "${APIGEE_HELM_CHARTS_HOME:-${DEFAULT_APIGEE_HELM_CHARTS_HOME}}")
 	apigee_namespace=$(ask "Kubernetes namespace for Apigee pods" "${APIGEE_NAMESPACE:-apigee}")
 	environment_name=$(ask "Apigee environment name (must match UI; non-prod often pairs with apigee-non-prod SA)" "${ENVIRONMENT_NAME:-non-prod}")
 	env_group=$(ask "Apigee environment group name (Helm --set envgroup)" "${ENV_GROUP:-envgroup}")

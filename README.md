@@ -135,7 +135,7 @@ Performs first-time setup:
 2. Automatically installs shell autocomplete for `cshell` (Bash)
 3. Installs the **Google Cloud SDK** (`gcloud`) for Apigee Hybrid development
 4. Interactively configures the **Azure Blob Storage** account used for backups
-5. Writes **`APIGEE_HELM_CHARTS_HOME`** to `~/.cshell.env` from the **current working directory** at setup time (canonical path), regenerates **`~/.cshell-env-exports.sh`** for all allowlisted variables, and ensures **`~/.bashrc`** sources it once so **new Bash sessions** have those values in `env` — run `cshell setup` from the directory where chart pulls should live (bash 4+; in this shell: `source ~/.cshell-env-exports.sh`)
+5. Creates **`~/apigee-hybrid/helm-charts`** if needed and writes **`APIGEE_HELM_CHARTS_HOME`** to `~/.cshell.env` (canonical path to that directory), regenerates **`~/.cshell-env-exports.sh`** for all allowlisted variables, and ensures **`~/.bashrc`** sources it once so **new Bash sessions** have those values in `env` (bash 4+; in this shell: `source ~/.cshell-env-exports.sh`)
 
 Autocomplete is installed to user-space paths and setup is idempotent. Re-running
 `cshell setup` updates completion files safely.
@@ -200,7 +200,7 @@ environment (`PROJECT_ID` required).
 | `ENV_GROUP_RELEASE_NAME`   | Helm release name for `apigee-virtualhost`                                                                      | `apigee-virtualhost`                                                                                                   |
 | `DOMAIN`                   | Hostname for the environment group (TLS / virtual host)                                                         | –                                                                                                                      |
 | `CONTROL_PLANE_LOCATION`   | Optional; only for data residency (`contractProvider`)                                                          | `europe-west3`                                                                                                         |
-| `APIGEE_HELM_CHARTS_HOME`  | Local path to Helm charts directory                                                                             | `~/apigee-hybrid/helm-charts` if unset in `~/.cshell.env`; **`cshell setup`** pre-fills it from **$PWD** at setup time |
+| `APIGEE_HELM_CHARTS_HOME`  | Local path to Helm charts directory                                                                             | `~/apigee-hybrid/helm-charts` (created by **`cshell setup`**); `cshell hybrid` uses the same default when prompting |
 | `CHART_REPO`               | OCI repo for Hybrid charts                                                                                      | built-in default                                                                                                       |
 | `CHART_VERSION`            | Chart version (e.g. `1.16.0-hotfix.1`)                                                                          | built-in default                                                                                                       |
 
