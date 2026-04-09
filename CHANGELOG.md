@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.15.1](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.0...1.15.1) (2026-04-09)
+
+
+### Documentation
+
+* **env-file.sh:** add usage comment for loading shell export snippet ([f63b246](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f63b246d78ce92a65d8c3728cfb55116b87170c2))
+* update README and documentation for shell hooks ([f63b246](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f63b246d78ce92a65d8c3728cfb55116b87170c2))
+
+
+### Tests
+
+* **cshell_config.bats:** add test for env export hooks in bashrc/profile ([f63b246](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f63b246d78ce92a65d8c3728cfb55116b87170c2))
+
 ## [1.15.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.14.0...1.15.0) (2026-04-09)
 
 
