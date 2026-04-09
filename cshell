@@ -236,6 +236,108 @@ EOF
 }
 
 # ---------------------------------------------------------------------------
+# init – create Azure Storage Account and container
+# ---------------------------------------------------------------------------
+
+cmd_init() {
+  info "=== cshell init – create Azure Storage Account ==="
+
+  if ! command_exists az; then
+    error "Azure CLI (az) is not installed or not in PATH."
+    exit 1
+  fi
+
+  # Load existing env values as defaults (if available)
+  if [[ -f "${ENV_FILE}" ]]; then
+    # shellcheck source=/dev/null
+    source "${ENV_FILE}"
+  fi
+
+  local subscription resource_group location storage_account container_name sku
+
+  subscription=$(ask    "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
+  resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-cshell-rg}")
+  location=$(ask        "Azure region (e.g. westeurope)"                              "${AZURE_LOCATION:-westeurope}")
+  storage_account=$(ask "Storage Account name (3-24 lowercase letters/digits)"        "${AZURE_STORAGE_ACCOUNT:-}")
+  container_name=$(ask  "Blob container name"                                         "${AZURE_STORAGE_CONTAINER:-backups}")
+  sku=$(ask             "Storage SKU"                                                 "${AZURE_STORAGE_SKU:-Standard_LRS}")
+
+  # ── Set subscription ────────────────────────────────────────────────────
+  if [[ -n "${subscription}" ]]; then
+    info "Setting active subscription to '${subscription}' …"
+    az account set --subscription "${subscription}"
+    success "Subscription set"
+  fi
+
+  # ── Create resource group if it does not exist ───────────────────────────
+  if az group show --name "${resource_group}" &>/dev/null; then
+    success "Resource group '${resource_group}' already exists"
+  else
+    info "Creating resource group '${resource_group}' in '${location}' …"
+    az group create \
+      --name "${resource_group}" \
+      --location "${location}" \
+      --output none
+    success "Resource group '${resource_group}' created"
+  fi
+
+  # ── Create Storage Account if it does not exist ──────────────────────────
+  if az storage account show \
+       --name "${storage_account}" \
+       --resource-group "${resource_group}" &>/dev/null; then
+    success "Storage Account '${storage_account}' already exists"
+  else
+    info "Creating Storage Account '${storage_account}' (${sku}) …"
+    az storage account create \
+      --name "${storage_account}" \
+      --resource-group "${resource_group}" \
+      --location "${location}" \
+      --sku "${sku}" \
+      --kind StorageV2 \
+      --output none
+    success "Storage Account '${storage_account}' created"
+  fi
+
+  # ── Create Blob container if it does not exist ───────────────────────────
+  if az storage container exists \
+       --name "${container_name}" \
+       --account-name "${storage_account}" \
+       --auth-mode login \
+       --query "exists" \
+       --output tsv 2>/dev/null | grep -q "^true$"; then
+    success "Blob container '${container_name}' already exists"
+  else
+    info "Creating blob container '${container_name}' …"
+    az storage container create \
+      --name "${container_name}" \
+      --account-name "${storage_account}" \
+      --auth-mode login \
+      --output none
+    success "Blob container '${container_name}' created"
+  fi
+
+  # ── Persist config to env file (remove any previous cshell init block) ───
+  if [[ -f "${ENV_FILE}" ]]; then
+    # Strip previous block written by cshell init to avoid duplicate entries
+    sed -i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_SKU=/d' "${ENV_FILE}"
+  fi
+
+  {
+    echo ""
+    echo "# Azure Storage – written by cshell init on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    echo "AZURE_SUBSCRIPTION=${subscription}"
+    echo "AZURE_RESOURCE_GROUP=${resource_group}"
+    echo "AZURE_LOCATION=${location}"
+    echo "AZURE_STORAGE_ACCOUNT=${storage_account}"
+    echo "AZURE_STORAGE_CONTAINER=${container_name}"
+    echo "AZURE_STORAGE_SKU=${sku}"
+  } >> "${ENV_FILE}"
+
+  success "Configuration saved to ${ENV_FILE}"
+  info  "Run 'cshell backup' to create and upload your first backup."
+}
+
+# ---------------------------------------------------------------------------
 # backup
 # ---------------------------------------------------------------------------
 
@@ -316,6 +418,7 @@ usage() {
 Usage: ${SCRIPT_NAME} <command>
 
 Commands:
+  init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud, oh-my-zsh and configure Azure Blob Storage
   hybrid   Download Apigee Hybrid Helm charts and set up environment variables
   backup   Backup home directory to archive.zip (and upload to Azure)
@@ -331,6 +434,7 @@ EOF
 }
 
 case "${1:-}" in
+  init)    cmd_init    ;;
   setup)   cmd_setup   ;;
   hybrid)  cmd_hybrid  ;;
   backup)  cmd_backup  ;;
