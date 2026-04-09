@@ -1,5 +1,40 @@
 # Changelog
 
+## [1.17.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.16.0...1.17.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add --step flag to hybrid command for more granular control over execution steps ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+* **cshell:** add cmd_hybrid_pull_apigee_charts function for pulling Apigee Hybrid OCI charts ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+* **cshell:** add option to emit specific checklist step ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+* **cshell:** implement cmd_hybrid_run_step_actions for automated hybrid setup steps ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+* **cshell:** introduce cmd_hybrid_step for executing specific hybrid setup steps ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+* **docs:** add detailed explanation for `hybrid --step` command ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+
+
+### Bug Fixes
+
+* **cshell:** validate step number in cmd_hybrid to ensure it is within the valid range ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+
+
+### Code Refactoring
+
+* **cshell:** remove direct helm chart download logic and replace with cmd_hybrid_pull_apigee_charts function call for better modularity ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+
+
+### Tests
+
+* **cshell_cli.bats:** simplify output check by removing redundant condition ([92661d4](https://github.com/vergissberlin/azure-cloud-shell-development/commit/92661d49d99dfefdb17076daee7b99b08f482121))
+* **cshell_cli:** add comprehensive tests for hybrid steps ([0ba9fda](https://github.com/vergissberlin/azure-cloud-shell-development/commit/0ba9fda7661e936dbbddb9e760d305a20aeaed46))
+* **cshell_cli:** add tests for `hybrid --step` command ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+
+
+### Chores
+
+* **build.status:** remove obsolete build status file ([92661d4](https://github.com/vergissberlin/azure-cloud-shell-development/commit/92661d49d99dfefdb17076daee7b99b08f482121))
+* **build:** add build.status file to track build status ([3c8268e](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c8268e7760d50adf181d0547cde2db771390fa2))
+
 ## [1.16.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.3...1.16.0) (2026-04-09)
 
 
