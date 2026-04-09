@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.4.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.3.0...1.4.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add automatic bash completion setup in .bashrc ([1fde870](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1fde8700cda0503af4e1644fb2f6459e858e3c86))
+
+
+### Bug Fixes
+
+* **cshell:** prevent redundant copying of script if already installed ([9609246](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9609246eb6414645614c676cc789ed61d6e31857))
+
+
+### Code Refactoring
+
+* **cshell:** remove zsh and oh-my-zsh installation and support ([7fc1303](https://github.com/vergissberlin/azure-cloud-shell-development/commit/7fc1303e4558c4b1905f90c9b649aee09fb48143))
+
 ## [1.3.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.2.0...1.3.0) (2026-04-09)
 
 
