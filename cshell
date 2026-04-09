@@ -434,14 +434,15 @@ cmd_init() {
     source "${ENV_FILE}"
   fi
 
-  local subscription resource_group location storage_account container_name sku allow_cross_tenant_replication
+  local subscription resource_group location storage_account container_name sku access_tier allow_cross_tenant_replication
 
   subscription=$(ask    "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
   resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-rg-cshell}")
   location=$(ask        "Azure region (e.g. germanywestcentral)"                       "${AZURE_LOCATION:-germanywestcentral}")
   storage_account=$(ask "Storage Account name (3-24 lowercase letters/digits)"        "${AZURE_STORAGE_ACCOUNT:-}")
   container_name=$(ask  "Blob container name"                                         "${AZURE_STORAGE_CONTAINER:-backups}")
-  sku=$(ask             "Storage SKU"                                                 "${AZURE_STORAGE_SKU:-Standard_LRS}")
+  sku=$(ask             "Storage SKU (cheap default: Standard_LRS)"                   "${AZURE_STORAGE_SKU:-Standard_LRS}")
+  access_tier=$(ask     "Storage access tier (Hot/Cool, cheap default: Cool)"         "${AZURE_STORAGE_ACCESS_TIER:-Cool}")
   allow_cross_tenant_replication=$(ask "Allow cross-tenant replication? (true/false)" "${AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION:-false}")
 
   # ── Set subscription ────────────────────────────────────────────────────
@@ -469,12 +470,13 @@ cmd_init() {
        --resource-group "${resource_group}" &>/dev/null; then
     success "Storage Account '${storage_account}' already exists"
   else
-    info "Creating Storage Account '${storage_account}' (${sku}, allowCrossTenantReplication=${allow_cross_tenant_replication}) ..."
+    info "Creating Storage Account '${storage_account}' (${sku}, accessTier=${access_tier}, allowCrossTenantReplication=${allow_cross_tenant_replication}) ..."
     az storage account create \
       --name "${storage_account}" \
       --resource-group "${resource_group}" \
       --location "${location}" \
       --sku "${sku}" \
+      --access-tier "${access_tier}" \
       --kind StorageV2 \
       --allow-cross-tenant-replication "${allow_cross_tenant_replication}" \
       --output none
@@ -502,7 +504,7 @@ cmd_init() {
   # ── Persist config to env file (remove any previous cshell init block) ───
   if [[ -f "${ENV_FILE}" ]]; then
     # Strip previous block written by cshell init to avoid duplicate entries
-    sed -i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_SKU=/d' "${ENV_FILE}"
+    sed -i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=/d' "${ENV_FILE}"
   fi
 
   {
@@ -514,6 +516,7 @@ cmd_init() {
     echo "AZURE_STORAGE_ACCOUNT=${storage_account}"
     echo "AZURE_STORAGE_CONTAINER=${container_name}"
     echo "AZURE_STORAGE_SKU=${sku}"
+    echo "AZURE_STORAGE_ACCESS_TIER=${access_tier}"
     echo "AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=${allow_cross_tenant_replication}"
   } >> "${ENV_FILE}"
 
