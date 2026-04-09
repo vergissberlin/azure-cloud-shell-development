@@ -6,15 +6,49 @@ UTILS_FILE="${ROOT_DIR}/scripts/misc-cli-utils.sh"
 DIST_DIR="${ROOT_DIR}/dist"
 FALLBACK_START="# BEGIN_CLI_UTILS_FALLBACK"
 FALLBACK_END="# END_CLI_UTILS_FALLBACK"
+LIB_START="# BEGIN_CSHELL_LIBS"
+LIB_END="# END_CSHELL_LIBS"
+
+LIB_FILES=(
+  "${ROOT_DIR}/lib/env-file.sh"
+  "${ROOT_DIR}/lib/portable.sh"
+  "${ROOT_DIR}/lib/config-cmd.sh"
+)
 
 if [[ ! -f "${UTILS_FILE}" ]]; then
   echo "Missing utils file: ${UTILS_FILE}" >&2
   exit 1
 fi
 
+for lf in "${LIB_FILES[@]}"; do
+  if [[ ! -f "${lf}" ]]; then
+    echo "Missing lib file: ${lf}" >&2
+    exit 1
+  fi
+done
+
 mkdir -p "${DIST_DIR}"
 
 utils_payload="$(<"${UTILS_FILE}")"
+
+strip_leading_shebang() {
+  local f="$1"
+  if head -n 1 "${f}" | grep -q '^#!'; then
+    tail -n +2 "${f}"
+  else
+    cat "${f}"
+  fi
+}
+
+bundle_lib_block() {
+  echo "# Inlined cshell libraries (dev sources: lib/*.sh)"
+  for lf in "${LIB_FILES[@]}"; do
+    echo "# ----- ${lf##*/} -----"
+    strip_leading_shebang "${lf}"
+    echo ""
+  done
+  echo "CSHELL_LIBS_INLINED=1"
+}
 
 build_fallback_block() {
   cat <<'EOF'
@@ -31,13 +65,14 @@ fi
 EOF
 }
 
-replace_fallback_block() {
+replace_block() {
   local source_file="$1"
   local target_file="$2"
-  local fallback_block
-  fallback_block="$(build_fallback_block)"
+  local start_marker="$3"
+  local end_marker="$4"
+  local replacement="$5"
 
-  python3 - "${source_file}" "${target_file}" "${FALLBACK_START}" "${FALLBACK_END}" "${fallback_block}" <<'PY'
+  python3 - "${source_file}" "${target_file}" "${start_marker}" "${end_marker}" "${replacement}" <<'PY'
 import pathlib
 import sys
 
@@ -65,8 +100,16 @@ target_path.write_text(new_text, encoding="utf-8")
 PY
 }
 
-replace_fallback_block "${ROOT_DIR}/cshell" "${DIST_DIR}/cshell"
-replace_fallback_block "${ROOT_DIR}/install.sh" "${DIST_DIR}/install.sh"
+fallback_block="$(build_fallback_block)"
+lib_block="$(bundle_lib_block)"
+
+TMP_CSHELL="$(mktemp)"
+TMP_INSTALL="$(mktemp)"
+replace_block "${ROOT_DIR}/cshell" "${TMP_CSHELL}" "${FALLBACK_START}" "${FALLBACK_END}" "${fallback_block}"
+replace_block "${TMP_CSHELL}" "${DIST_DIR}/cshell" "${LIB_START}" "${LIB_END}" "${lib_block}"
+replace_block "${ROOT_DIR}/install.sh" "${TMP_INSTALL}" "${FALLBACK_START}" "${FALLBACK_END}" "${fallback_block}"
+cp "${TMP_INSTALL}" "${DIST_DIR}/install.sh"
+rm -f "${TMP_CSHELL}" "${TMP_INSTALL}"
 
 chmod +x "${DIST_DIR}/cshell" "${DIST_DIR}/install.sh"
 

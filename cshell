@@ -14,9 +14,12 @@ INSTALL_PATH_USER="${HOME}/.local/bin/${SCRIPT_NAME}"
 UPDATE_INSTALL_PATH_DEFAULT="/usr/local/bin/${SCRIPT_NAME}"
 ENV_FILE="${HOME}/.cshell.env"
 ARCHIVE_FILE="${HOME}/archive.zip"
+UPDATE_CHECK_CACHE_DIR="${HOME}/.cache/cshell"
+UPDATE_CHECK_CACHE_TTL_SECONDS="${CSHELL_UPDATE_CHECK_TTL_SECONDS:-86400}"
 SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_SOURCE}")" && pwd)"
 CLI_UTILS_PATH="${SCRIPT_DIR}/scripts/misc-cli-utils.sh"
+CSHELL_NO_UPDATE_CHECK="${CSHELL_NO_UPDATE_CHECK:-0}"
 
 CHART_REPO="oci://us-docker.pkg.dev/apigee-release/apigee-hybrid-helm-charts"
 CHART_VERSION="1.16.0-hotfix.1"
@@ -30,7 +33,7 @@ APIGEE_CHARTS=(
   apigee-telemetry
   apigee-virtualhost
 )
-CSHELL_COMMANDS=(init setup hybrid backup restore update docs help)
+CSHELL_COMMANDS=(init setup hybrid backup restore update config docs help)
 
 DOC_BEFORE_BEGIN="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin"
 DOC_DOWNLOAD_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts"
@@ -90,6 +93,16 @@ if ! declare -F info >/dev/null 2>&1; then
   bullet_list() { local line; for line in "$@"; do echo -e "  ${ARROW} ${line}"; done; }
 fi
 # END_CLI_UTILS_FALLBACK
+
+# BEGIN_CSHELL_LIBS
+_CSHELL_LIB_ROOT="${SCRIPT_DIR}"
+# shellcheck source=lib/env-file.sh
+source "${_CSHELL_LIB_ROOT}/lib/env-file.sh"
+# shellcheck source=lib/portable.sh
+source "${_CSHELL_LIB_ROOT}/lib/portable.sh"
+# shellcheck source=lib/config-cmd.sh
+source "${_CSHELL_LIB_ROOT}/lib/config-cmd.sh"
+# END_CSHELL_LIBS
 
 ask() {
   local prompt="$1"
@@ -170,6 +183,10 @@ is_azure_cloud_shell() {
   [[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
 }
 
+curl_github() {
+  curl -fsSL --max-time 25 --connect-timeout 10 "$@"
+}
+
 resolve_latest_release_tag() {
   local latest_json latest_tag
 
@@ -177,10 +194,92 @@ resolve_latest_release_tag() {
     return 1
   fi
 
-  latest_json="$(curl -fsSL "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+  latest_json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
   latest_tag="$(printf '%s' "${latest_json}" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
   [[ -n "${latest_tag}" ]] || return 1
   printf '%s\n' "${latest_tag}"
+}
+
+# Prints two lines: tarball URL then .sha256 URL (empty lines if missing / python error).
+release_asset_urls_from_json() {
+  local json="$1"
+  local version="$2"
+  if ! command_exists python3; then
+    printf '\n'
+    return 1
+  fi
+  python3 -c '
+import json, sys
+payload = sys.stdin.read()
+ver = sys.argv[1]
+try:
+    j = json.loads(payload)
+except json.JSONDecodeError:
+    sys.exit(1)
+want_tgz = "cshell-%s.tar.gz" % ver
+want_sha = want_tgz + ".sha256"
+assets = {
+    a.get("name"): a.get("browser_download_url")
+    for a in j.get("assets", [])
+    if a.get("name")
+}
+print(assets.get(want_tgz, "") or "")
+print(assets.get(want_sha, "") or "")
+' <<<"${json}" "${version}" 2>/dev/null || printf '\n'
+}
+
+# Download GitHub release tarball + checksum, verify, extract cshell to target_path. Returns 1 on soft-fail.
+download_and_install_verified_release() {
+  local tag="$1"
+  local target_path="$2"
+  local ver json tgz_url sha_url work tgz sha_file url_lines
+
+  ver="${tag#v}"
+  if ! command_exists python3; then
+    return 1
+  fi
+  json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+  [[ -n "${json}" ]] || return 1
+
+  url_lines="$(release_asset_urls_from_json "${json}" "${ver}")"
+  tgz_url="$(printf '%s\n' "${url_lines}" | sed -n '1p')"
+  sha_url="$(printf '%s\n' "${url_lines}" | sed -n '2p')"
+  [[ -n "${tgz_url}" && -n "${sha_url}" ]] || return 1
+
+  work="$(mktemp -d)"
+  tgz="${work}/cshell-${ver}.tar.gz"
+  sha_file="${work}/cshell-${ver}.tar.gz.sha256"
+
+  if ! curl_github "${tgz_url}" -o "${tgz}"; then
+    rm -rf "${work}"
+    return 1
+  fi
+  if ! curl_github "${sha_url}" -o "${sha_file}"; then
+    rm -rf "${work}"
+    return 1
+  fi
+
+  if ! (cd "${work}" && sha256sum -c "$(basename "${sha_file}")"); then
+    warn "Checksum verification failed for ${tgz##*/}."
+    rm -rf "${work}"
+    return 1
+  fi
+
+  if ! tar -xzf "${tgz}" -C "${work}"; then
+    rm -rf "${work}"
+    return 1
+  fi
+
+  if [[ ! -f "${work}/cshell" ]]; then
+    warn "Release archive did not contain cshell at expected path."
+    rm -rf "${work}"
+    return 1
+  fi
+
+  chmod +x "${work}/cshell"
+  mv -f "${work}/cshell" "${target_path}"
+  rm -rf "${work}"
+  return 0
 }
 
 is_newer_version() {
@@ -197,9 +296,22 @@ is_newer_version() {
 }
 
 check_for_update_notice() {
-  local latest_tag latest_version
+  local latest_tag latest_version cache_file now last_ts
+
+  [[ "${CSHELL_NO_UPDATE_CHECK:-0}" == "1" ]] && return 0
+
+  mkdir -p "${UPDATE_CHECK_CACHE_DIR}" 2>/dev/null || true
+  cache_file="${UPDATE_CHECK_CACHE_DIR}/last-update-check"
+  now="$(date +%s)"
+  if [[ -f "${cache_file}" ]]; then
+    last_ts="$(head -n 1 "${cache_file}" 2>/dev/null || true)"
+    if [[ -n "${last_ts}" ]] && [[ "$((now - last_ts))" -lt "${UPDATE_CHECK_CACHE_TTL_SECONDS}" ]]; then
+      return 0
+    fi
+  fi
 
   latest_tag="$(resolve_latest_release_tag || true)"
+  printf '%s\n' "${now}" >"${cache_file}" 2>/dev/null || true
   [[ -n "${latest_tag}" ]] || return 0
 
   latest_version="${latest_tag#v}"
@@ -242,7 +354,7 @@ resolve_update_target_path() {
 should_run_update_notice() {
   local command_name="${1:-}"
   case "${command_name}" in
-    init|setup|hybrid|backup|restore|update) return 0 ;;
+    init | setup | hybrid | backup | restore | update) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -347,8 +459,8 @@ cmd_setup() {
 
   info "Installing ${SCRIPT_NAME} to ${install_path} ..."
   local source_path target_path
-  source_path="$(realpath "$0")"
-  target_path="$(realpath "${install_path}" 2>/dev/null || true)"
+  source_path="$(cshell_realpath "$0" || printf '%s\n' "$0")"
+  target_path="$(cshell_realpath "${install_path}" 2>/dev/null || true)"
   if [[ -n "${target_path}" && "${source_path}" == "${target_path}" ]]; then
     info "${SCRIPT_NAME} is already installed at ${install_path}. Skipping copy."
   else
@@ -425,17 +537,15 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
   section "AZURE STORAGE" "Backup configuration" "blue"
   local storage_account container_name storage_account_key
 
-  storage_account=$(ask "Azure Storage Account name")
-  container_name=$(ask "Azure Blob Container name" "backups")
+  if [[ -f "${ENV_FILE}" ]]; then
+    cshell_env_load "${ENV_FILE}"
+  fi
+
+  storage_account=$(ask "Azure Storage Account name" "${AZURE_STORAGE_ACCOUNT:-}")
+  container_name=$(ask "Azure Blob Container name" "${AZURE_STORAGE_CONTAINER:-backups}")
   storage_account_key=$(ask "Azure Storage Account key (optional; enables upload fallback without RBAC role)" "${AZURE_STORAGE_ACCOUNT_KEY:-}")
 
-  {
-    echo "AZURE_STORAGE_ACCOUNT=${storage_account}"
-    echo "AZURE_STORAGE_CONTAINER=${container_name}"
-    if [[ -n "${storage_account_key}" ]]; then
-      echo "AZURE_STORAGE_ACCOUNT_KEY=${storage_account_key}"
-    fi
-  } >> "${ENV_FILE}"
+  cshell_env_write_setup_storage_block "${ENV_FILE}" "${storage_account}" "${container_name}" "${storage_account_key}"
 
   success "Storage config saved to ${ENV_FILE}"
   info "Upload command that will be used during backup:"
@@ -471,8 +581,7 @@ cmd_hybrid() {
 
   # Load existing values if present
   if [[ -f "${ENV_FILE}" ]]; then
-    # shellcheck source=/dev/null
-    source "${ENV_FILE}"
+    cshell_env_load "${ENV_FILE}"
   fi
 
   local project_id org_name org_display_name org_description \
@@ -494,41 +603,42 @@ cmd_hybrid() {
   local azure_storage_container="${AZURE_STORAGE_CONTAINER:-}"
   local azure_storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
 
-  # Persist to .env
-  cat > "${ENV_FILE}" <<EOF
-# Apigee Hybrid – environment variables
-# Generated by cshell on $(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-PROJECT_ID=${project_id}
-ORG_NAME=${org_name}
-ORG_DISPLAY_NAME=${org_display_name}
-ORGANIZATION_DESCRIPTION=${org_description}
-ANALYTICS_REGION=${analytics_region}
-RUNTIMETYPE=${runtime_type}
-CLUSTER_NAME=${cluster_name}
-CLUSTER_REGION=${cluster_region}
-APIGEE_HELM_CHARTS_HOME=${helm_charts_home}
-
-# Helm chart coordinates
-CHART_REPO=${CHART_REPO}
-CHART_VERSION=${CHART_VERSION}
-EOF
+  # Persist to .env (literal assignments — do not source this file in a shell unless you trust its contents)
+  {
+    echo "# BEGIN_CSHELL_HYBRID_ENV"
+    echo "# Apigee Hybrid – environment variables"
+    echo "# Generated by cshell on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+    printf 'PROJECT_ID=%s\n' "${project_id}"
+    printf 'ORG_NAME=%s\n' "${org_name}"
+    printf 'ORG_DISPLAY_NAME=%s\n' "${org_display_name}"
+    printf 'ORGANIZATION_DESCRIPTION=%s\n' "${org_description}"
+    printf 'ANALYTICS_REGION=%s\n' "${analytics_region}"
+    printf 'RUNTIMETYPE=%s\n' "${runtime_type}"
+    printf 'CLUSTER_NAME=%s\n' "${cluster_name}"
+    printf 'CLUSTER_REGION=%s\n' "${cluster_region}"
+    printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
+    printf 'CHART_REPO=%s\n' "${CHART_REPO}"
+    printf 'CHART_VERSION=%s\n' "${CHART_VERSION}"
+    echo "# END_CSHELL_HYBRID_ENV"
+  } >"${ENV_FILE}"
 
   # Re-append Azure storage config if it was saved previously
   if [[ -n "${azure_storage_account}" ]]; then
     {
       echo ""
       echo "# Azure Blob Storage (preserved from previous setup)"
-      echo "AZURE_STORAGE_ACCOUNT=${azure_storage_account}"
-      echo "AZURE_STORAGE_CONTAINER=${azure_storage_container}"
+      printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${azure_storage_account}"
+      printf 'AZURE_STORAGE_CONTAINER=%s\n' "${azure_storage_container}"
       if [[ -n "${azure_storage_account_key}" ]]; then
-        echo "AZURE_STORAGE_ACCOUNT_KEY=${azure_storage_account_key}"
+        printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${azure_storage_account_key}"
       fi
-    } >> "${ENV_FILE}"
+    } >>"${ENV_FILE}"
   fi
 
+  cshell_env_ensure_permissions "${ENV_FILE}"
+
   success "Environment variables written to ${ENV_FILE}"
-  echo    "Source them with:  source ${ENV_FILE}"
+  info "Use '${SCRIPT_NAME} config show' to inspect values (avoid sourcing ${ENV_FILE} unless you trust every line)."
   echo ""
 
   # ── 2. Download Helm charts ───────────────────────────────────────────────
@@ -575,9 +685,9 @@ cmd_init() {
 
   # Load existing env values as defaults (if available)
   if [[ -f "${ENV_FILE}" ]]; then
-    # shellcheck source=/dev/null
-    source "${ENV_FILE}"
+    cshell_env_load "${ENV_FILE}"
   fi
+
 
   local subscription resource_group location storage_account container_name sku access_tier allow_cross_tenant_replication storage_account_key
 
@@ -667,25 +777,29 @@ cmd_init() {
 
   # ── Persist config to env file (remove any previous cshell init block) ───
   if [[ -f "${ENV_FILE}" ]]; then
-    # Strip previous block written by cshell init to avoid duplicate entries
-    sed -i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=/d' "${ENV_FILE}"
+    cshell_env_strip_managed_block "${ENV_FILE}" "# BEGIN_CSHELL_INIT" "# END_CSHELL_INIT"
+    portable_sed_i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=/d' "${ENV_FILE}"
   fi
 
   {
     echo ""
+    echo "# BEGIN_CSHELL_INIT"
     echo "# Azure Storage – written by cshell init on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-    echo "AZURE_SUBSCRIPTION=${subscription}"
-    echo "AZURE_RESOURCE_GROUP=${resource_group}"
-    echo "AZURE_LOCATION=${location}"
-    echo "AZURE_STORAGE_ACCOUNT=${storage_account}"
-    echo "AZURE_STORAGE_CONTAINER=${container_name}"
+    printf 'AZURE_SUBSCRIPTION=%s\n' "${subscription}"
+    printf 'AZURE_RESOURCE_GROUP=%s\n' "${resource_group}"
+    printf 'AZURE_LOCATION=%s\n' "${location}"
+    printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${storage_account}"
+    printf 'AZURE_STORAGE_CONTAINER=%s\n' "${container_name}"
     if [[ -n "${storage_account_key}" ]]; then
-      echo "AZURE_STORAGE_ACCOUNT_KEY=${storage_account_key}"
+      printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${storage_account_key}"
     fi
-    echo "AZURE_STORAGE_SKU=${sku}"
-    echo "AZURE_STORAGE_ACCESS_TIER=${access_tier}"
-    echo "AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=${allow_cross_tenant_replication}"
-  } >> "${ENV_FILE}"
+    printf 'AZURE_STORAGE_SKU=%s\n' "${sku}"
+    printf 'AZURE_STORAGE_ACCESS_TIER=%s\n' "${access_tier}"
+    printf 'AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=%s\n' "${allow_cross_tenant_replication}"
+    echo "# END_CSHELL_INIT"
+  } >>"${ENV_FILE}"
+
+  cshell_env_ensure_permissions "${ENV_FILE}"
 
   success "Configuration saved to ${ENV_FILE}"
   info "Run 'cshell backup' to create and upload your first backup."
@@ -696,19 +810,51 @@ cmd_init() {
 # ---------------------------------------------------------------------------
 
 cmd_backup() {
+  local dry_run=0 verbose=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n | --dry-run)
+        dry_run=1
+        shift
+        ;;
+      -v | --verbose)
+        verbose=1
+        shift
+        ;;
+      *)
+        warn "Unknown option for backup: $1"
+        exit 1
+        ;;
+    esac
+  done
+
   section "BACKUP" "Backup home directory" "cyan"
 
+  if [[ "${dry_run}" -eq 1 ]]; then
+    info "[dry-run] Would create ${ARCHIVE_FILE} from ${HOME} (excluding .cache, gcloud logs, archive.zip)."
+    if [[ -f "${ENV_FILE}" ]]; then
+      cshell_env_load "${ENV_FILE}"
+    fi
+    if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
+      info "[dry-run] Would upload ${ARCHIVE_FILE} to blob container '${AZURE_STORAGE_CONTAINER}' (account ${AZURE_STORAGE_ACCOUNT})."
+    else
+      info "[dry-run] No Azure storage config; would skip upload."
+    fi
+    return 0
+  fi
+
   info "Creating archive: ${ARCHIVE_FILE}"
+  [[ "${verbose}" -eq 1 ]] && info "zip excludes: .cache/*, .config/google-cloud-sdk/logs/*, archive.zip"
   (cd "${HOME}" && zip -r "${ARCHIVE_FILE}" . \
     --exclude ".cache/*" \
     --exclude ".config/google-cloud-sdk/logs/*" \
     --exclude "archive.zip")
+
   success "Backup created: ${ARCHIVE_FILE}"
 
   # Optional: upload to Azure Blob Storage
   if [[ -f "${ENV_FILE}" ]]; then
-    # shellcheck source=/dev/null
-    source "${ENV_FILE}"
+    cshell_env_load "${ENV_FILE}"
   fi
 
   if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
@@ -737,16 +883,37 @@ cmd_backup() {
 # ---------------------------------------------------------------------------
 
 cmd_restore() {
+  local dry_run=0 verbose=0
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n | --dry-run)
+        dry_run=1
+        shift
+        ;;
+      -v | --verbose)
+        verbose=1
+        shift
+        ;;
+      *)
+        warn "Unknown option for restore: $1"
+        exit 1
+        ;;
+    esac
+  done
+
   section "RESTORE" "Restore home directory" "cyan"
 
   # Optionally download archive from Azure Blob Storage first
   if [[ -f "${ENV_FILE}" ]]; then
-    # shellcheck source=/dev/null
-    source "${ENV_FILE}"
+    cshell_env_load "${ENV_FILE}"
   fi
 
   if [[ ! -f "${ARCHIVE_FILE}" ]]; then
     if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
+      if [[ "${dry_run}" -eq 1 ]]; then
+        info "[dry-run] Would download archive.zip from Azure Blob Storage to ${ARCHIVE_FILE}."
+        return 0
+      fi
       info "Local archive not found. Downloading from Azure Blob Storage ..."
       if download_blob_with_fallback \
         "${AZURE_STORAGE_ACCOUNT}" \
@@ -766,7 +933,14 @@ cmd_restore() {
     fi
   fi
 
+  if [[ "${dry_run}" -eq 1 ]]; then
+    info "[dry-run] Would unzip ${ARCHIVE_FILE} into ${HOME} (overwriting files)."
+    [[ "${verbose}" -eq 1 ]] && info "[dry-run] Target exists: $([[ -f "${ARCHIVE_FILE}" ]] && echo yes || echo no)"
+    return 0
+  fi
+
   info "Restoring from ${ARCHIVE_FILE} into ${HOME} ..."
+  [[ "${verbose}" -eq 1 ]] && info "Running: unzip -o ${ARCHIVE_FILE}"
   (cd "${HOME}" && unzip -o "${ARCHIVE_FILE}")
   success "Restore completed from ${ARCHIVE_FILE}"
 }
@@ -779,32 +953,40 @@ cmd_update() {
     exit 1
   fi
 
-  local latest_tag release_ref target_path target_dir raw_url tmp_file installed_version
+  local latest_tag release_ref target_path target_dir raw_url tmp_file installed_version verified=0
+
   latest_tag="$(resolve_latest_release_tag || true)"
   release_ref="${latest_tag:-${DEFAULT_REF}}"
-  raw_url="https://raw.githubusercontent.com/${REPO_SLUG}/${release_ref}/${SCRIPT_NAME}"
   target_path="$(resolve_update_target_path)"
   target_dir="$(dirname "${target_path}")"
 
   mkdir -p "${target_dir}"
-  tmp_file="$(mktemp "${target_dir}/${SCRIPT_NAME}.XXXXXX")"
 
   if [[ -n "${latest_tag}" ]]; then
-    info "Updating ${SCRIPT_NAME} to ${latest_tag} ..."
+    info "Updating ${SCRIPT_NAME} to ${latest_tag} (verifying release tarball when available) ..."
+    if download_and_install_verified_release "${latest_tag}" "${target_path}"; then
+      verified=1
+    else
+      warn "Verified release install unavailable (missing python3/sha256sum, assets, or checksum mismatch). Falling back to raw download."
+    fi
   else
     warn "Could not resolve latest release tag. Falling back to ${DEFAULT_REF}."
     info "Updating ${SCRIPT_NAME} from ${DEFAULT_REF} branch ..."
   fi
 
-  info "Download source: ${raw_url}"
-  if ! curl -fsSL "${raw_url}" -o "${tmp_file}"; then
-    rm -f "${tmp_file}"
-    error "Download failed. ${SCRIPT_NAME} was not changed."
-    exit 1
+  if [[ "${verified}" -eq 0 ]]; then
+    raw_url="https://raw.githubusercontent.com/${REPO_SLUG}/${release_ref}/${SCRIPT_NAME}"
+    tmp_file="$(mktemp "${target_dir}/${SCRIPT_NAME}.XXXXXX")"
+    info "Download source: ${raw_url}"
+    if ! curl_github "${raw_url}" -o "${tmp_file}"; then
+      rm -f "${tmp_file}"
+      error "Download failed. ${SCRIPT_NAME} was not changed."
+      exit 1
+    fi
+    chmod +x "${tmp_file}"
+    mv "${tmp_file}" "${target_path}"
   fi
 
-  chmod +x "${tmp_file}"
-  mv "${tmp_file}" "${target_path}"
   success "${SCRIPT_NAME} updated at ${target_path}"
 
   installed_version="$("${target_path}" --version 2>/dev/null || true)"
@@ -821,18 +1003,22 @@ cmd_update() {
 
 usage() {
   cat <<EOF
-Usage: ${SCRIPT_NAME} <command>
+Usage: ${SCRIPT_NAME} [--no-update-check] <command> [args]
+
+Global options:
+  --no-update-check   Skip the GitHub version notice (also env CSHELL_NO_UPDATE_CHECK=1)
 
 Commands:
   init     Create Azure Resource Group, Storage Account and Blob container
   setup    Install cshell, gcloud and configure Azure Blob Storage
   hybrid   Download Apigee Hybrid Helm charts and set up environment variables
-  backup   Backup home directory to archive.zip (and upload to Azure)
-  restore  Restore home directory from archive.zip (download from Azure if needed)
-  update   Update cshell to latest release and print installed version
+  backup   Backup home directory to archive.zip (and upload to Azure) [--dry-run|-n] [--verbose|-v]
+  restore  Restore home directory from archive.zip (download from Azure if needed) [--dry-run|-n] [--verbose|-v]
+  update   Update cshell to latest release and print installed version (tarball+SHA256 when available)
+  config   Inspect or change ${ENV_FILE} (show | set | validate)
   docs     Print project and Apigee documentation links
 
-Environment file: ${ENV_FILE}
+Environment file: ${ENV_FILE} (use "${SCRIPT_NAME} config show" — avoid sourcing unless you trust every line)
 Autocomplete: installed automatically for bash during 'cshell setup'
 
 Documentation:
@@ -846,22 +1032,73 @@ Documentation:
 EOF
 }
 
+CSHELL_NO_UPDATE_CHECK="${CSHELL_NO_UPDATE_CHECK:-0}"
+_main_rest=()
+while (($#)); do
+  case "$1" in
+    --no-update-check)
+      CSHELL_NO_UPDATE_CHECK=1
+      shift
+      ;;
+    *)
+      _main_rest+=("$1")
+      shift
+      ;;
+  esac
+done
+set -- "${_main_rest[@]}"
+unset _main_rest
+
 main_cmd="${1:-}"
 if should_run_update_notice "${main_cmd}"; then
   check_for_update_notice
 fi
 
 case "${main_cmd}" in
-  --version|-v)
+  --version | -v)
     echo "${SCRIPT_NAME} ${SCRIPT_VERSION}"
     ;;
-  init)    cmd_init    ;;
-  setup)   cmd_setup   ;;
-  hybrid)  cmd_hybrid  ;;
-  backup)  cmd_backup  ;;
-  restore) cmd_restore ;;
-  update)  cmd_update  ;;
-  docs)    cmd_docs    ;;
-  help|-h|--help) usage ;;
-  *)       usage; exit 1 ;;
+  init)
+    shift
+    cmd_init "$@"
+    ;;
+  setup)
+    shift
+    cmd_setup "$@"
+    ;;
+  hybrid)
+    shift
+    cmd_hybrid "$@"
+    ;;
+  backup)
+    shift
+    cmd_backup "$@"
+    ;;
+  restore)
+    shift
+    cmd_restore "$@"
+    ;;
+  update)
+    shift
+    cmd_update "$@"
+    ;;
+  config)
+    shift
+    cmd_config "$@"
+    ;;
+  docs)
+    shift
+    cmd_docs "$@"
+    ;;
+  help | -h | --help)
+    usage
+    ;;
+  "")
+    usage
+    exit 1
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
 esac

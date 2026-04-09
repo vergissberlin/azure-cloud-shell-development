@@ -32,9 +32,87 @@ if [[ -f "${CLI_UTILS_PATH}" ]]; then
   source "${CLI_UTILS_PATH}"
 fi
 
+curl_github() {
+  curl -fsSL --max-time 25 --connect-timeout 10 "$@"
+}
+
+release_asset_urls_from_json() {
+  local json="$1"
+  local version="$2"
+  if ! command -v python3 &>/dev/null; then
+    printf '\n'
+    return 1
+  fi
+  python3 -c '
+import json, sys
+payload = sys.stdin.read()
+ver = sys.argv[1]
+try:
+    j = json.loads(payload)
+except json.JSONDecodeError:
+    sys.exit(1)
+want_tgz = "cshell-%s.tar.gz" % ver
+want_sha = want_tgz + ".sha256"
+assets = {a.get("name"): a.get("browser_download_url") for a in j.get("assets", []) if a.get("name")}
+print(assets.get(want_tgz, "") or "")
+print(assets.get(want_sha, "") or "")
+' <<<"${json}" "${version}" 2>/dev/null || printf '\n'
+}
+
+try_install_verified_release() {
+  local ver="$1"
+  local json="$2"
+  local tgz_url sha_url work tgz sha_file url_lines
+
+  if ! command -v python3 &>/dev/null || ! command -v sha256sum &>/dev/null; then
+    return 1
+  fi
+
+  url_lines="$(release_asset_urls_from_json "${json}" "${ver}")"
+  tgz_url="$(printf '%s\n' "${url_lines}" | sed -n '1p')"
+  sha_url="$(printf '%s\n' "${url_lines}" | sed -n '2p')"
+  [[ -n "${tgz_url}" && -n "${sha_url}" ]] || return 1
+
+  work="$(mktemp -d)"
+  tgz="${work}/cshell-${ver}.tar.gz"
+  sha_file="${work}/cshell-${ver}.tar.gz.sha256"
+
+  if ! curl_github "${tgz_url}" -o "${tgz}"; then
+    rm -rf "${work}"
+    return 1
+  fi
+  if ! curl_github "${sha_url}" -o "${sha_file}"; then
+    rm -rf "${work}"
+    return 1
+  fi
+
+  if ! (cd "${work}" && sha256sum -c "$(basename "${sha_file}")"); then
+    warn "Checksum verification failed for ${tgz##*/}."
+    rm -rf "${work}"
+    return 1
+  fi
+
+  if ! tar -xzf "${tgz}" -C "${work}"; then
+    rm -rf "${work}"
+    return 1
+  fi
+
+  if [[ ! -f "${work}/cshell" ]]; then
+    warn "Release archive did not contain cshell."
+    rm -rf "${work}"
+    return 1
+  fi
+
+  chmod +x "${work}/cshell"
+  mkdir -p "${INSTALL_DIR}"
+  mv -f "${work}/cshell" "${INSTALL_PATH}"
+  rm -rf "${work}"
+  return 0
+}
+
 resolve_release_ref() {
   local latest_json latest_tag
-  latest_json="$(curl -fsSL "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+  latest_json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
   latest_tag="$(printf '%s' "${latest_json}" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
 
   if [[ -n "${latest_tag}" ]]; then
@@ -105,10 +183,27 @@ fi
 
 section "INSTALL" "Download and install ${SCRIPT_NAME}" "cyan"
 
-info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} ..."
-mkdir -p "${INSTALL_DIR}"
-curl -fsSL "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
-chmod +x "${INSTALL_PATH}"
+verified=0
+if [[ "${RELEASE_REF}" != "${DEFAULT_REF}" ]]; then
+  ver="${RELEASE_REF#v}"
+  rel_json="$(curl_github "https://api.github.com/repos/${REPO}/releases/tags/${RELEASE_REF}" 2>/dev/null || true)"
+  if [[ -n "${rel_json}" ]] && try_install_verified_release "${ver}" "${rel_json}"; then
+    info "Installed from verified release tarball (${RELEASE_REF})."
+    verified=1
+  else
+    warn "Could not install from verified release assets; falling back to raw ${SCRIPT_NAME} download."
+  fi
+fi
+
+if [[ "${verified}" -eq 0 ]]; then
+  info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} ..."
+  mkdir -p "${INSTALL_DIR}"
+  curl_github "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
+  chmod +x "${INSTALL_PATH}"
+  warn "Raw script install has no checksum verification. Prefer a release that publishes cshell-${ver:-X.Y.Z}.tar.gz + .sha256."
+fi
+
+chmod 600 "${HOME}/.cshell.env" 2>/dev/null || true
 
 success "${SCRIPT_NAME} installed to ${INSTALL_PATH}"
 installed_version="$("${INSTALL_PATH}" --version 2>/dev/null || true)"
