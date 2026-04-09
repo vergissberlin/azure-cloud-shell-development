@@ -72,7 +72,6 @@ if ! declare -F info >/dev/null 2>&1; then
     local desc="${2:-}"
     local color="${3:-cyan}"
     local tone="$CYAN"
-    local width title_text line_len
 
     case "${color}" in
       green) tone="$GREEN" ;;
@@ -81,20 +80,8 @@ if ! declare -F info >/dev/null 2>&1; then
       blue) tone="$CYAN" ;;
     esac
 
-    title_text="[ ${title} ]"
-    width=44
-    if [[ -n "${desc}" && ${#desc} -gt 32 ]]; then
-      width=$(( ${#desc} + 10 ))
-    fi
-    line_len=$((width - ${#title_text} - 3))
-    (( line_len < 6 )) && line_len=6
-
     echo
-    echo -e "${tone}╭─${title_text}$(printf '─%.0s' $(seq 1 "${line_len}"))╮${RESET}"
-    if [[ -n "${desc}" ]]; then
-      echo -e "  ${desc}"
-    fi
-    echo -e "${tone}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
+    echo -e "${tone}[${title}]${RESET} ${desc}"
   }
   bullet_list() { local line; for line in "$@"; do echo -e "  ${ARROW} ${line}"; done; }
 fi

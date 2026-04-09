@@ -82,7 +82,7 @@ error() {
   fi
 }
 
-# Header function - displays a formatted header with label and description using boxen-style borders
+# Header function - displays a compact, low-contrast section header
 # Usage: header "LABEL" "Description text" [color]
 # color options: cyan (default), green, yellow, red, blue
 header() {
@@ -90,7 +90,6 @@ header() {
   local description="${2:-}"
   local color="${3:-cyan}"
   local tone="$CYAN"
-  local title_text width line_len
 
   case "$color" in
     green) tone="$GREEN" ;;
@@ -99,20 +98,8 @@ header() {
     blue) tone="$BLUE" ;;
   esac
 
-  title_text="[ ${label} ]"
-  width=44
-  if [[ -n "${description}" && ${#description} -gt 32 ]]; then
-    width=$(( ${#description} + 10 ))
-  fi
-  line_len=$((width - ${#title_text} - 3))
-  (( line_len < 6 )) && line_len=6
-
   echo
-  echo -e "${tone}╭─${title_text}$(printf '─%.0s' $(seq 1 "${line_len}"))╮${RESET}"
-  if [[ -n "${description}" ]]; then
-    echo -e "  ${description}"
-  fi
-  echo -e "${tone}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
+  echo -e "${DIM}${tone}[${label}]${RESET}${DIM} ${description}${RESET}"
 }
 
 # Countdown progress bar - displays a visual countdown with progress bar
