@@ -69,6 +69,84 @@ command_exists() {
   command -v "$1" &>/dev/null
 }
 
+upload_blob_with_fallback() {
+  local account_name="$1"
+  local container_name="$2"
+  local blob_name="$3"
+  local file_path="$4"
+  local cmd_output
+
+  if cmd_output=$(az storage blob upload \
+    --account-name "${account_name}" \
+    --container-name "${container_name}" \
+    --name "${blob_name}" \
+    --file "${file_path}" \
+    --auth-mode login \
+    --only-show-errors 2>&1); then
+    return 0
+  fi
+
+  warn "Upload with Azure AD login failed. Trying account key from ${ENV_FILE} ..."
+  if [[ -n "${AZURE_STORAGE_ACCOUNT_KEY:-}" ]]; then
+    if cmd_output=$(az storage blob upload \
+      --account-name "${account_name}" \
+      --container-name "${container_name}" \
+      --name "${blob_name}" \
+      --file "${file_path}" \
+      --auth-mode key \
+      --account-key "${AZURE_STORAGE_ACCOUNT_KEY}" \
+      --only-show-errors 2>&1); then
+      return 0
+    fi
+    warn "Upload with account key also failed."
+    warn "${cmd_output}"
+    return 1
+  fi
+
+  warn "${cmd_output}"
+  warn "No AZURE_STORAGE_ACCOUNT_KEY set in ${ENV_FILE}."
+  return 1
+}
+
+download_blob_with_fallback() {
+  local account_name="$1"
+  local container_name="$2"
+  local blob_name="$3"
+  local file_path="$4"
+  local cmd_output
+
+  if cmd_output=$(az storage blob download \
+    --account-name "${account_name}" \
+    --container-name "${container_name}" \
+    --name "${blob_name}" \
+    --file "${file_path}" \
+    --auth-mode login \
+    --only-show-errors 2>&1); then
+    return 0
+  fi
+
+  warn "Download with Azure AD login failed. Trying account key from ${ENV_FILE} ..."
+  if [[ -n "${AZURE_STORAGE_ACCOUNT_KEY:-}" ]]; then
+    if cmd_output=$(az storage blob download \
+      --account-name "${account_name}" \
+      --container-name "${container_name}" \
+      --name "${blob_name}" \
+      --file "${file_path}" \
+      --auth-mode key \
+      --account-key "${AZURE_STORAGE_ACCOUNT_KEY}" \
+      --only-show-errors 2>&1); then
+      return 0
+    fi
+    warn "Download with account key also failed."
+    warn "${cmd_output}"
+    return 1
+  fi
+
+  warn "${cmd_output}"
+  warn "No AZURE_STORAGE_ACCOUNT_KEY set in ${ENV_FILE}."
+  return 1
+}
+
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
@@ -409,15 +487,19 @@ cmd_backup() {
 
   if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
     info "Uploading archive to Azure Blob Storage ..."
-    az storage blob upload \
-      --account-name "${AZURE_STORAGE_ACCOUNT}" \
-      --container-name "${AZURE_STORAGE_CONTAINER}" \
-      --name archive.zip \
-      --file "${ARCHIVE_FILE}" \
-      --auth-mode login
-    success "Archive uploaded to Azure Blob Storage"
-    info "  Account  : ${AZURE_STORAGE_ACCOUNT}"
-    info "  Container: ${AZURE_STORAGE_CONTAINER}"
+    if upload_blob_with_fallback \
+      "${AZURE_STORAGE_ACCOUNT}" \
+      "${AZURE_STORAGE_CONTAINER}" \
+      "archive.zip" \
+      "${ARCHIVE_FILE}"; then
+      success "Archive uploaded to Azure Blob Storage"
+      info "  Account  : ${AZURE_STORAGE_ACCOUNT}"
+      info "  Container: ${AZURE_STORAGE_CONTAINER}"
+    else
+      warn "Backup archive exists locally but upload failed."
+      warn "Grant one role like 'Storage Blob Data Contributor' on the storage account,"
+      warn "or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE} for key-based fallback."
+    fi
   else
     warn "No Azure storage config found. Skipping upload."
     warn "Run 'cshell setup' to configure Azure Blob Storage."
@@ -444,13 +526,17 @@ cmd_restore() {
   if [[ ! -f "${ARCHIVE_FILE}" ]]; then
     if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
       info "archive.zip not found locally - downloading from Azure Blob Storage ..."
-      az storage blob download \
-        --account-name "${AZURE_STORAGE_ACCOUNT}" \
-        --container-name "${AZURE_STORAGE_CONTAINER}" \
-        --name archive.zip \
-        --file "${ARCHIVE_FILE}" \
-        --auth-mode login
-      success "archive.zip downloaded from Azure Blob Storage"
+      if download_blob_with_fallback \
+        "${AZURE_STORAGE_ACCOUNT}" \
+        "${AZURE_STORAGE_CONTAINER}" \
+        "archive.zip" \
+        "${ARCHIVE_FILE}"; then
+        success "archive.zip downloaded from Azure Blob Storage"
+      else
+        error "Could not download archive.zip from Azure Blob Storage."
+        error "Grant blob data permissions or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE}."
+        exit 1
+      fi
     else
       error "archive.zip not found at ${ARCHIVE_FILE} and no Azure storage config available."
       echo  "Place archive.zip in your home directory or run 'cshell setup' to configure Azure."
