@@ -50,9 +50,16 @@ install link list (same as `cshell docs`).
   `APIGEE_HELM_CHARTS_HOME`). **DOMAIN must be set** for a successful check (stricter
   than `APIGEE_SETUP_NONINTERACTIVE`, which only warns when `DOMAIN` is empty).
   `CONTROL_PLANE_LOCATION` is optional. `CHART_REPO` / `CHART_VERSION` need not
-  appear in the file when built-in defaults apply. Exits `0` if OK, `1` if the
-  file is missing, empty, or any required variable is missing. No file writes
-  and no chart downloads.
+  appear in the file when built-in defaults apply. After loading the env file it
+  prints a **numbered checklist** (items 1–13) in the same order as the Google
+  Apigee Hybrid v1.16 install topics (plus the community guide link): **✓** /
+  **✗** when cshell can verify locally (required env block present; cluster
+  reachability and namespace when `kubectl` is available and uses a working
+  context; unpacked Helm chart directories under `APIGEE_HELM_CHARTS_HOME`), and
+  **—** when a step is not auto-verified (documentation steps 5–12 and item 13).
+  **Exit status** still reflects **only** required-variable validation (and file
+  presence), not whether every checklist row is ✓. No file writes and no chart
+  downloads.
 
 - `hybrid --export`: same required-variable checks as `--check`, then regenerates
   **`~/.cshell-env-exports.sh`** and ensures the **`~/.bashrc`** hook sources it

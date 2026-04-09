@@ -165,8 +165,11 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 Use **`cshell hybrid --check`** to verify that `~/.cshell.env` has all required
 Hybrid variables **set and non-empty** (read-only; no writes, no chart pull). This
 includes a **non-empty `DOMAIN`** (stricter than `APIGEE_SETUP_NONINTERACTIVE`,
-which only warns if `DOMAIN` is empty). See the command reference for the full
-list.
+which only warns if `DOMAIN` is empty). The command also prints a **numbered
+v1.16 install checklist** (same order as the documentation links below) with ✓ /
+✗ / — for each step, so you can see what cshell can infer locally; **exit code**
+still depends only on required variables, not on finishing every doc step. See
+the command reference for the full list and semantics.
 
 Use **`cshell hybrid --export`** to re-run those checks and refresh
 **`~/.cshell-env-exports.sh`** (plus the `~/.bashrc` hook)—without pulling charts.

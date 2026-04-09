@@ -657,8 +657,39 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 
 # Variables that must be non-empty for a useful Hybrid env (see hybrid block write). Not listed:
 # CONTROL_PLANE_LOCATION (optional). CHART_REPO / CHART_VERSION use script defaults if unset in file.
-# Load ENV_FILE and ensure all Hybrid vars required for install/check/export are non-empty. Returns 1 on error.
-cmd_hybrid_env_validate() {
+HYBRID_REQUIRED_VARS=(
+	PROJECT_ID
+	ORG_NAME
+	ORG_DISPLAY_NAME
+	ORGANIZATION_DESCRIPTION
+	ANALYTICS_REGION
+	RUNTIMETYPE
+	CLUSTER_NAME
+	CLUSTER_REGION
+	APIGEE_NAMESPACE
+	ENVIRONMENT_NAME
+	ENV_GROUP
+	ENV_GROUP_RELEASE_NAME
+	DOMAIN
+	APIGEE_HELM_CHARTS_HOME
+)
+
+# After cshell_env_load "${ENV_FILE}", sets hybrid_missing_required to missing key names.
+cmd_hybrid_env_fill_missing_array() {
+	hybrid_missing_required=()
+	local k
+	for k in "${HYBRID_REQUIRED_VARS[@]}"; do
+		# shellcheck disable=SC2248
+		[[ -n "${!k:-}" ]] || hybrid_missing_required+=("${k}")
+	done
+}
+
+cmd_hybrid_env_report_missing_vars() {
+	error "Missing or empty Hybrid environment variable(s): ${hybrid_missing_required[*]}"
+	info "Set them in ${ENV_FILE} (Hybrid block) or run '${SCRIPT_NAME} hybrid' interactively."
+}
+
+cmd_hybrid_env_file_must_exist() {
 	if [[ ! -f "${ENV_FILE}" || ! -r "${ENV_FILE}" ]]; then
 		error "${ENV_FILE} is missing or not readable. Run '${SCRIPT_NAME} hybrid' to create it, or create the file manually."
 		return 1
@@ -667,46 +698,110 @@ cmd_hybrid_env_validate() {
 		error "${ENV_FILE} is empty. Run '${SCRIPT_NAME} hybrid' to create it, or add configuration manually."
 		return 1
 	fi
+	return 0
+}
+
+# Load ENV_FILE and ensure all Hybrid vars required for install/check/export are non-empty. Returns 1 on error.
+cmd_hybrid_env_validate() {
+	cmd_hybrid_env_file_must_exist || return 1
 
 	cshell_env_load "${ENV_FILE}"
+	cmd_hybrid_env_fill_missing_array
 
-	local k
-	local -a required=(
-		PROJECT_ID
-		ORG_NAME
-		ORG_DISPLAY_NAME
-		ORGANIZATION_DESCRIPTION
-		ANALYTICS_REGION
-		RUNTIMETYPE
-		CLUSTER_NAME
-		CLUSTER_REGION
-		APIGEE_NAMESPACE
-		ENVIRONMENT_NAME
-		ENV_GROUP
-		ENV_GROUP_RELEASE_NAME
-		DOMAIN
-		APIGEE_HELM_CHARTS_HOME
-	)
-	local -a missing=()
-
-	for k in "${required[@]}"; do
-		# shellcheck disable=SC2248
-		[[ -n "${!k:-}" ]] || missing+=("${k}")
-	done
-
-	if [[ "${#missing[@]}" -gt 0 ]]; then
-		error "Missing or empty Hybrid environment variable(s): ${missing[*]}"
-		info "Set them in ${ENV_FILE} (Hybrid block) or run '${SCRIPT_NAME} hybrid' interactively."
+	if [[ "${#hybrid_missing_required[@]}" -gt 0 ]]; then
+		cmd_hybrid_env_report_missing_vars
 		return 1
 	fi
 
 	return 0
 }
 
+# Print numbered Hybrid v1.16 install checklist (docs order). Uses current shell state after cshell_env_load.
+cmd_hybrid_install_checklist_print() {
+	local sym_done="${CHECKMARK}"
+	local sym_fail="${CROSS}"
+	local sym_skip="—"
+
+	local step1_sym="${sym_done}"
+	((${#hybrid_missing_required[@]} > 0)) && step1_sym="${sym_fail}"
+
+	local step2_sym="${sym_skip}"
+	local step2_note="kubectl not in PATH"
+	if command_exists kubectl; then
+		step2_note=""
+		if kubectl cluster-info --request-timeout=5s &>/dev/null; then
+			step2_sym="${sym_done}"
+		else
+			step2_sym="${sym_fail}"
+			step2_note="cluster not reachable or not configured"
+		fi
+	fi
+
+	local step3_sym="${sym_fail}"
+	local c missing_chart=0
+	if [[ -n "${APIGEE_HELM_CHARTS_HOME:-}" && -d "${APIGEE_HELM_CHARTS_HOME}" ]]; then
+		missing_chart=0
+		for c in "${APIGEE_CHARTS[@]}"; do
+			if [[ ! -d "${APIGEE_HELM_CHARTS_HOME}/${c}" ]]; then
+				missing_chart=1
+				break
+			fi
+		done
+		((missing_chart == 0)) && step3_sym="${sym_done}"
+	else
+		step3_sym="${sym_fail}"
+	fi
+
+	local step4_sym="${sym_skip}"
+	local step4_note="kubectl not in PATH"
+	if command_exists kubectl; then
+		step4_note=""
+		if [[ -n "${APIGEE_NAMESPACE:-}" ]] \
+			&& kubectl get namespace "${APIGEE_NAMESPACE}" --request-timeout=5s &>/dev/null; then
+			step4_sym="${sym_done}"
+		else
+			step4_sym="${sym_fail}"
+			if [[ -z "${APIGEE_NAMESPACE:-}" ]]; then
+				step4_note="APIGEE_NAMESPACE unset"
+			else
+				step4_note="namespace not found"
+			fi
+		fi
+	fi
+
+	local nv_label="not verified automatically"
+
+	info "Hybrid v1.16 install checklist (documentation order; exit status still reflects only ${ENV_FILE} required variables):"
+	printf '  [%s] %2d. Before you begin — %s\n' "${step1_sym}" 1 "${DOC_BEFORE_BEGIN}"
+	printf '  [%s] %2d. Create cluster — %s\n' "${step2_sym}" 2 "${DOC_INSTALL_CREATE_CLUSTER}"
+	[[ -n "${step2_note}" ]] && printf '      %s\n' "${step2_note}"
+	printf '  [%s] %2d. Download Helm charts — %s\n' "${step3_sym}" 3 "${DOC_DOWNLOAD_CHARTS}"
+	printf '  [%s] %2d. Create namespace — %s\n' "${step4_sym}" 4 "${DOC_INSTALL_CREATE_NAMESPACE}"
+	[[ -n "${step4_note}" ]] && printf '      %s\n' "${step4_note}"
+	printf '  [%s] %2d. Service accounts (%s) — %s\n' "${sym_skip}" 5 "${nv_label}" "${DOC_INSTALL_SERVICE_ACCOUNTS}"
+	printf '  [%s] %2d. Service account authentication (%s) — %s\n' "${sym_skip}" 6 "${nv_label}" "${DOC_INSTALL_SA_AUTH}"
+	printf '  [%s] %2d. TLS certificates (%s) — %s\n' "${sym_skip}" 7 "${nv_label}" "${DOC_INSTALL_TLS}"
+	printf '  [%s] %2d. Overrides (%s) — %s\n' "${sym_skip}" 8 "${nv_label}" "${DOC_INSTALL_OVERRIDES}"
+	printf '  [%s] %2d. Control plane access (%s) — %s\n' "${sym_skip}" 9 "${nv_label}" "${DOC_INSTALL_CONTROL_PLANE}"
+	printf '  [%s] %2d. cert-manager (%s) — %s\n' "${sym_skip}" 10 "${nv_label}" "${DOC_INSTALL_CERT_MANAGER}"
+	printf '  [%s] %2d. CRDs (%s) — %s\n' "${sym_skip}" 11 "${nv_label}" "${DOC_INSTALL_CRDS}"
+	printf '  [%s] %2d. Helm install (Hybrid) (%s) — %s\n' "${sym_skip}" 12 "${nv_label}" "${DOC_INSTALL_HELM_CHARTS}"
+	printf '  [%s] %2d. Community install guide — %s\n' "${sym_skip}" 13 "${DOC_INSTALL_HYBRID}"
+}
+
 cmd_hybrid_check() {
 	section "HYBRID" "Validate Apigee Hybrid environment variables" "cyan"
 
-	cmd_hybrid_env_validate || exit 1
+	cmd_hybrid_env_file_must_exist || exit 1
+
+	cshell_env_load "${ENV_FILE}"
+	cmd_hybrid_env_fill_missing_array
+	cmd_hybrid_install_checklist_print
+
+	if [[ "${#hybrid_missing_required[@]}" -gt 0 ]]; then
+		cmd_hybrid_env_report_missing_vars
+		exit 1
+	fi
 
 	success "All required Hybrid environment variables are set in ${ENV_FILE}."
 }

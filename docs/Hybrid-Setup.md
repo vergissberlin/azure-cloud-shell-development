@@ -36,6 +36,9 @@ Run `cshell docs` for the same link list printed by `cshell hybrid`, or open the
 and follow the numbered install topics (cluster, charts, namespace, service
 accounts, TLS, overrides, control plane access, cert-manager, CRDs, Helm install).
 
+`cshell hybrid --check` prints that order as a **checklist** (with ✓ / ✗ / —) after
+loading `~/.cshell.env`; exit status remains tied to required Hybrid variables only.
+
 ## Non-production environments
 
 For a **non-prod** Apigee hybrid runtime, Google’s install guide expects an

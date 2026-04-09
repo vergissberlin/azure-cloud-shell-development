@@ -104,6 +104,9 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 0 ]
+	[[ "$output" == *"install checklist"* ]]
+	[[ "$output" == *"[✓]"*"1. Before you begin"* ]]
+	[[ "$output" == *"[—]"*"13. Community install guide"* ]]
 	[[ "$output" == *"All required"* ]]
 }
 
@@ -126,6 +129,7 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 1 ]
+	[[ "$output" == *"[✗]"*"1. Before you begin"* ]]
 	[[ "$output" == *Missing* ]]
 	[[ "$output" == *DOMAIN* ]]
 }
@@ -175,10 +179,9 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --export
 	[ "$status" -eq 0 ]
-	[ -f "${HOME}/.cshell-env-exports.sh" ]
-	run grep -q '^export DOMAIN=' "${HOME}/.cshell-env-exports.sh"
-	[ "$status" -eq 0 ]
 	[[ "$output" == *".cshell-env-exports.sh"* ]]
+	[ -f "${HOME}/.cshell-env-exports.sh" ]
+	grep -q '^export DOMAIN=' "${HOME}/.cshell-env-exports.sh"
 }
 
 @test "hybrid --export --print writes only export lines to stdout (bash 4+)" {
