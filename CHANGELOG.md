@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.15.2](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.1...1.15.2) (2026-04-09)
+
+
+### Documentation
+
+* **Hybrid-Setup.md:** update checklist symbols for clarity ([8578912](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8578912df88c8fcf4c4c45acfae74b6dc2f5854d))
+* update checklist symbols in README and Command-Reference ([8578912](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8578912df88c8fcf4c4c45acfae74b6dc2f5854d))
+
+
+### Tests
+
+* **cshell_cli.bats:** adjust test expectations for new checklist symbols ([8578912](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8578912df88c8fcf4c4c45acfae74b6dc2f5854d))
+* **cshell_cli.bats:** fix string matching for checklist output ([5539a9b](https://github.com/vergissberlin/azure-cloud-shell-development/commit/5539a9b786d5a0c11f706f37857d63fb60e99af2))
+
 ## [1.15.1](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.15.0...1.15.1) (2026-04-09)
 
 
