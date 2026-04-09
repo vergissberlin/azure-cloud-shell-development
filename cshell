@@ -35,6 +35,10 @@ CSHELL_COMMANDS=(init setup hybrid backup restore)
 DOC_BEFORE_BEGIN="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin"
 DOC_DOWNLOAD_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts"
 DOC_INSTALL_HYBRID="https://github.com/vergissberlin/apigee-hybride-development/blob/main/docs/install-apigee-hybrid.md"
+DOC_PROJECT_README="https://github.com/${REPO_SLUG}#readme"
+DOC_PROJECT_RELEASES="https://github.com/${REPO_SLUG}/releases"
+DOC_PROJECT_ISSUES="https://github.com/${REPO_SLUG}/issues"
+DOC_PROJECT_CONTRIBUTING="https://github.com/${REPO_SLUG}/blob/main/CONTRIBUTING.md"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -867,6 +871,10 @@ Environment file: ${ENV_FILE}
 Autocomplete: installed automatically for bash/zsh during 'cshell setup'
 
 Documentation:
+  Project README                 : ${DOC_PROJECT_README}
+  Releases                       : ${DOC_PROJECT_RELEASES}
+  Issues                         : ${DOC_PROJECT_ISSUES}
+  Contributing                   : ${DOC_PROJECT_CONTRIBUTING}
   Apigee Hybrid before you begin : ${DOC_BEFORE_BEGIN}
   Apigee Hybrid download charts  : ${DOC_DOWNLOAD_CHARTS}
   Install guide                  : ${DOC_INSTALL_HYBRID}
