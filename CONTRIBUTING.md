@@ -45,6 +45,10 @@ Thank you for your interest in contributing to **azure-cloud-shell-development**
 
 ## Testing
 
+**Policy:** Changes that affect behavior should include **new or updated tests**
+(Bats under `tests/` unless agreed otherwise), not only doc or script edits. Skip
+only when a change is genuinely untestable in-repo (then note why in the PR).
+
 Pull requests run **`bash -n`**, **`shellcheck`**, **`shfmt -d`**, and **Bats**
 smoke tests via GitHub Actions.
 

@@ -26,6 +26,14 @@
 
 - Respect [.editorconfig](.editorconfig): UTF-8, LF, final newline, trim trailing whitespace; **4 spaces** in the Dockerfile, **2 spaces** in YAML and typical text files.
 
+## Tests
+
+- When changing `cshell`, `lib/*.sh`, `install.sh`, installer/update flows, or
+  any behavior covered by this repo, **add or extend automated tests** (Bats
+  under [`tests/`](tests/) by default).
+- Aim for coverage of the new or modified paths; keep **`just check`** (build,
+  `shellcheck`, `shfmt`, Bats) passing before merging.
+
 ## Commit messages
 
 - Use **[Conventional Commits](https://www.conventionalcommits.org/)** in **English** for every commit message (for example `feat:`, `fix:`, `docs:`, `ci:`, `chore:`).

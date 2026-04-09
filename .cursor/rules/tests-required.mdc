@@ -1,0 +1,14 @@
+---
+description: Require automated tests when changing behavior
+alwaysApply: true
+---
+
+# Automated tests
+
+When you change `cshell`, `lib/*.sh`, `install.sh`, or other executable behavior in this repository:
+
+1. **Add or extend tests** under [`tests/`](tests/) (Bats), matching existing patterns in files like `tests/cshell_cli.bats` and [`tests/test_helper.bash`](tests/test_helper.bash).
+2. Run **`just check`** or at least `bats tests` before finishing.
+3. If something cannot be tested in-repo, say so briefly in the PR/summary — do not skip tests by default.
+
+Documentation-only edits do not require new tests unless they encode new procedures that should be asserted.
