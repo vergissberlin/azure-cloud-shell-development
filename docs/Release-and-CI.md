@@ -22,7 +22,9 @@
 1. download the release tarball + checksum and verify with `sha256sum` when
    `python3`, release assets, and tooling are available
 2. latest release tag metadata from the GitHub API
-3. fallback raw download from `main` when release metadata cannot be resolved
+3. fallback raw download of `cshell` plus `lib/env-file.sh`, `lib/portable.sh`,
+   and `lib/config-cmd.sh` from the same Git ref (`main` or the release tag)
+   when verified assets are unavailable or verification fails
 
 Install target selection favors writable locations.
 

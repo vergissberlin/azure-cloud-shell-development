@@ -110,6 +110,26 @@ try_install_verified_release() {
 	return 0
 }
 
+download_cshell_support_libs_from_raw() {
+	local ref="$1"
+	local bin_dir="$2"
+	local base work name
+
+	base="https://raw.githubusercontent.com/${REPO}/${ref}/lib"
+	work="$(mktemp -d)"
+	for name in env-file.sh portable.sh config-cmd.sh; do
+		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
+			rm -rf "${work}"
+			error "Failed to download ${name}"
+			return 1
+		fi
+	done
+	mkdir -p "${bin_dir}/lib"
+	mv -f "${work}/"* "${bin_dir}/lib/"
+	rmdir "${work}" 2>/dev/null || rm -rf "${work}"
+	return 0
+}
+
 resolve_release_ref() {
 	local latest_json latest_tag
 	latest_json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
@@ -198,8 +218,20 @@ fi
 if [[ "${verified}" -eq 0 ]]; then
 	info "Downloading ${SCRIPT_NAME} from ${RAW_BASE}/${SCRIPT_NAME} ..."
 	mkdir -p "${INSTALL_DIR}"
-	curl_github "${RAW_BASE}/${SCRIPT_NAME}" -o "${INSTALL_PATH}"
-	chmod +x "${INSTALL_PATH}"
+	tmp_cshell="$(mktemp "${INSTALL_DIR}/${SCRIPT_NAME}.XXXXXX")"
+	if ! curl_github "${RAW_BASE}/${SCRIPT_NAME}" -o "${tmp_cshell}"; then
+		rm -f "${tmp_cshell}"
+		error "Download failed."
+		exit 1
+	fi
+	info "Downloading ${SCRIPT_NAME} library files (raw install) ..."
+	if ! download_cshell_support_libs_from_raw "${RELEASE_REF}" "${INSTALL_DIR}"; then
+		rm -f "${tmp_cshell}"
+		error "Library download failed."
+		exit 1
+	fi
+	chmod +x "${tmp_cshell}"
+	mv -f "${tmp_cshell}" "${INSTALL_PATH}"
 	warn "Raw script install has no checksum verification. Prefer a release that publishes cshell-${ver:-X.Y.Z}.tar.gz + .sha256."
 fi
 

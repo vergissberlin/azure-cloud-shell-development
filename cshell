@@ -315,6 +315,28 @@ download_and_install_verified_release() {
 	return 0
 }
 
+# Raw GitHub cshell sources lib/*.sh from SCRIPT_DIR; release tarballs inline libs. When update/install
+# falls back to raw download, fetch matching lib files next to the installed script.
+download_cshell_support_libs_from_raw() {
+	local ref="$1"
+	local bin_dir="$2"
+	local base work name
+
+	base="https://raw.githubusercontent.com/${REPO_SLUG}/${ref}/lib"
+	work="$(mktemp -d)"
+	for name in env-file.sh portable.sh config-cmd.sh; do
+		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
+			rm -rf "${work}"
+			error "Failed to download ${name} from ${base}/${name}"
+			return 1
+		fi
+	done
+	mkdir -p "${bin_dir}/lib"
+	mv -f "${work}/"* "${bin_dir}/lib/"
+	rmdir "${work}" 2>/dev/null || rm -rf "${work}"
+	return 0
+}
+
 is_newer_version() {
 	local current_version="$1"
 	local latest_version="$2"
@@ -1051,6 +1073,12 @@ cmd_update() {
 		if ! curl_github "${raw_url}" -o "${tmp_file}"; then
 			rm -f "${tmp_file}"
 			error "Download failed. ${SCRIPT_NAME} was not changed."
+			exit 1
+		fi
+		info "Downloading ${SCRIPT_NAME} library files (raw install) ..."
+		if ! download_cshell_support_libs_from_raw "${release_ref}" "${target_dir}"; then
+			rm -f "${tmp_file}"
+			error "Library download failed. ${SCRIPT_NAME} was not changed."
 			exit 1
 		fi
 		chmod +x "${tmp_file}"

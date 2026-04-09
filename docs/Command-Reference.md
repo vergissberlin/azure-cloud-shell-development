@@ -61,4 +61,5 @@ install link list (same as `cshell docs`).
 ## `cshell update`
 
 Downloads and installs latest released `cshell` version to an appropriate writable path.
-Prefers verified tarball + SHA256 release assets when available.
+Prefers verified tarball + SHA256 release assets when available. On the raw fallback,
+also fetches the `lib/*.sh` files next to the installed script so sourcing succeeds.

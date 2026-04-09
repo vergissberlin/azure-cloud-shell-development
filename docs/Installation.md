@@ -10,8 +10,9 @@ This installer resolves the latest release and installs `cshell` into a writable
 location. When release assets include `cshell-<version>.tar.gz` and the matching
 `.sha256` file, the installer verifies the checksum before extracting the
 standalone binary; otherwise it falls back to downloading the raw `cshell` script
-(verify manually when you need supply-chain guarantees — see the repository
-README).
+and the matching `lib/*.sh` helpers into the same directory (for example
+`~/.local/bin/lib/`) so the CLI keeps working (verify manually when you need
+supply-chain guarantees — see the repository README).
 
 ## Install From Local Clone
 
