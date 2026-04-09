@@ -59,7 +59,36 @@ if ! declare -F info >/dev/null 2>&1; then
   success() { echo -e "$(box 'DONE' "$BG_GREEN" "$BLACK") ${GREEN}${CHECKMARK}${RESET} ${GREEN}$*${RESET}"; }
   warn() { echo -e "$(box 'WARN' "$BG_YELLOW" "$BLACK") ${YELLOW}$*${RESET}"; }
   error() { echo -e "$(box 'ERR' "$BG_RED" "$BLACK") ${RED}${CROSS}${RESET} ${RED}$*${RESET}" >&2; }
-  section() { echo; echo -e "${CYAN}=== $1 ===${RESET}"; [[ -n "${2:-}" ]] && info "$2"; }
+  section() {
+    local title="$1"
+    local desc="${2:-}"
+    local color="${3:-cyan}"
+    local tone="$CYAN"
+    local width title_text line_len
+
+    case "${color}" in
+      green) tone="$GREEN" ;;
+      yellow) tone="$YELLOW" ;;
+      red) tone="$RED" ;;
+      blue) tone="$CYAN" ;;
+    esac
+
+    title_text="[ ${title} ]"
+    width=56
+    if [[ -n "${desc}" && ${#desc} -gt 44 ]]; then
+      width=$(( ${#desc} + 12 ))
+    fi
+    line_len=$((width - ${#title_text} - 4))
+    (( line_len < 8 )) && line_len=8
+
+    echo
+    echo -e "${tone}╭─${title_text}$(printf '─%.0s' $(seq 1 "${line_len}"))╮${RESET}"
+    if [[ -n "${desc}" ]]; then
+      printf -v _section_desc_pad "%*s" $((width - ${#desc} - 4)) ""
+      echo -e "${tone}│${RESET} ${desc}${_section_desc_pad}${tone}│${RESET}"
+    fi
+    echo -e "${tone}╰$(printf '─%.0s' $(seq 1 $((width - 2))))╯${RESET}"
+  }
   bullet_list() { local line; for line in "$@"; do echo -e "  ${ARROW} ${line}"; done; }
 fi
 
