@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.6.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.5.0...1.6.0) (2026-04-09)
+
+
+### Features
+
+* add new Apigee Hybrid environment variables ([c1cc249](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c1cc2492e7891f7030c808e2ba6d532106954fc7))
+* **cshell:** implement non-interactive setup mode and Helm version check ([9ab8619](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9ab8619cef2cd45cad4dd84df910284a89cc4812))
+
+
+### Documentation
+
+* **Command-Reference.md:** update setup requirements and non-interactive mode details ([9ab8619](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9ab8619cef2cd45cad4dd84df910284a89cc4812))
+* **Configuration.md:** convert variable list to tables for clarity and add descriptions ([1f8a7ce](https://github.com/vergissberlin/azure-cloud-shell-development/commit/1f8a7cee5ed80483f3e6273afba1f06dd04bfc6d))
+* **Hybrid-Setup.md:** add detailed requirements and installation steps for Apigee Hybrid v1.16 ([9ab8619](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9ab8619cef2cd45cad4dd84df910284a89cc4812))
+* **README.md:** add prerequisites and detailed documentation links for Apigee Hybrid setup ([9ab8619](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9ab8619cef2cd45cad4dd84df910284a89cc4812))
+
 ## [1.5.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.4.0...1.5.0) (2026-04-09)
 
 
