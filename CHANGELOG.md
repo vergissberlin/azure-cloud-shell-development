@@ -1,5 +1,51 @@
 # Changelog
 
+## [1.2.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.1.0...1.2.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** add shell autocomplete for Bash and Zsh ([215dce4](https://github.com/vergissberlin/azure-cloud-shell-development/commit/215dce466178fa7f70a4d328d53e7f49666b4fe4))
+* **cshell:** add update command to update cshell to latest release ([3c66cc3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c66cc307f6a07f3d22a6aec491f3ccdcdff831b))
+* **cshell:** implement version check and update notice for commands ([3c66cc3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c66cc307f6a07f3d22a6aec491f3ccdcdff831b))
+* **scripts:** add build-standalone-scripts.sh to generate standalone scripts ([7178080](https://github.com/vergissberlin/azure-cloud-shell-development/commit/71780805a4b14ec7ad32f5921922943c4effb4c4))
+* **workflows:** add standalone-build-check for PRs and main branch ([7178080](https://github.com/vergissberlin/azure-cloud-shell-development/commit/71780805a4b14ec7ad32f5921922943c4effb4c4))
+
+
+### Bug Fixes
+
+* **cshell:** ensure update command handles missing curl gracefully ([3c66cc3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c66cc307f6a07f3d22a6aec491f3ccdcdff831b))
+
+
+### Documentation
+
+* **README:** add section on build model for source vs generated assets ([7178080](https://github.com/vergissberlin/azure-cloud-shell-development/commit/71780805a4b14ec7ad32f5921922943c4effb4c4))
+* **README:** document new update command and update notice feature ([3c66cc3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c66cc307f6a07f3d22a6aec491f3ccdcdff831b))
+* **README:** update setup steps to include autocomplete installation ([215dce4](https://github.com/vergissberlin/azure-cloud-shell-development/commit/215dce466178fa7f70a4d328d53e7f49666b4fe4))
+
+
+### Styles
+
+* **cshell:** update terminology for consistency and clarity in messages ([3a78bc1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3a78bc19df8936eab214e381afcb26e90461cb16))
+
+
+### Code Refactoring
+
+* **cli-utils:** simplify header function by removing boxen-style borders for a more compact display ([ddfde29](https://github.com/vergissberlin/azure-cloud-shell-development/commit/ddfde29d650e4357de0287ee5e3a134c827e9faf))
+* **cshell:** improve update target path resolution logic ([3c66cc3](https://github.com/vergissberlin/azure-cloud-shell-development/commit/3c66cc307f6a07f3d22a6aec491f3ccdcdff831b))
+
+
+### Continuous Integration
+
+* **version-sync-check:** add GitHub Actions workflow to ensure version consistency ([b714199](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b7141995d70361116a3a0ac26e46677853883ee9))
+* **workflows:** update release-build-assets to use build script for standalone scripts ([7178080](https://github.com/vergissberlin/azure-cloud-shell-development/commit/71780805a4b14ec7ad32f5921922943c4effb4c4))
+
+
+### Chores
+
+* **cshell, install.sh:** add CLI utils fallback for standalone execution ([7178080](https://github.com/vergissberlin/azure-cloud-shell-development/commit/71780805a4b14ec7ad32f5921922943c4effb4c4))
+* update release-please configuration to use generic type for cshell and increment version to 1.1.0 ([c2651b9](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c2651b98eefc26fa63370bf92f8d7ce483b3ab3f))
+
 ## [1.1.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.0.0...1.1.0) (2026-04-09)
 
 
