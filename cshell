@@ -670,7 +670,7 @@ cmd_hybrid() {
 	env_group=$(ask "Apigee environment group name (Helm --set envgroup)" "${ENV_GROUP:-envgroup}")
 	env_group_release_name=$(ask "Helm release name for apigee-virtualhost (unique per cluster)" "${ENV_GROUP_RELEASE_NAME:-apigee-virtualhost}")
 	domain=$(ask "Public hostname for the environment group (TLS / virtual host CN)" "${DOMAIN:-}")
-	control_plane_location=$(ask "Control plane location (optional; only needed for data residency)" "${CONTROL_PLANE_LOCATION:-}")
+	control_plane_location=$(ask "Control plane location (optional; only needed for data residency)" "${CONTROL_PLANE_LOCATION:-europe-west3}")
 
 	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]]; then
 		if [[ -z "${project_id}" ]]; then

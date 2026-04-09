@@ -183,7 +183,7 @@ environment (`PROJECT_ID` required).
 | `ENV_GROUP` | Environment group name (Helm `envgroup`) | `envgroup` |
 | `ENV_GROUP_RELEASE_NAME` | Helm release name for `apigee-virtualhost` | `apigee-virtualhost` |
 | `DOMAIN` | Hostname for the environment group (TLS / virtual host) | – |
-| `CONTROL_PLANE_LOCATION` | Optional; only for data residency (`contractProvider`) | – |
+| `CONTROL_PLANE_LOCATION` | Optional; only for data residency (`contractProvider`) | `europe-west3` |
 | `APIGEE_HELM_CHARTS_HOME` | Local path to Helm charts directory | `~/apigee-hybrid/helm-charts` |
 | `CHART_REPO` | OCI repo for Hybrid charts | built-in default |
 | `CHART_VERSION` | Chart version (e.g. `1.16.0-hotfix.1`) | built-in default |
