@@ -6,32 +6,33 @@
 
 ## Core Variables
 
-- `AZURE_STORAGE_ACCOUNT`
-- `AZURE_STORAGE_CONTAINER`
-- `AZURE_STORAGE_ACCOUNT_KEY` (optional fallback)
+| Variable                    | Description                                                         |
+|-----------------------------|---------------------------------------------------------------------|
+| `AZURE_STORAGE_ACCOUNT`     | Target storage account for backup and blob operations.              |
+| `AZURE_STORAGE_CONTAINER`   | Blob container name.                                                |
+| `AZURE_STORAGE_ACCOUNT_KEY` | Optional; enables account-key auth when Azure AD login is not used. |
 
-Apigee Hybrid variables created by `cshell hybrid` include:
+## Apigee Hybrid (`cshell hybrid`)
 
-- `PROJECT_ID`
-- `ORG_NAME`
-- `ORG_DISPLAY_NAME`
-- `ORGANIZATION_DESCRIPTION`
-- `ANALYTICS_REGION`
-- `RUNTIMETYPE`
-- `CLUSTER_NAME`
-- `CLUSTER_REGION` (same meaning as `CLUSTER_LOCATION` in the
-  [Google Hybrid install docs](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-cluster);
-  use the cluster region, or for zonal clusters the **region** that contains the zone)
-- `APIGEE_NAMESPACE`
-- `ENVIRONMENT_NAME` (must match the Apigee environment created in the UI)
-- `ENV_GROUP` (environment group name; used as Helm `envgroup`, same role as
-  `ENVIRONMENT_GROUP_NAME` in `overrides.yaml` examples)
-- `ENV_GROUP_RELEASE_NAME` (distinct Helm release name for the `apigee-virtualhost` chart)
-- `DOMAIN` (hostname for the environment group / TLS CN)
-- `CONTROL_PLANE_LOCATION` (optional; only when using data residency / `contractProvider`)
-- `APIGEE_HELM_CHARTS_HOME`
-- `CHART_REPO`
-- `CHART_VERSION`
+| Variable                   | Description                                                                                                                                                                                                                                              |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PROJECT_ID`               | GCP project ID.                                                                                                                                                                                                                                          |
+| `ORG_NAME`                 | Apigee organization ID.                                                                                                                                                                                                                                  |
+| `ORG_DISPLAY_NAME`         | Display name for the organization (provisioning / UI).                                                                                                                                                                                                   |
+| `ORGANIZATION_DESCRIPTION` | Organization description (provisioning).                                                                                                                                                                                                                 |
+| `ANALYTICS_REGION`         | Analytics data region (e.g. `europe-west3`).                                                                                                                                                                                                             |
+| `RUNTIMETYPE`              | Runtime type (typically `HYBRID`).                                                                                                                                                                                                                       |
+| `CLUSTER_NAME`             | Kubernetes cluster name.                                                                                                                                                                                                                                 |
+| `CLUSTER_REGION`           | Same meaning as `CLUSTER_LOCATION` in the [Google Hybrid install docs](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-cluster): cluster region; for zonal clusters use the **region** that contains the zone, not the zone alone. |
+| `APIGEE_NAMESPACE`         | Namespace for Apigee components (often `apigee`).                                                                                                                                                                                                        |
+| `ENVIRONMENT_NAME`         | Apigee environment name; must match the environment created in the Apigee UI.                                                                                                                                                                            |
+| `ENV_GROUP`                | Environment group name; Helm `--set envgroup`. Same role as `ENVIRONMENT_GROUP_NAME` in `overrides.yaml` examples.                                                                                                                                       |
+| `ENV_GROUP_RELEASE_NAME`   | Helm release name for the `apigee-virtualhost` chart (unique per cluster).                                                                                                                                                                               |
+| `DOMAIN`                   | Public hostname for the environment group (TLS / virtual host CN).                                                                                                                                                                                       |
+| `CONTROL_PLANE_LOCATION`   | Optional; only when using data residency / `contractProvider`.                                                                                                                                                                                           |
+| `APIGEE_HELM_CHARTS_HOME`  | Local directory where Hybrid Helm charts are stored.                                                                                                                                                                                                     |
+| `CHART_REPO`               | OCI repository URL for Apigee Hybrid charts.                                                                                                                                                                                                             |
+| `CHART_VERSION`            | Helm chart version (e.g. `1.16.0-hotfix.1`).                                                                                                                                                                                                             |
 
 `cshell hybrid` replaces only the marked block between `# BEGIN_CSHELL_HYBRID_ENV` and
 `# END_CSHELL_HYBRID_ENV` in `~/.cshell.env`, so Azure and other keys outside that block
