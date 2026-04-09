@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.9.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.8.0...1.9.0) (2026-04-09)
+
+
+### Features
+
+* **cshell:** regenerate env export script for bash 4+ support ([c346f9c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c346f9cfd9f25ce20b1f38649391b10ec76f511f))
+
+
+### Documentation
+
+* add policy for requiring automated tests for behavior changes ([f0241c1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f0241c115dffb488d7311b76919fac1afdae8fd5))
+* **Contributing.md:** add guidelines for tests to ensure behavioral changes include tests and maintain green status ([149a27b](https://github.com/vergissberlin/azure-cloud-shell-development/commit/149a27b1374cfd918a3d31c93bd5f1f3264b0892))
+
+
+### Tests
+
+* **cshell_cli.bats:** add test for config set to refresh env exports ([c346f9c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c346f9cfd9f25ce20b1f38649391b10ec76f511f))
+
 ## [1.8.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.7.0...1.8.0) (2026-04-09)
 
 
