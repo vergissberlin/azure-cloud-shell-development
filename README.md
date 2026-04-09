@@ -172,8 +172,16 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 | `ANALYTICS_REGION` | Analytics region (e.g. `europe-west3`) | `europe-west3` |
 | `RUNTIMETYPE` | Runtime type | `HYBRID` |
 | `CLUSTER_NAME` | Kubernetes cluster name | `aks-hybrid` |
-| `CLUSTER_REGION` | Kubernetes cluster region | `$ANALYTICS_REGION` |
+| `CLUSTER_REGION` | Cluster region (same as `CLUSTER_LOCATION` in Google docs; for zonal clusters use the **region**, not the zone) | `$ANALYTICS_REGION` |
+| `APIGEE_NAMESPACE` | Kubernetes namespace for Apigee | `apigee` |
+| `ENVIRONMENT_NAME` | Apigee environment name (match UI; non-prod pairs with `apigee-non-prod` SA in Google’s flow) | `dev` |
+| `ENV_GROUP` | Environment group name (Helm `envgroup`) | `$ENVIRONMENT_NAME` |
+| `ENV_GROUP_RELEASE_NAME` | Helm release name for `apigee-virtualhost` | `$ENV_GROUP` |
+| `DOMAIN` | Hostname for the environment group (TLS / virtual host) | – |
+| `CONTROL_PLANE_LOCATION` | Optional; only for data residency (`contractProvider`) | – |
 | `APIGEE_HELM_CHARTS_HOME` | Local path to Helm charts directory | `~/apigee-hybrid/helm-charts` |
+| `CHART_REPO` | OCI repo for Hybrid charts | built-in default |
+| `CHART_VERSION` | Chart version (e.g. `1.16.0-hotfix.1`) | built-in default |
 
 **Helm charts downloaded:**
 

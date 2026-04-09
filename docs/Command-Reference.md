@@ -35,7 +35,10 @@ Performs first-time setup:
 
 ## `cshell hybrid`
 
-Prepares Apigee Hybrid environment variables and pulls required Helm charts.
+Prepares Apigee Hybrid environment variables (including namespace, environment
+name, environment group, hostname, and optional control-plane location for data
+residency) and pulls required Helm charts. Replaces only the Hybrid block in
+`~/.cshell.env` so Azure keys stay intact.
 
 ## `cshell backup`
 

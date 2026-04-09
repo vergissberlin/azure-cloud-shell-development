@@ -19,8 +19,23 @@ Apigee Hybrid variables created by `cshell hybrid` include:
 - `ANALYTICS_REGION`
 - `RUNTIMETYPE`
 - `CLUSTER_NAME`
-- `CLUSTER_REGION`
+- `CLUSTER_REGION` (same meaning as `CLUSTER_LOCATION` in the
+  [Google Hybrid install docs](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-cluster);
+  use the cluster region, or for zonal clusters the **region** that contains the zone)
+- `APIGEE_NAMESPACE`
+- `ENVIRONMENT_NAME` (must match the Apigee environment created in the UI)
+- `ENV_GROUP` (environment group name; used as Helm `envgroup`, same role as
+  `ENVIRONMENT_GROUP_NAME` in `overrides.yaml` examples)
+- `ENV_GROUP_RELEASE_NAME` (distinct Helm release name for the `apigee-virtualhost` chart)
+- `DOMAIN` (hostname for the environment group / TLS CN)
+- `CONTROL_PLANE_LOCATION` (optional; only when using data residency / `contractProvider`)
 - `APIGEE_HELM_CHARTS_HOME`
+- `CHART_REPO`
+- `CHART_VERSION`
+
+`cshell hybrid` replaces only the marked block between `# BEGIN_CSHELL_HYBRID_ENV` and
+`# END_CSHELL_HYBRID_ENV` in `~/.cshell.env`, so Azure and other keys outside that block
+are kept.
 
 ## Auth Fallback Order
 

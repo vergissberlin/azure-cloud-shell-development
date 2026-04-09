@@ -10,9 +10,22 @@ cshell hybrid
 
 ## What It Does
 
-- prompts for required Apigee environment values
-- writes values into `~/.cshell.env`
+- prompts for required Apigee environment values (including namespace, environment
+  group, and hostname for non-prod TLS steps)
+- updates the Apigee Hybrid block in `~/.cshell.env` without removing unrelated keys
 - downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME`
+
+## Non-production environments
+
+For a **non-prod** Apigee hybrid runtime, Google’s install guide expects an
+environment-specific service account (often named `apigee-non-prod`), key file
+`$PROJECT_ID-apigee-non-prod.json` under your charts/service-accounts layout, and
+a Kubernetes secret such as `apigee-non-prod-svc-account`. Align `ENVIRONMENT_NAME`
+with the environment you created in the Apigee UI.
+
+For trial-style installs, self-signed TLS in
+`$APIGEE_HELM_CHARTS_HOME/apigee-virtualhost/certs/` is acceptable; production
+should use properly signed certificates.
 
 ## Helm Chart Set
 

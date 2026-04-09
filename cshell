@@ -591,7 +591,8 @@ cmd_hybrid() {
 
 	local project_id org_name org_display_name org_description \
 		analytics_region runtime_type helm_charts_home \
-		cluster_name cluster_region
+		cluster_name cluster_region apigee_namespace environment_name \
+		env_group env_group_release_name domain control_plane_location
 
 	project_id=$(ask "GCP Project ID" "${PROJECT_ID:-}")
 	org_name=$(ask "Apigee Organization name" "${ORG_NAME:-$project_id}")
@@ -600,15 +601,19 @@ cmd_hybrid() {
 	analytics_region=$(ask "Analytics region (e.g. europe-west3)" "${ANALYTICS_REGION:-europe-west3}")
 	runtime_type=$(ask "Runtime type" "${RUNTIMETYPE:-HYBRID}")
 	cluster_name=$(ask "Kubernetes cluster name" "${CLUSTER_NAME:-aks-hybrid}")
-	cluster_region=$(ask "Kubernetes cluster region" "${CLUSTER_REGION:-${analytics_region}}")
+	cluster_region=$(ask "Kubernetes cluster region (maps to CLUSTER_LOCATION in Google docs)" "${CLUSTER_REGION:-${analytics_region}}")
 	helm_charts_home=$(ask "Local Helm charts directory" "${APIGEE_HELM_CHARTS_HOME:-${HOME}/apigee-hybrid/helm-charts}")
+	apigee_namespace=$(ask "Kubernetes namespace for Apigee pods" "${APIGEE_NAMESPACE:-apigee}")
+	environment_name=$(ask "Apigee environment name (must match UI; non-prod often pairs with apigee-non-prod SA)" "${ENVIRONMENT_NAME:-dev}")
+	env_group=$(ask "Apigee environment group name (Helm --set envgroup)" "${ENV_GROUP:-${environment_name}}")
+	env_group_release_name=$(ask "Helm release name for apigee-virtualhost (unique per cluster)" "${ENV_GROUP_RELEASE_NAME:-${env_group}}")
+	domain=$(ask "Public hostname for the environment group (TLS / virtual host CN)" "${DOMAIN:-}")
+	control_plane_location=$(ask "Control plane location (optional; only needed for data residency)" "${CONTROL_PLANE_LOCATION:-}")
 
-	# Preserve any existing Azure storage config before overwriting the file
-	local azure_storage_account="${AZURE_STORAGE_ACCOUNT:-}"
-	local azure_storage_container="${AZURE_STORAGE_CONTAINER:-}"
-	local azure_storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
+	touch "${ENV_FILE}"
+	cshell_env_strip_managed_block "${ENV_FILE}" "# BEGIN_CSHELL_HYBRID_ENV" "# END_CSHELL_HYBRID_ENV"
 
-	# Persist to .env (literal assignments — do not source this file in a shell unless you trust its contents)
+	# Persist hybrid block only; other ~/.cshell.env keys (Azure, etc.) are preserved.
 	{
 		echo "# BEGIN_CSHELL_HYBRID_ENV"
 		echo "# Apigee Hybrid – environment variables"
@@ -621,24 +626,19 @@ cmd_hybrid() {
 		printf 'RUNTIMETYPE=%s\n' "${runtime_type}"
 		printf 'CLUSTER_NAME=%s\n' "${cluster_name}"
 		printf 'CLUSTER_REGION=%s\n' "${cluster_region}"
+		printf 'APIGEE_NAMESPACE=%s\n' "${apigee_namespace}"
+		printf 'ENVIRONMENT_NAME=%s\n' "${environment_name}"
+		printf 'ENV_GROUP=%s\n' "${env_group}"
+		printf 'ENV_GROUP_RELEASE_NAME=%s\n' "${env_group_release_name}"
+		printf 'DOMAIN=%s\n' "${domain}"
+		if [[ -n "${control_plane_location}" ]]; then
+			printf 'CONTROL_PLANE_LOCATION=%s\n' "${control_plane_location}"
+		fi
 		printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
 		printf 'CHART_REPO=%s\n' "${CHART_REPO}"
 		printf 'CHART_VERSION=%s\n' "${CHART_VERSION}"
 		echo "# END_CSHELL_HYBRID_ENV"
-	} >"${ENV_FILE}"
-
-	# Re-append Azure storage config if it was saved previously
-	if [[ -n "${azure_storage_account}" ]]; then
-		{
-			echo ""
-			echo "# Azure Blob Storage (preserved from previous setup)"
-			printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${azure_storage_account}"
-			printf 'AZURE_STORAGE_CONTAINER=%s\n' "${azure_storage_container}"
-			if [[ -n "${azure_storage_account_key}" ]]; then
-				printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${azure_storage_account_key}"
-			fi
-		} >>"${ENV_FILE}"
-	fi
+	} >>"${ENV_FILE}"
 
 	cshell_env_ensure_permissions "${ENV_FILE}"
 
