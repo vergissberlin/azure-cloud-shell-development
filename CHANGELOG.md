@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.18.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.17.0...1.18.0) (2026-04-09)
+
+
+### Features
+
+* **config-cmd.sh:** add support for APIGEE_TLS_SELF_SIGNED and APIGEE_TLS_SKIP_SELF_SIGNED ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+* **cshell:** enhance TLS certificate management for non-prod environments ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+* **hybrid-overrides-nonprod.sh:** add function to sanitize keystore slugs ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+
+
+### Documentation
+
+* **Hybrid-Setup.md:** update TLS setup instructions for clarity and non-prod defaults ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+* update command and configuration documentation for TLS changes ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+
+
+### Code Refactoring
+
+* **env-file.sh:** introduce cshell_env_upsert_key for key-value management ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+
+
+### Tests
+
+* **cshell_cli.bats:** add tests for hybrid --step 7 TLS generation and skipping ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+* **hybrid_overrides_nonprod.bats:** add tests for keystore slug sanitization ([39c53f2](https://github.com/vergissberlin/azure-cloud-shell-development/commit/39c53f26e23b662c7d5b6fb2697c085d47dc0122))
+
 ## [1.17.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.16.0...1.17.0) (2026-04-09)
 
 
