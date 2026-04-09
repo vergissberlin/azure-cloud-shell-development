@@ -30,7 +30,7 @@ APIGEE_CHARTS=(
   apigee-telemetry
   apigee-virtualhost
 )
-CSHELL_COMMANDS=(init setup hybrid backup restore)
+CSHELL_COMMANDS=(init setup hybrid backup restore update docs help)
 
 DOC_BEFORE_BEGIN="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin"
 DOC_DOWNLOAD_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-download-charts"
@@ -601,6 +601,18 @@ EOF
   success "Helm charts downloaded to ${helm_charts_home}"
 }
 
+cmd_docs() {
+  section "DOCS" "Project and Apigee documentation" "cyan"
+  bullet_list \
+    "Project README: ${DOC_PROJECT_README}" \
+    "Releases: ${DOC_PROJECT_RELEASES}" \
+    "Issues: ${DOC_PROJECT_ISSUES}" \
+    "Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
+    "Before you begin: ${DOC_BEFORE_BEGIN}" \
+    "Download charts: ${DOC_DOWNLOAD_CHARTS}" \
+    "Install guide: ${DOC_INSTALL_HYBRID}"
+}
+
 # ---------------------------------------------------------------------------
 # init – create Azure Storage Account and container
 # ---------------------------------------------------------------------------
@@ -870,6 +882,7 @@ Commands:
   backup   Backup home directory to archive.zip (and upload to Azure)
   restore  Restore home directory from archive.zip (download from Azure if needed)
   update   Update cshell to latest release and print installed version
+  docs     Print project and Apigee documentation links
 
 Environment file: ${ENV_FILE}
 Autocomplete: installed automatically for bash/zsh during 'cshell setup'
@@ -900,5 +913,7 @@ case "${main_cmd}" in
   backup)  cmd_backup  ;;
   restore) cmd_restore ;;
   update)  cmd_update  ;;
+  docs)    cmd_docs    ;;
+  help|-h|--help) usage ;;
   *)       usage; exit 1 ;;
 esac

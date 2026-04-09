@@ -216,6 +216,19 @@ cshell update
 
 ---
 
+### `cshell docs`
+
+Prints all relevant project and Apigee documentation links in one place:
+
+```bash
+cshell docs
+```
+
+- Includes links to README, releases, issues, and contributing guide
+- Includes links to Apigee Hybrid setup references
+
+---
+
 ## Environment file
 
 All configuration is stored in `~/.cshell.env`. You can edit it manually at
