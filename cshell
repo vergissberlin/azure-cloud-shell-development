@@ -24,14 +24,14 @@ CSHELL_NO_UPDATE_CHECK="${CSHELL_NO_UPDATE_CHECK:-0}"
 CHART_REPO="oci://us-docker.pkg.dev/apigee-release/apigee-hybrid-helm-charts"
 CHART_VERSION="1.16.0-hotfix.1"
 APIGEE_CHARTS=(
-  apigee-operator
-  apigee-datastore
-  apigee-env
-  apigee-ingress-manager
-  apigee-org
-  apigee-redis
-  apigee-telemetry
-  apigee-virtualhost
+	apigee-operator
+	apigee-datastore
+	apigee-env
+	apigee-ingress-manager
+	apigee-org
+	apigee-redis
+	apigee-telemetry
+	apigee-virtualhost
 )
 CSHELL_COMMANDS=(init setup hybrid backup restore update config docs help)
 
@@ -48,49 +48,52 @@ DOC_PROJECT_CONTRIBUTING="https://github.com/${REPO_SLUG}/blob/main/CONTRIBUTING
 # ---------------------------------------------------------------------------
 
 if [[ -f "${CLI_UTILS_PATH}" ]]; then
-  # shellcheck source=/dev/null
-  source "${CLI_UTILS_PATH}"
+	# shellcheck source=/dev/null
+	source "${CLI_UTILS_PATH}"
 fi
 
 # BEGIN_CLI_UTILS_FALLBACK
 # Fallback for globally installed script where shared utils are unavailable.
 if ! declare -F info >/dev/null 2>&1; then
-  RESET='\033[0m'
-  BLACK='\033[30m'
-  CYAN='\033[36m'
-  GREEN='\033[32m'
-  YELLOW='\033[33m'
-  RED='\033[31m'
-  BG_CYAN='\033[46m'
-  BG_GREEN='\033[42m'
-  BG_YELLOW='\033[43m'
-  BG_RED='\033[41m'
-  CHECKMARK='✓'
-  CROSS='✗'
-  ARROW='→'
+	RESET='\033[0m'
+	BLACK='\033[30m'
+	CYAN='\033[36m'
+	GREEN='\033[32m'
+	YELLOW='\033[33m'
+	RED='\033[31m'
+	BG_CYAN='\033[46m'
+	BG_GREEN='\033[42m'
+	BG_YELLOW='\033[43m'
+	BG_RED='\033[41m'
+	CHECKMARK='✓'
+	CROSS='✗'
+	ARROW='→'
 
-  box() { echo -e "${2:-$BG_CYAN}${3:-$BLACK} $1 ${RESET}"; }
-  info() { echo -e "$(box 'INFO' "$BG_CYAN" "$BLACK") ${CYAN}$*${RESET}"; }
-  success() { echo -e "$(box 'DONE' "$BG_GREEN" "$BLACK") ${GREEN}${CHECKMARK}${RESET} ${GREEN}$*${RESET}"; }
-  warn() { echo -e "$(box 'WARN' "$BG_YELLOW" "$BLACK") ${YELLOW}$*${RESET}"; }
-  error() { echo -e "$(box 'ERR' "$BG_RED" "$BLACK") ${RED}${CROSS}${RESET} ${RED}$*${RESET}" >&2; }
-  section() {
-    local title="$1"
-    local desc="${2:-}"
-    local color="${3:-cyan}"
-    local tone="$CYAN"
+	box() { echo -e "${2:-$BG_CYAN}${3:-$BLACK} $1 ${RESET}"; }
+	info() { echo -e "$(box 'INFO' "$BG_CYAN" "$BLACK") ${CYAN}$*${RESET}"; }
+	success() { echo -e "$(box 'DONE' "$BG_GREEN" "$BLACK") ${GREEN}${CHECKMARK}${RESET} ${GREEN}$*${RESET}"; }
+	warn() { echo -e "$(box 'WARN' "$BG_YELLOW" "$BLACK") ${YELLOW}$*${RESET}"; }
+	error() { echo -e "$(box 'ERR' "$BG_RED" "$BLACK") ${RED}${CROSS}${RESET} ${RED}$*${RESET}" >&2; }
+	section() {
+		local title="$1"
+		local desc="${2:-}"
+		local color="${3:-cyan}"
+		local tone="$CYAN"
 
-    case "${color}" in
-      green) tone="$GREEN" ;;
-      yellow) tone="$YELLOW" ;;
-      red) tone="$RED" ;;
-      blue) tone="$CYAN" ;;
-    esac
+		case "${color}" in
+			green) tone="$GREEN" ;;
+			yellow) tone="$YELLOW" ;;
+			red) tone="$RED" ;;
+			blue) tone="$CYAN" ;;
+		esac
 
-    echo
-    echo -e "${tone}[${title}]${RESET} ${desc}"
-  }
-  bullet_list() { local line; for line in "$@"; do echo -e "  ${ARROW} ${line}"; done; }
+		echo
+		echo -e "${tone}[${title}]${RESET} ${desc}"
+	}
+	bullet_list() {
+		local line
+		for line in "$@"; do echo -e "  ${ARROW} ${line}"; done
+	}
 fi
 # END_CLI_UTILS_FALLBACK
 
@@ -105,47 +108,47 @@ source "${_CSHELL_LIB_ROOT}/lib/config-cmd.sh"
 # END_CSHELL_LIBS
 
 ask() {
-  local prompt="$1"
-  local default="${2:-}"
-  local value
-  if [[ -n "$default" ]]; then
-    read -rp "${prompt} [${default}]: " value
-    echo "${value:-$default}"
-  else
-    read -rp "${prompt}: " value
-    echo "$value"
-  fi
+	local prompt="$1"
+	local default="${2:-}"
+	local value
+	if [[ -n "$default" ]]; then
+		read -rp "${prompt} [${default}]: " value
+		echo "${value:-$default}"
+	else
+		read -rp "${prompt}: " value
+		echo "$value"
+	fi
 }
 
 require_root() {
-  if [[ $EUID -ne 0 ]]; then
-    error "This step requires root privileges. Please run with sudo."
-    exit 1
-  fi
+	if [[ $EUID -ne 0 ]]; then
+		error "This step requires root privileges. Please run with sudo."
+		exit 1
+	fi
 }
 
 command_exists() {
-  command -v "$1" &>/dev/null
+	command -v "$1" &>/dev/null
 }
 
 append_line_if_missing() {
-  local target_file="$1"
-  local line="$2"
+	local target_file="$1"
+	local line="$2"
 
-  touch "${target_file}"
-  if ! grep -Fqx "${line}" "${target_file}"; then
-    echo "${line}" >> "${target_file}"
-  fi
+	touch "${target_file}"
+	if ! grep -Fqx "${line}" "${target_file}"; then
+		echo "${line}" >>"${target_file}"
+	fi
 }
 
 install_bash_completion() {
-  local bash_completion_dir="${HOME}/.local/share/bash-completion/completions"
-  local bash_completion_file="${bash_completion_dir}/${SCRIPT_NAME}"
-  local bashrc_file="${HOME}/.bashrc"
-  local command_list="${CSHELL_COMMANDS[*]}"
+	local bash_completion_dir="${HOME}/.local/share/bash-completion/completions"
+	local bash_completion_file="${bash_completion_dir}/${SCRIPT_NAME}"
+	local bashrc_file="${HOME}/.bashrc"
+	local command_list="${CSHELL_COMMANDS[*]}"
 
-  mkdir -p "${bash_completion_dir}"
-  cat > "${bash_completion_file}" <<EOF
+	mkdir -p "${bash_completion_dir}"
+	cat >"${bash_completion_file}" <<EOF
 _${SCRIPT_NAME}_completions() {
   local cur
   COMPREPLY=()
@@ -155,60 +158,60 @@ _${SCRIPT_NAME}_completions() {
 complete -F _${SCRIPT_NAME}_completions ${SCRIPT_NAME}
 EOF
 
-  append_line_if_missing "${bashrc_file}" ""
-  append_line_if_missing "${bashrc_file}" "# Added by cshell setup: bash completion"
-  append_line_if_missing "${bashrc_file}" "[[ -r /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion"
-  append_line_if_missing "${bashrc_file}" "[[ -r ${bash_completion_file} ]] && . ${bash_completion_file}"
+	append_line_if_missing "${bashrc_file}" ""
+	append_line_if_missing "${bashrc_file}" "# Added by cshell setup: bash completion"
+	append_line_if_missing "${bashrc_file}" "[[ -r /usr/share/bash-completion/bash_completion ]] && . /usr/share/bash-completion/bash_completion"
+	append_line_if_missing "${bashrc_file}" "[[ -r ${bash_completion_file} ]] && . ${bash_completion_file}"
 
-  success "Bash completion installed: ${bash_completion_file}"
-  info "Run 'source ~/.bashrc' or start a new bash session to load completion."
+	success "Bash completion installed: ${bash_completion_file}"
+	info "Run 'source ~/.bashrc' or start a new bash session to load completion."
 }
 
 install_shell_completion() {
-  if command_exists bash; then
-    if ! install_bash_completion; then
-      warn "Could not install bash completion for ${SCRIPT_NAME}."
-      warn "Completion setup finished with warnings."
-      return 1
-    fi
-  else
-    warn "bash not found. Skipping completion setup."
-    return 1
-  fi
+	if command_exists bash; then
+		if ! install_bash_completion; then
+			warn "Could not install bash completion for ${SCRIPT_NAME}."
+			warn "Completion setup finished with warnings."
+			return 1
+		fi
+	else
+		warn "bash not found. Skipping completion setup."
+		return 1
+	fi
 
-  success "Autocomplete setup completed for bash."
+	success "Autocomplete setup completed for bash."
 }
 
 is_azure_cloud_shell() {
-  [[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
+	[[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
 }
 
 curl_github() {
-  curl -fsSL --max-time 25 --connect-timeout 10 "$@"
+	curl -fsSL --max-time 25 --connect-timeout 10 "$@"
 }
 
 resolve_latest_release_tag() {
-  local latest_json latest_tag
+	local latest_json latest_tag
 
-  if ! command_exists curl; then
-    return 1
-  fi
+	if ! command_exists curl; then
+		return 1
+	fi
 
-  latest_json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
-  latest_tag="$(printf '%s' "${latest_json}" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
-  [[ -n "${latest_tag}" ]] || return 1
-  printf '%s\n' "${latest_tag}"
+	latest_json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+	latest_tag="$(printf '%s' "${latest_json}" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
+	[[ -n "${latest_tag}" ]] || return 1
+	printf '%s\n' "${latest_tag}"
 }
 
 # Prints two lines: tarball URL then .sha256 URL (empty lines if missing / python error).
 release_asset_urls_from_json() {
-  local json="$1"
-  local version="$2"
-  if ! command_exists python3; then
-    printf '\n'
-    return 1
-  fi
-  python3 -c '
+	local json="$1"
+	local version="$2"
+	if ! command_exists python3; then
+		printf '\n'
+		return 1
+	fi
+	python3 -c '
 import json, sys
 payload = sys.stdin.read()
 ver = sys.argv[1]
@@ -225,216 +228,216 @@ assets = {
 }
 print(assets.get(want_tgz, "") or "")
 print(assets.get(want_sha, "") or "")
-' <<<"${json}" "${version}" 2>/dev/null || printf '\n'
+' "${version}" <<<"${json}" 2>/dev/null || printf '\n'
 }
 
 # Download GitHub release tarball + checksum, verify, extract cshell to target_path. Returns 1 on soft-fail.
 download_and_install_verified_release() {
-  local tag="$1"
-  local target_path="$2"
-  local ver json tgz_url sha_url work tgz sha_file url_lines
+	local tag="$1"
+	local target_path="$2"
+	local ver json tgz_url sha_url work tgz sha_file url_lines
 
-  ver="${tag#v}"
-  if ! command_exists python3; then
-    return 1
-  fi
-  json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
-  [[ -n "${json}" ]] || return 1
+	ver="${tag#v}"
+	if ! command_exists python3; then
+		return 1
+	fi
+	json="$(curl_github "${LATEST_RELEASE_API}" 2>/dev/null || true)"
+	[[ -n "${json}" ]] || return 1
 
-  url_lines="$(release_asset_urls_from_json "${json}" "${ver}")"
-  tgz_url="$(printf '%s\n' "${url_lines}" | sed -n '1p')"
-  sha_url="$(printf '%s\n' "${url_lines}" | sed -n '2p')"
-  [[ -n "${tgz_url}" && -n "${sha_url}" ]] || return 1
+	url_lines="$(release_asset_urls_from_json "${json}" "${ver}")"
+	tgz_url="$(printf '%s\n' "${url_lines}" | sed -n '1p')"
+	sha_url="$(printf '%s\n' "${url_lines}" | sed -n '2p')"
+	[[ -n "${tgz_url}" && -n "${sha_url}" ]] || return 1
 
-  work="$(mktemp -d)"
-  tgz="${work}/cshell-${ver}.tar.gz"
-  sha_file="${work}/cshell-${ver}.tar.gz.sha256"
+	work="$(mktemp -d)"
+	tgz="${work}/cshell-${ver}.tar.gz"
+	sha_file="${work}/cshell-${ver}.tar.gz.sha256"
 
-  if ! curl_github "${tgz_url}" -o "${tgz}"; then
-    rm -rf "${work}"
-    return 1
-  fi
-  if ! curl_github "${sha_url}" -o "${sha_file}"; then
-    rm -rf "${work}"
-    return 1
-  fi
+	if ! curl_github "${tgz_url}" -o "${tgz}"; then
+		rm -rf "${work}"
+		return 1
+	fi
+	if ! curl_github "${sha_url}" -o "${sha_file}"; then
+		rm -rf "${work}"
+		return 1
+	fi
 
-  if ! (cd "${work}" && sha256sum -c "$(basename "${sha_file}")"); then
-    warn "Checksum verification failed for ${tgz##*/}."
-    rm -rf "${work}"
-    return 1
-  fi
+	if ! (cd "${work}" && sha256sum -c "$(basename "${sha_file}")"); then
+		warn "Checksum verification failed for ${tgz##*/}."
+		rm -rf "${work}"
+		return 1
+	fi
 
-  if ! tar -xzf "${tgz}" -C "${work}"; then
-    rm -rf "${work}"
-    return 1
-  fi
+	if ! tar -xzf "${tgz}" -C "${work}"; then
+		rm -rf "${work}"
+		return 1
+	fi
 
-  if [[ ! -f "${work}/cshell" ]]; then
-    warn "Release archive did not contain cshell at expected path."
-    rm -rf "${work}"
-    return 1
-  fi
+	if [[ ! -f "${work}/cshell" ]]; then
+		warn "Release archive did not contain cshell at expected path."
+		rm -rf "${work}"
+		return 1
+	fi
 
-  chmod +x "${work}/cshell"
-  mv -f "${work}/cshell" "${target_path}"
-  rm -rf "${work}"
-  return 0
+	chmod +x "${work}/cshell"
+	mv -f "${work}/cshell" "${target_path}"
+	rm -rf "${work}"
+	return 0
 }
 
 is_newer_version() {
-  local current_version="$1"
-  local latest_version="$2"
-  local highest_version
+	local current_version="$1"
+	local latest_version="$2"
+	local highest_version
 
-  if [[ -z "${current_version}" || -z "${latest_version}" || "${current_version}" == "${latest_version}" ]]; then
-    return 1
-  fi
+	if [[ -z "${current_version}" || -z "${latest_version}" || "${current_version}" == "${latest_version}" ]]; then
+		return 1
+	fi
 
-  highest_version="$(printf '%s\n%s\n' "${current_version}" "${latest_version}" | sort -V | tail -n 1)"
-  [[ "${highest_version}" == "${latest_version}" ]]
+	highest_version="$(printf '%s\n%s\n' "${current_version}" "${latest_version}" | sort -V | tail -n 1)"
+	[[ "${highest_version}" == "${latest_version}" ]]
 }
 
 check_for_update_notice() {
-  local latest_tag latest_version cache_file now last_ts
+	local latest_tag latest_version cache_file now last_ts
 
-  [[ "${CSHELL_NO_UPDATE_CHECK:-0}" == "1" ]] && return 0
+	[[ "${CSHELL_NO_UPDATE_CHECK:-0}" == "1" ]] && return 0
 
-  mkdir -p "${UPDATE_CHECK_CACHE_DIR}" 2>/dev/null || true
-  cache_file="${UPDATE_CHECK_CACHE_DIR}/last-update-check"
-  now="$(date +%s)"
-  if [[ -f "${cache_file}" ]]; then
-    last_ts="$(head -n 1 "${cache_file}" 2>/dev/null || true)"
-    if [[ -n "${last_ts}" ]] && [[ "$((now - last_ts))" -lt "${UPDATE_CHECK_CACHE_TTL_SECONDS}" ]]; then
-      return 0
-    fi
-  fi
+	mkdir -p "${UPDATE_CHECK_CACHE_DIR}" 2>/dev/null || true
+	cache_file="${UPDATE_CHECK_CACHE_DIR}/last-update-check"
+	now="$(date +%s)"
+	if [[ -f "${cache_file}" ]]; then
+		last_ts="$(head -n 1 "${cache_file}" 2>/dev/null || true)"
+		if [[ -n "${last_ts}" ]] && [[ "$((now - last_ts))" -lt "${UPDATE_CHECK_CACHE_TTL_SECONDS}" ]]; then
+			return 0
+		fi
+	fi
 
-  latest_tag="$(resolve_latest_release_tag || true)"
-  printf '%s\n' "${now}" >"${cache_file}" 2>/dev/null || true
-  [[ -n "${latest_tag}" ]] || return 0
+	latest_tag="$(resolve_latest_release_tag || true)"
+	printf '%s\n' "${now}" >"${cache_file}" 2>/dev/null || true
+	[[ -n "${latest_tag}" ]] || return 0
 
-  latest_version="${latest_tag#v}"
-  if is_newer_version "${SCRIPT_VERSION}" "${latest_version}"; then
-    warn "A newer ${SCRIPT_NAME} version is available (${latest_version}). Run '${SCRIPT_NAME} update'."
-  fi
+	latest_version="${latest_tag#v}"
+	if is_newer_version "${SCRIPT_VERSION}" "${latest_version}"; then
+		warn "A newer ${SCRIPT_NAME} version is available (${latest_version}). Run '${SCRIPT_NAME} update'."
+	fi
 }
 
 is_path_writable_for_replace() {
-  local target_path="$1"
-  local target_dir
+	local target_path="$1"
+	local target_dir
 
-  if [[ -e "${target_path}" ]]; then
-    [[ -w "${target_path}" ]]
-    return
-  fi
+	if [[ -e "${target_path}" ]]; then
+		[[ -w "${target_path}" ]]
+		return
+	fi
 
-  target_dir="$(dirname "${target_path}")"
-  [[ -w "${target_dir}" ]]
+	target_dir="$(dirname "${target_path}")"
+	[[ -w "${target_dir}" ]]
 }
 
 resolve_update_target_path() {
-  local current_path
+	local current_path
 
-  current_path="$(command -v "${SCRIPT_NAME}" 2>/dev/null || true)"
-  if [[ -n "${current_path}" ]] && is_path_writable_for_replace "${current_path}"; then
-    printf '%s\n' "${current_path}"
-    return 0
-  fi
+	current_path="$(command -v "${SCRIPT_NAME}" 2>/dev/null || true)"
+	if [[ -n "${current_path}" ]] && is_path_writable_for_replace "${current_path}"; then
+		printf '%s\n' "${current_path}"
+		return 0
+	fi
 
-  if is_path_writable_for_replace "${UPDATE_INSTALL_PATH_DEFAULT}"; then
-    printf '%s\n' "${UPDATE_INSTALL_PATH_DEFAULT}"
-    return 0
-  fi
+	if is_path_writable_for_replace "${UPDATE_INSTALL_PATH_DEFAULT}"; then
+		printf '%s\n' "${UPDATE_INSTALL_PATH_DEFAULT}"
+		return 0
+	fi
 
-  mkdir -p "$(dirname "${INSTALL_PATH_USER}")"
-  printf '%s\n' "${INSTALL_PATH_USER}"
+	mkdir -p "$(dirname "${INSTALL_PATH_USER}")"
+	printf '%s\n' "${INSTALL_PATH_USER}"
 }
 
 should_run_update_notice() {
-  local command_name="${1:-}"
-  case "${command_name}" in
-    init | setup | hybrid | backup | restore | update) return 0 ;;
-    *) return 1 ;;
-  esac
+	local command_name="${1:-}"
+	case "${command_name}" in
+		init | setup | hybrid | backup | restore | update) return 0 ;;
+		*) return 1 ;;
+	esac
 }
 
 upload_blob_with_fallback() {
-  local account_name="$1"
-  local container_name="$2"
-  local blob_name="$3"
-  local file_path="$4"
-  local cmd_output
+	local account_name="$1"
+	local container_name="$2"
+	local blob_name="$3"
+	local file_path="$4"
+	local cmd_output
 
-  if cmd_output=$(az storage blob upload \
-    --account-name "${account_name}" \
-    --container-name "${container_name}" \
-    --name "${blob_name}" \
-    --file "${file_path}" \
-    --auth-mode login \
-    --only-show-errors 2>&1); then
-    return 0
-  fi
+	if cmd_output=$(az storage blob upload \
+		--account-name "${account_name}" \
+		--container-name "${container_name}" \
+		--name "${blob_name}" \
+		--file "${file_path}" \
+		--auth-mode login \
+		--only-show-errors 2>&1); then
+		return 0
+	fi
 
-  warn "Upload with Azure AD login failed. Trying account key from ${ENV_FILE} ..."
-  if [[ -n "${AZURE_STORAGE_ACCOUNT_KEY:-}" ]]; then
-    if cmd_output=$(az storage blob upload \
-      --account-name "${account_name}" \
-      --container-name "${container_name}" \
-      --name "${blob_name}" \
-      --file "${file_path}" \
-      --auth-mode key \
-      --account-key "${AZURE_STORAGE_ACCOUNT_KEY}" \
-      --only-show-errors 2>&1); then
-      return 0
-    fi
-    warn "Upload with account key also failed."
-    warn "${cmd_output}"
-    return 1
-  fi
+	warn "Upload with Azure AD login failed. Trying account key from ${ENV_FILE} ..."
+	if [[ -n "${AZURE_STORAGE_ACCOUNT_KEY:-}" ]]; then
+		if cmd_output=$(az storage blob upload \
+			--account-name "${account_name}" \
+			--container-name "${container_name}" \
+			--name "${blob_name}" \
+			--file "${file_path}" \
+			--auth-mode key \
+			--account-key "${AZURE_STORAGE_ACCOUNT_KEY}" \
+			--only-show-errors 2>&1); then
+			return 0
+		fi
+		warn "Upload with account key also failed."
+		warn "${cmd_output}"
+		return 1
+	fi
 
-  warn "${cmd_output}"
-  warn "No AZURE_STORAGE_ACCOUNT_KEY set in ${ENV_FILE}."
-  return 1
+	warn "${cmd_output}"
+	warn "No AZURE_STORAGE_ACCOUNT_KEY set in ${ENV_FILE}."
+	return 1
 }
 
 download_blob_with_fallback() {
-  local account_name="$1"
-  local container_name="$2"
-  local blob_name="$3"
-  local file_path="$4"
-  local cmd_output
+	local account_name="$1"
+	local container_name="$2"
+	local blob_name="$3"
+	local file_path="$4"
+	local cmd_output
 
-  if cmd_output=$(az storage blob download \
-    --account-name "${account_name}" \
-    --container-name "${container_name}" \
-    --name "${blob_name}" \
-    --file "${file_path}" \
-    --auth-mode login \
-    --only-show-errors 2>&1); then
-    return 0
-  fi
+	if cmd_output=$(az storage blob download \
+		--account-name "${account_name}" \
+		--container-name "${container_name}" \
+		--name "${blob_name}" \
+		--file "${file_path}" \
+		--auth-mode login \
+		--only-show-errors 2>&1); then
+		return 0
+	fi
 
-  warn "Download with Azure AD login failed. Trying account key from ${ENV_FILE} ..."
-  if [[ -n "${AZURE_STORAGE_ACCOUNT_KEY:-}" ]]; then
-    if cmd_output=$(az storage blob download \
-      --account-name "${account_name}" \
-      --container-name "${container_name}" \
-      --name "${blob_name}" \
-      --file "${file_path}" \
-      --auth-mode key \
-      --account-key "${AZURE_STORAGE_ACCOUNT_KEY}" \
-      --only-show-errors 2>&1); then
-      return 0
-    fi
-    warn "Download with account key also failed."
-    warn "${cmd_output}"
-    return 1
-  fi
+	warn "Download with Azure AD login failed. Trying account key from ${ENV_FILE} ..."
+	if [[ -n "${AZURE_STORAGE_ACCOUNT_KEY:-}" ]]; then
+		if cmd_output=$(az storage blob download \
+			--account-name "${account_name}" \
+			--container-name "${container_name}" \
+			--name "${blob_name}" \
+			--file "${file_path}" \
+			--auth-mode key \
+			--account-key "${AZURE_STORAGE_ACCOUNT_KEY}" \
+			--only-show-errors 2>&1); then
+			return 0
+		fi
+		warn "Download with account key also failed."
+		warn "${cmd_output}"
+		return 1
+	fi
 
-  warn "${cmd_output}"
-  warn "No AZURE_STORAGE_ACCOUNT_KEY set in ${ENV_FILE}."
-  return 1
+	warn "${cmd_output}"
+	warn "No AZURE_STORAGE_ACCOUNT_KEY set in ${ENV_FILE}."
+	return 1
 }
 
 # ---------------------------------------------------------------------------
@@ -442,119 +445,119 @@ download_blob_with_fallback() {
 # ---------------------------------------------------------------------------
 
 cmd_setup() {
-  section "SETUP" "cshell setup workflow" "cyan"
+	section "SETUP" "cshell setup workflow" "cyan"
 
-  # ── 1. Install cshell binary ──────────────────────────────────────────────
-  local install_path
-  if is_azure_cloud_shell; then
-    info "Azure Cloud Shell detected. Using user-space install defaults."
-  fi
+	# ── 1. Install cshell binary ──────────────────────────────────────────────
+	local install_path
+	if is_azure_cloud_shell; then
+		info "Azure Cloud Shell detected. Using user-space install defaults."
+	fi
 
-  if [[ $EUID -eq 0 ]]; then
-    install_path="${INSTALL_PATH_DEFAULT}"
-  else
-    install_path="${INSTALL_PATH_USER}"
-    mkdir -p "$(dirname "${install_path}")"
-  fi
+	if [[ $EUID -eq 0 ]]; then
+		install_path="${INSTALL_PATH_DEFAULT}"
+	else
+		install_path="${INSTALL_PATH_USER}"
+		mkdir -p "$(dirname "${install_path}")"
+	fi
 
-  info "Installing ${SCRIPT_NAME} to ${install_path} ..."
-  local source_path target_path
-  source_path="$(cshell_realpath "$0" || printf '%s\n' "$0")"
-  target_path="$(cshell_realpath "${install_path}" 2>/dev/null || true)"
-  if [[ -n "${target_path}" && "${source_path}" == "${target_path}" ]]; then
-    info "${SCRIPT_NAME} is already installed at ${install_path}. Skipping copy."
-  else
-    cp "${source_path}" "${install_path}"
-    chmod +x "${install_path}"
-    success "cshell installed to ${install_path}"
-  fi
-  if [[ "${install_path}" == "${INSTALL_PATH_USER}" ]]; then
-    if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
-      warn "${HOME}/.local/bin is not in PATH. Add this to your shell profile:"
-      echo '  export PATH="$HOME/.local/bin:$PATH"'
-    fi
-  fi
+	info "Installing ${SCRIPT_NAME} to ${install_path} ..."
+	local source_path target_path
+	source_path="$(cshell_realpath "$0" || printf '%s\n' "$0")"
+	target_path="$(cshell_realpath "${install_path}" 2>/dev/null || true)"
+	if [[ -n "${target_path}" && "${source_path}" == "${target_path}" ]]; then
+		info "${SCRIPT_NAME} is already installed at ${install_path}. Skipping copy."
+	else
+		cp "${source_path}" "${install_path}"
+		chmod +x "${install_path}"
+		success "cshell installed to ${install_path}"
+	fi
+	if [[ "${install_path}" == "${INSTALL_PATH_USER}" ]]; then
+		if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
+			warn "${HOME}/.local/bin is not in PATH. Add this to your shell profile:"
+			echo '  export PATH="$HOME/.local/bin:$PATH"'
+		fi
+	fi
 
-  # ── 2. Configure shell completion ─────────────────────────────────────────
-  section "AUTOCOMPLETE" "Install command completion for cshell" "cyan"
-  install_shell_completion || warn "Autocomplete setup encountered an unexpected issue."
+	# ── 2. Configure shell completion ─────────────────────────────────────────
+	section "AUTOCOMPLETE" "Install command completion for cshell" "cyan"
+	install_shell_completion || warn "Autocomplete setup encountered an unexpected issue."
 
-  # ── 3. Install gcloud CLI (Apigee hybrid development) ────────────────────
-  if command_exists gcloud; then
-    success "gcloud is already installed ($(gcloud --version 2>&1 | head -1))"
-  else
-    info "Installing Google Cloud SDK ..."
-    if command_exists apt-get && [[ $EUID -eq 0 ]]; then
-      apt-get update -qq
-      apt-get install -y ca-certificates gnupg curl
-      echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] \
+	# ── 3. Install gcloud CLI (Apigee hybrid development) ────────────────────
+	if command_exists gcloud; then
+		success "gcloud is already installed ($(gcloud --version 2>&1 | head -1))"
+	else
+		info "Installing Google Cloud SDK ..."
+		if command_exists apt-get && [[ $EUID -eq 0 ]]; then
+			apt-get update -qq
+			apt-get install -y ca-certificates gnupg curl
+			echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] \
 https://packages.cloud.google.com/apt cloud-sdk main" \
-        | tee /etc/apt/sources.list.d/google-cloud-sdk.list
-      curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
-        | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-      apt-get update -qq
-      apt-get install -y google-cloud-cli
-    elif command_exists brew; then
-      brew install --cask google-cloud-sdk
-    else
-      info "No apt/brew found. Using official tarball installer ..."
-      local tmp_dir gcloud_tar gcloud_root gcloud_bin target_bin os arch
-      tmp_dir="$(mktemp -d)"
-      os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-      arch="$(uname -m)"
-      case "${arch}" in
-        x86_64|amd64) arch="x86_64" ;;
-        aarch64|arm64) arch="arm" ;;
-        *)
-          error "Unsupported architecture for gcloud installer: ${arch}"
-          exit 1
-          ;;
-      esac
-      gcloud_tar="${tmp_dir}/google-cloud-cli.tar.gz"
-      curl -fsSL "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${os}-${arch}.tar.gz" -o "${gcloud_tar}"
-      tar -xzf "${gcloud_tar}" -C "${tmp_dir}"
-      gcloud_root="${tmp_dir}/google-cloud-sdk"
-      "${gcloud_root}/install.sh" --quiet --path-update=true --usage-reporting=false --command-completion=true
-      gcloud_bin="${gcloud_root}/bin/gcloud"
-      if [[ -x "${gcloud_bin}" ]]; then
-        if [[ $EUID -eq 0 ]]; then
-          target_bin="/usr/local/bin/gcloud"
-        else
-          mkdir -p "${HOME}/.local/bin"
-          target_bin="${HOME}/.local/bin/gcloud"
-        fi
-        cp "${gcloud_bin}" "${target_bin}"
-        chmod +x "${target_bin}"
-      else
-        error "gcloud binary not found after installer run."
-        exit 1
-      fi
-    fi
-    success "gcloud installed"
-  fi
+				| tee /etc/apt/sources.list.d/google-cloud-sdk.list
+			curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+				| gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
+			apt-get update -qq
+			apt-get install -y google-cloud-cli
+		elif command_exists brew; then
+			brew install --cask google-cloud-sdk
+		else
+			info "No apt/brew found. Using official tarball installer ..."
+			local tmp_dir gcloud_tar gcloud_root gcloud_bin target_bin os arch
+			tmp_dir="$(mktemp -d)"
+			os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+			arch="$(uname -m)"
+			case "${arch}" in
+				x86_64 | amd64) arch="x86_64" ;;
+				aarch64 | arm64) arch="arm" ;;
+				*)
+					error "Unsupported architecture for gcloud installer: ${arch}"
+					exit 1
+					;;
+			esac
+			gcloud_tar="${tmp_dir}/google-cloud-cli.tar.gz"
+			curl -fsSL "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${os}-${arch}.tar.gz" -o "${gcloud_tar}"
+			tar -xzf "${gcloud_tar}" -C "${tmp_dir}"
+			gcloud_root="${tmp_dir}/google-cloud-sdk"
+			"${gcloud_root}/install.sh" --quiet --path-update=true --usage-reporting=false --command-completion=true
+			gcloud_bin="${gcloud_root}/bin/gcloud"
+			if [[ -x "${gcloud_bin}" ]]; then
+				if [[ $EUID -eq 0 ]]; then
+					target_bin="/usr/local/bin/gcloud"
+				else
+					mkdir -p "${HOME}/.local/bin"
+					target_bin="${HOME}/.local/bin/gcloud"
+				fi
+				cp "${gcloud_bin}" "${target_bin}"
+				chmod +x "${target_bin}"
+			else
+				error "gcloud binary not found after installer run."
+				exit 1
+			fi
+		fi
+		success "gcloud installed"
+	fi
 
-  # ── 4. Interactive storage-account setup ─────────────────────────────────
-  section "AZURE STORAGE" "Backup configuration" "blue"
-  local storage_account container_name storage_account_key
+	# ── 4. Interactive storage-account setup ─────────────────────────────────
+	section "AZURE STORAGE" "Backup configuration" "blue"
+	local storage_account container_name storage_account_key
 
-  if [[ -f "${ENV_FILE}" ]]; then
-    cshell_env_load "${ENV_FILE}"
-  fi
+	if [[ -f "${ENV_FILE}" ]]; then
+		cshell_env_load "${ENV_FILE}"
+	fi
 
-  storage_account=$(ask "Azure Storage Account name" "${AZURE_STORAGE_ACCOUNT:-}")
-  container_name=$(ask "Azure Blob Container name" "${AZURE_STORAGE_CONTAINER:-backups}")
-  storage_account_key=$(ask "Azure Storage Account key (optional; enables upload fallback without RBAC role)" "${AZURE_STORAGE_ACCOUNT_KEY:-}")
+	storage_account=$(ask "Azure Storage Account name" "${AZURE_STORAGE_ACCOUNT:-}")
+	container_name=$(ask "Azure Blob Container name" "${AZURE_STORAGE_CONTAINER:-backups}")
+	storage_account_key=$(ask "Azure Storage Account key (optional; enables upload fallback without RBAC role)" "${AZURE_STORAGE_ACCOUNT_KEY:-}")
 
-  cshell_env_write_setup_storage_block "${ENV_FILE}" "${storage_account}" "${container_name}" "${storage_account_key}"
+	cshell_env_write_setup_storage_block "${ENV_FILE}" "${storage_account}" "${container_name}" "${storage_account_key}"
 
-  success "Storage config saved to ${ENV_FILE}"
-  info "Upload command that will be used during backup:"
-  bullet_list \
-    "az storage blob upload \\" \
-    "--account-name ${storage_account} \\" \
-    "--container-name ${container_name} \\" \
-    "--name archive.zip \\" \
-    "--file ${ARCHIVE_FILE}"
+	success "Storage config saved to ${ENV_FILE}"
+	info "Upload command that will be used during backup:"
+	bullet_list \
+		"az storage blob upload \\" \
+		"--account-name ${storage_account} \\" \
+		"--container-name ${container_name} \\" \
+		"--name archive.zip \\" \
+		"--file ${ARCHIVE_FILE}"
 }
 
 # ---------------------------------------------------------------------------
@@ -562,113 +565,113 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 # ---------------------------------------------------------------------------
 
 cmd_hybrid() {
-  section "HYBRID" "Apigee Hybrid v1.16 setup" "cyan"
+	section "HYBRID" "Apigee Hybrid v1.16 setup" "cyan"
 
-  # ── Documentation links ──────────────────────────────────────────────────
-  info "Relevant documentation:"
-  bullet_list \
-    "Project README: ${DOC_PROJECT_README}" \
-    "Releases: ${DOC_PROJECT_RELEASES}" \
-    "Issues: ${DOC_PROJECT_ISSUES}" \
-    "Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
-    "Before you begin: ${DOC_BEFORE_BEGIN}" \
-    "Download charts: ${DOC_DOWNLOAD_CHARTS}" \
-    "Install guide: ${DOC_INSTALL_HYBRID}"
+	# ── Documentation links ──────────────────────────────────────────────────
+	info "Relevant documentation:"
+	bullet_list \
+		"Project README: ${DOC_PROJECT_README}" \
+		"Releases: ${DOC_PROJECT_RELEASES}" \
+		"Issues: ${DOC_PROJECT_ISSUES}" \
+		"Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
+		"Before you begin: ${DOC_BEFORE_BEGIN}" \
+		"Download charts: ${DOC_DOWNLOAD_CHARTS}" \
+		"Install guide: ${DOC_INSTALL_HYBRID}"
 
-  # ── 1. Interactive environment variables ─────────────────────────────────
-  section "ENV" "Apigee Hybrid environment variables" "blue"
-  info "Values will be written to ${ENV_FILE}"
+	# ── 1. Interactive environment variables ─────────────────────────────────
+	section "ENV" "Apigee Hybrid environment variables" "blue"
+	info "Values will be written to ${ENV_FILE}"
 
-  # Load existing values if present
-  if [[ -f "${ENV_FILE}" ]]; then
-    cshell_env_load "${ENV_FILE}"
-  fi
+	# Load existing values if present
+	if [[ -f "${ENV_FILE}" ]]; then
+		cshell_env_load "${ENV_FILE}"
+	fi
 
-  local project_id org_name org_display_name org_description \
-        analytics_region runtime_type helm_charts_home \
-        cluster_name cluster_region
+	local project_id org_name org_display_name org_description \
+		analytics_region runtime_type helm_charts_home \
+		cluster_name cluster_region
 
-  project_id=$(ask        "GCP Project ID"                           "${PROJECT_ID:-}")
-  org_name=$(ask          "Apigee Organization name"                 "${ORG_NAME:-$project_id}")
-  org_display_name=$(ask  "Apigee Organization display name"         "${ORG_DISPLAY_NAME:-$org_name}")
-  org_description=$(ask   "Apigee Organization description"          "${ORGANIZATION_DESCRIPTION:-Apigee Hybrid organization}")
-  analytics_region=$(ask  "Analytics region (e.g. europe-west3)"    "${ANALYTICS_REGION:-europe-west3}")
-  runtime_type=$(ask      "Runtime type"                             "${RUNTIMETYPE:-HYBRID}")
-  cluster_name=$(ask      "Kubernetes cluster name"                  "${CLUSTER_NAME:-aks-hybrid}")
-  cluster_region=$(ask    "Kubernetes cluster region"                "${CLUSTER_REGION:-${analytics_region}}")
-  helm_charts_home=$(ask  "Local Helm charts directory"              "${APIGEE_HELM_CHARTS_HOME:-${HOME}/apigee-hybrid/helm-charts}")
+	project_id=$(ask "GCP Project ID" "${PROJECT_ID:-}")
+	org_name=$(ask "Apigee Organization name" "${ORG_NAME:-$project_id}")
+	org_display_name=$(ask "Apigee Organization display name" "${ORG_DISPLAY_NAME:-$org_name}")
+	org_description=$(ask "Apigee Organization description" "${ORGANIZATION_DESCRIPTION:-Apigee Hybrid organization}")
+	analytics_region=$(ask "Analytics region (e.g. europe-west3)" "${ANALYTICS_REGION:-europe-west3}")
+	runtime_type=$(ask "Runtime type" "${RUNTIMETYPE:-HYBRID}")
+	cluster_name=$(ask "Kubernetes cluster name" "${CLUSTER_NAME:-aks-hybrid}")
+	cluster_region=$(ask "Kubernetes cluster region" "${CLUSTER_REGION:-${analytics_region}}")
+	helm_charts_home=$(ask "Local Helm charts directory" "${APIGEE_HELM_CHARTS_HOME:-${HOME}/apigee-hybrid/helm-charts}")
 
-  # Preserve any existing Azure storage config before overwriting the file
-  local azure_storage_account="${AZURE_STORAGE_ACCOUNT:-}"
-  local azure_storage_container="${AZURE_STORAGE_CONTAINER:-}"
-  local azure_storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
+	# Preserve any existing Azure storage config before overwriting the file
+	local azure_storage_account="${AZURE_STORAGE_ACCOUNT:-}"
+	local azure_storage_container="${AZURE_STORAGE_CONTAINER:-}"
+	local azure_storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
 
-  # Persist to .env (literal assignments — do not source this file in a shell unless you trust its contents)
-  {
-    echo "# BEGIN_CSHELL_HYBRID_ENV"
-    echo "# Apigee Hybrid – environment variables"
-    echo "# Generated by cshell on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-    printf 'PROJECT_ID=%s\n' "${project_id}"
-    printf 'ORG_NAME=%s\n' "${org_name}"
-    printf 'ORG_DISPLAY_NAME=%s\n' "${org_display_name}"
-    printf 'ORGANIZATION_DESCRIPTION=%s\n' "${org_description}"
-    printf 'ANALYTICS_REGION=%s\n' "${analytics_region}"
-    printf 'RUNTIMETYPE=%s\n' "${runtime_type}"
-    printf 'CLUSTER_NAME=%s\n' "${cluster_name}"
-    printf 'CLUSTER_REGION=%s\n' "${cluster_region}"
-    printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
-    printf 'CHART_REPO=%s\n' "${CHART_REPO}"
-    printf 'CHART_VERSION=%s\n' "${CHART_VERSION}"
-    echo "# END_CSHELL_HYBRID_ENV"
-  } >"${ENV_FILE}"
+	# Persist to .env (literal assignments — do not source this file in a shell unless you trust its contents)
+	{
+		echo "# BEGIN_CSHELL_HYBRID_ENV"
+		echo "# Apigee Hybrid – environment variables"
+		echo "# Generated by cshell on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+		printf 'PROJECT_ID=%s\n' "${project_id}"
+		printf 'ORG_NAME=%s\n' "${org_name}"
+		printf 'ORG_DISPLAY_NAME=%s\n' "${org_display_name}"
+		printf 'ORGANIZATION_DESCRIPTION=%s\n' "${org_description}"
+		printf 'ANALYTICS_REGION=%s\n' "${analytics_region}"
+		printf 'RUNTIMETYPE=%s\n' "${runtime_type}"
+		printf 'CLUSTER_NAME=%s\n' "${cluster_name}"
+		printf 'CLUSTER_REGION=%s\n' "${cluster_region}"
+		printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
+		printf 'CHART_REPO=%s\n' "${CHART_REPO}"
+		printf 'CHART_VERSION=%s\n' "${CHART_VERSION}"
+		echo "# END_CSHELL_HYBRID_ENV"
+	} >"${ENV_FILE}"
 
-  # Re-append Azure storage config if it was saved previously
-  if [[ -n "${azure_storage_account}" ]]; then
-    {
-      echo ""
-      echo "# Azure Blob Storage (preserved from previous setup)"
-      printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${azure_storage_account}"
-      printf 'AZURE_STORAGE_CONTAINER=%s\n' "${azure_storage_container}"
-      if [[ -n "${azure_storage_account_key}" ]]; then
-        printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${azure_storage_account_key}"
-      fi
-    } >>"${ENV_FILE}"
-  fi
+	# Re-append Azure storage config if it was saved previously
+	if [[ -n "${azure_storage_account}" ]]; then
+		{
+			echo ""
+			echo "# Azure Blob Storage (preserved from previous setup)"
+			printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${azure_storage_account}"
+			printf 'AZURE_STORAGE_CONTAINER=%s\n' "${azure_storage_container}"
+			if [[ -n "${azure_storage_account_key}" ]]; then
+				printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${azure_storage_account_key}"
+			fi
+		} >>"${ENV_FILE}"
+	fi
 
-  cshell_env_ensure_permissions "${ENV_FILE}"
+	cshell_env_ensure_permissions "${ENV_FILE}"
 
-  success "Environment variables written to ${ENV_FILE}"
-  info "Use '${SCRIPT_NAME} config show' to inspect values (avoid sourcing ${ENV_FILE} unless you trust every line)."
-  echo ""
+	success "Environment variables written to ${ENV_FILE}"
+	info "Use '${SCRIPT_NAME} config show' to inspect values (avoid sourcing ${ENV_FILE} unless you trust every line)."
+	echo ""
 
-  # ── 2. Download Helm charts ───────────────────────────────────────────────
-  if ! command_exists helm; then
-    error "helm is not installed. Install Helm v3.14+ from https://helm.sh/docs/intro/install/"
-    exit 1
-  fi
+	# ── 2. Download Helm charts ───────────────────────────────────────────────
+	if ! command_exists helm; then
+		error "helm is not installed. Install Helm v3.14+ from https://helm.sh/docs/intro/install/"
+		exit 1
+	fi
 
-  info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
-  mkdir -p "${helm_charts_home}"
-  (
-    cd "${helm_charts_home}"
-    for chart in "${APIGEE_CHARTS[@]}"; do
-      info "Pulling ${chart} ..."
-      helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
-    done
-  )
-  success "Helm charts downloaded to ${helm_charts_home}"
+	info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
+	mkdir -p "${helm_charts_home}"
+	(
+		cd "${helm_charts_home}"
+		for chart in "${APIGEE_CHARTS[@]}"; do
+			info "Pulling ${chart} ..."
+			helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
+		done
+	)
+	success "Helm charts downloaded to ${helm_charts_home}"
 }
 
 cmd_docs() {
-  section "docs" "Project and Apigee documentation" "cyan"
-  bullet_list \
-    "Project README: ${DOC_PROJECT_README}" \
-    "Releases: ${DOC_PROJECT_RELEASES}" \
-    "Issues: ${DOC_PROJECT_ISSUES}" \
-    "Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
-    "Before you begin: ${DOC_BEFORE_BEGIN}" \
-    "Download charts: ${DOC_DOWNLOAD_CHARTS}" \
-    "Install guide: ${DOC_INSTALL_HYBRID}"
+	section "docs" "Project and Apigee documentation" "cyan"
+	bullet_list \
+		"Project README: ${DOC_PROJECT_README}" \
+		"Releases: ${DOC_PROJECT_RELEASES}" \
+		"Issues: ${DOC_PROJECT_ISSUES}" \
+		"Contributing: ${DOC_PROJECT_CONTRIBUTING}" \
+		"Before you begin: ${DOC_BEFORE_BEGIN}" \
+		"Download charts: ${DOC_DOWNLOAD_CHARTS}" \
+		"Install guide: ${DOC_INSTALL_HYBRID}"
 }
 
 # ---------------------------------------------------------------------------
@@ -676,133 +679,132 @@ cmd_docs() {
 # ---------------------------------------------------------------------------
 
 cmd_init() {
-  section "INIT" "Create Azure Storage Account resources" "cyan"
+	section "INIT" "Create Azure Storage Account resources" "cyan"
 
-  if ! command_exists az; then
-    error "Azure CLI (az) is not installed or not in PATH."
-    exit 1
-  fi
+	if ! command_exists az; then
+		error "Azure CLI (az) is not installed or not in PATH."
+		exit 1
+	fi
 
-  # Load existing env values as defaults (if available)
-  if [[ -f "${ENV_FILE}" ]]; then
-    cshell_env_load "${ENV_FILE}"
-  fi
+	# Load existing env values as defaults (if available)
+	if [[ -f "${ENV_FILE}" ]]; then
+		cshell_env_load "${ENV_FILE}"
+	fi
 
+	local subscription resource_group location storage_account container_name sku access_tier allow_cross_tenant_replication storage_account_key
 
-  local subscription resource_group location storage_account container_name sku access_tier allow_cross_tenant_replication storage_account_key
+	subscription=$(ask "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
+	resource_group=$(ask "Resource group name" "${AZURE_RESOURCE_GROUP:-rg-cshell}")
+	location=$(ask "Azure region (e.g. germanywestcentral)" "${AZURE_LOCATION:-germanywestcentral}")
+	storage_account=$(ask "Storage Account name (3-24 lowercase letters/digits)" "${AZURE_STORAGE_ACCOUNT:-}")
+	container_name=$(ask "Blob container name" "${AZURE_STORAGE_CONTAINER:-backups}")
+	sku=$(ask "Storage SKU (cheap default: Standard_LRS)" "${AZURE_STORAGE_SKU:-Standard_LRS}")
+	access_tier=$(ask "Storage access tier (Hot/Cool, cheap default: Cool)" "${AZURE_STORAGE_ACCESS_TIER:-Cool}")
+	allow_cross_tenant_replication=$(ask "Allow cross-tenant replication? (true/false)" "${AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION:-false}")
 
-  subscription=$(ask    "Azure Subscription ID or name (leave blank to use current)" "${AZURE_SUBSCRIPTION:-}")
-  resource_group=$(ask  "Resource group name"                                         "${AZURE_RESOURCE_GROUP:-rg-cshell}")
-  location=$(ask        "Azure region (e.g. germanywestcentral)"                       "${AZURE_LOCATION:-germanywestcentral}")
-  storage_account=$(ask "Storage Account name (3-24 lowercase letters/digits)"        "${AZURE_STORAGE_ACCOUNT:-}")
-  container_name=$(ask  "Blob container name"                                         "${AZURE_STORAGE_CONTAINER:-backups}")
-  sku=$(ask             "Storage SKU (cheap default: Standard_LRS)"                   "${AZURE_STORAGE_SKU:-Standard_LRS}")
-  access_tier=$(ask     "Storage access tier (Hot/Cool, cheap default: Cool)"         "${AZURE_STORAGE_ACCESS_TIER:-Cool}")
-  allow_cross_tenant_replication=$(ask "Allow cross-tenant replication? (true/false)" "${AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION:-false}")
+	# ── Set subscription ────────────────────────────────────────────────────
+	if [[ -n "${subscription}" ]]; then
+		info "Setting active subscription to '${subscription}' ..."
+		az account set --subscription "${subscription}"
+		success "Subscription set"
+	fi
 
-  # ── Set subscription ────────────────────────────────────────────────────
-  if [[ -n "${subscription}" ]]; then
-    info "Setting active subscription to '${subscription}' ..."
-    az account set --subscription "${subscription}"
-    success "Subscription set"
-  fi
+	# ── Create resource group if it does not exist ───────────────────────────
+	if az group show --name "${resource_group}" &>/dev/null; then
+		success "Resource group '${resource_group}' already exists"
+	else
+		info "Creating resource group '${resource_group}' in '${location}' ..."
+		az group create \
+			--name "${resource_group}" \
+			--location "${location}" \
+			--output none
+		success "Resource group '${resource_group}' created"
+	fi
 
-  # ── Create resource group if it does not exist ───────────────────────────
-  if az group show --name "${resource_group}" &>/dev/null; then
-    success "Resource group '${resource_group}' already exists"
-  else
-    info "Creating resource group '${resource_group}' in '${location}' ..."
-    az group create \
-      --name "${resource_group}" \
-      --location "${location}" \
-      --output none
-    success "Resource group '${resource_group}' created"
-  fi
+	# ── Create Storage Account if it does not exist ──────────────────────────
+	if az storage account show \
+		--name "${storage_account}" \
+		--resource-group "${resource_group}" &>/dev/null; then
+		success "Storage Account '${storage_account}' already exists"
+	else
+		info "Creating Storage Account '${storage_account}' (${sku}, accessTier=${access_tier}, allowCrossTenantReplication=${allow_cross_tenant_replication}) ..."
+		az storage account create \
+			--name "${storage_account}" \
+			--resource-group "${resource_group}" \
+			--location "${location}" \
+			--sku "${sku}" \
+			--access-tier "${access_tier}" \
+			--kind StorageV2 \
+			--allow-cross-tenant-replication "${allow_cross_tenant_replication}" \
+			--output none
+		success "Storage Account '${storage_account}' created"
+	fi
 
-  # ── Create Storage Account if it does not exist ──────────────────────────
-  if az storage account show \
-       --name "${storage_account}" \
-       --resource-group "${resource_group}" &>/dev/null; then
-    success "Storage Account '${storage_account}' already exists"
-  else
-    info "Creating Storage Account '${storage_account}' (${sku}, accessTier=${access_tier}, allowCrossTenantReplication=${allow_cross_tenant_replication}) ..."
-    az storage account create \
-      --name "${storage_account}" \
-      --resource-group "${resource_group}" \
-      --location "${location}" \
-      --sku "${sku}" \
-      --access-tier "${access_tier}" \
-      --kind StorageV2 \
-      --allow-cross-tenant-replication "${allow_cross_tenant_replication}" \
-      --output none
-    success "Storage Account '${storage_account}' created"
-  fi
+	# ── Create Blob container if it does not exist ───────────────────────────
+	if az storage container exists \
+		--name "${container_name}" \
+		--account-name "${storage_account}" \
+		--auth-mode login \
+		--query "exists" \
+		--output tsv 2>/dev/null | grep -q "^true$"; then
+		success "Blob container '${container_name}' already exists"
+	else
+		info "Creating blob container '${container_name}' ..."
+		az storage container create \
+			--name "${container_name}" \
+			--account-name "${storage_account}" \
+			--auth-mode login \
+			--output none
+		success "Blob container '${container_name}' created"
+	fi
 
-  # ── Create Blob container if it does not exist ───────────────────────────
-  if az storage container exists \
-       --name "${container_name}" \
-       --account-name "${storage_account}" \
-       --auth-mode login \
-       --query "exists" \
-       --output tsv 2>/dev/null | grep -q "^true$"; then
-    success "Blob container '${container_name}' already exists"
-  else
-    info "Creating blob container '${container_name}' ..."
-    az storage container create \
-      --name "${container_name}" \
-      --account-name "${storage_account}" \
-      --auth-mode login \
-      --output none
-    success "Blob container '${container_name}' created"
-  fi
+	# ── Try to resolve account key for auth fallback ───────────────────────────
+	storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
+	if [[ -z "${storage_account_key}" ]]; then
+		info "Trying to resolve storage account key for fallback auth ..."
+		storage_account_key="$(
+			az storage account keys list \
+				--resource-group "${resource_group}" \
+				--account-name "${storage_account}" \
+				--query "[0].value" \
+				--output tsv 2>/dev/null || true
+		)"
+		if [[ -n "${storage_account_key}" ]]; then
+			success "Storage account key resolved and will be saved to ${ENV_FILE}"
+		else
+			warn "Could not resolve storage account key automatically."
+			warn "You can set AZURE_STORAGE_ACCOUNT_KEY manually in ${ENV_FILE}."
+		fi
+	fi
 
-  # ── Try to resolve account key for auth fallback ───────────────────────────
-  storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
-  if [[ -z "${storage_account_key}" ]]; then
-    info "Trying to resolve storage account key for fallback auth ..."
-    storage_account_key="$(
-      az storage account keys list \
-        --resource-group "${resource_group}" \
-        --account-name "${storage_account}" \
-        --query "[0].value" \
-        --output tsv 2>/dev/null || true
-    )"
-    if [[ -n "${storage_account_key}" ]]; then
-      success "Storage account key resolved and will be saved to ${ENV_FILE}"
-    else
-      warn "Could not resolve storage account key automatically."
-      warn "You can set AZURE_STORAGE_ACCOUNT_KEY manually in ${ENV_FILE}."
-    fi
-  fi
+	# ── Persist config to env file (remove any previous cshell init block) ───
+	if [[ -f "${ENV_FILE}" ]]; then
+		cshell_env_strip_managed_block "${ENV_FILE}" "# BEGIN_CSHELL_INIT" "# END_CSHELL_INIT"
+		portable_sed_i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=/d' "${ENV_FILE}"
+	fi
 
-  # ── Persist config to env file (remove any previous cshell init block) ───
-  if [[ -f "${ENV_FILE}" ]]; then
-    cshell_env_strip_managed_block "${ENV_FILE}" "# BEGIN_CSHELL_INIT" "# END_CSHELL_INIT"
-    portable_sed_i '/^# Azure Storage – written by cshell init/,/^AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=/d' "${ENV_FILE}"
-  fi
+	{
+		echo ""
+		echo "# BEGIN_CSHELL_INIT"
+		echo "# Azure Storage – written by cshell init on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+		printf 'AZURE_SUBSCRIPTION=%s\n' "${subscription}"
+		printf 'AZURE_RESOURCE_GROUP=%s\n' "${resource_group}"
+		printf 'AZURE_LOCATION=%s\n' "${location}"
+		printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${storage_account}"
+		printf 'AZURE_STORAGE_CONTAINER=%s\n' "${container_name}"
+		if [[ -n "${storage_account_key}" ]]; then
+			printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${storage_account_key}"
+		fi
+		printf 'AZURE_STORAGE_SKU=%s\n' "${sku}"
+		printf 'AZURE_STORAGE_ACCESS_TIER=%s\n' "${access_tier}"
+		printf 'AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=%s\n' "${allow_cross_tenant_replication}"
+		echo "# END_CSHELL_INIT"
+	} >>"${ENV_FILE}"
 
-  {
-    echo ""
-    echo "# BEGIN_CSHELL_INIT"
-    echo "# Azure Storage – written by cshell init on $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-    printf 'AZURE_SUBSCRIPTION=%s\n' "${subscription}"
-    printf 'AZURE_RESOURCE_GROUP=%s\n' "${resource_group}"
-    printf 'AZURE_LOCATION=%s\n' "${location}"
-    printf 'AZURE_STORAGE_ACCOUNT=%s\n' "${storage_account}"
-    printf 'AZURE_STORAGE_CONTAINER=%s\n' "${container_name}"
-    if [[ -n "${storage_account_key}" ]]; then
-      printf 'AZURE_STORAGE_ACCOUNT_KEY=%s\n' "${storage_account_key}"
-    fi
-    printf 'AZURE_STORAGE_SKU=%s\n' "${sku}"
-    printf 'AZURE_STORAGE_ACCESS_TIER=%s\n' "${access_tier}"
-    printf 'AZURE_STORAGE_ALLOW_CROSS_TENANT_REPLICATION=%s\n' "${allow_cross_tenant_replication}"
-    echo "# END_CSHELL_INIT"
-  } >>"${ENV_FILE}"
+	cshell_env_ensure_permissions "${ENV_FILE}"
 
-  cshell_env_ensure_permissions "${ENV_FILE}"
-
-  success "Configuration saved to ${ENV_FILE}"
-  info "Run 'cshell backup' to create and upload your first backup."
+	success "Configuration saved to ${ENV_FILE}"
+	info "Run 'cshell backup' to create and upload your first backup."
 }
 
 # ---------------------------------------------------------------------------
@@ -810,72 +812,72 @@ cmd_init() {
 # ---------------------------------------------------------------------------
 
 cmd_backup() {
-  local dry_run=0 verbose=0
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -n | --dry-run)
-        dry_run=1
-        shift
-        ;;
-      -v | --verbose)
-        verbose=1
-        shift
-        ;;
-      *)
-        warn "Unknown option for backup: $1"
-        exit 1
-        ;;
-    esac
-  done
+	local dry_run=0 verbose=0
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+			-n | --dry-run)
+				dry_run=1
+				shift
+				;;
+			-v | --verbose)
+				verbose=1
+				shift
+				;;
+			*)
+				warn "Unknown option for backup: $1"
+				exit 1
+				;;
+		esac
+	done
 
-  section "BACKUP" "Backup home directory" "cyan"
+	section "BACKUP" "Backup home directory" "cyan"
 
-  if [[ "${dry_run}" -eq 1 ]]; then
-    info "[dry-run] Would create ${ARCHIVE_FILE} from ${HOME} (excluding .cache, gcloud logs, archive.zip)."
-    if [[ -f "${ENV_FILE}" ]]; then
-      cshell_env_load "${ENV_FILE}"
-    fi
-    if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
-      info "[dry-run] Would upload ${ARCHIVE_FILE} to blob container '${AZURE_STORAGE_CONTAINER}' (account ${AZURE_STORAGE_ACCOUNT})."
-    else
-      info "[dry-run] No Azure storage config; would skip upload."
-    fi
-    return 0
-  fi
+	if [[ "${dry_run}" -eq 1 ]]; then
+		info "[dry-run] Would create ${ARCHIVE_FILE} from ${HOME} (excluding .cache, gcloud logs, archive.zip)."
+		if [[ -f "${ENV_FILE}" ]]; then
+			cshell_env_load "${ENV_FILE}"
+		fi
+		if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
+			info "[dry-run] Would upload ${ARCHIVE_FILE} to blob container '${AZURE_STORAGE_CONTAINER}' (account ${AZURE_STORAGE_ACCOUNT})."
+		else
+			info "[dry-run] No Azure storage config; would skip upload."
+		fi
+		return 0
+	fi
 
-  info "Creating archive: ${ARCHIVE_FILE}"
-  [[ "${verbose}" -eq 1 ]] && info "zip excludes: .cache/*, .config/google-cloud-sdk/logs/*, archive.zip"
-  (cd "${HOME}" && zip -r "${ARCHIVE_FILE}" . \
-    --exclude ".cache/*" \
-    --exclude ".config/google-cloud-sdk/logs/*" \
-    --exclude "archive.zip")
+	info "Creating archive: ${ARCHIVE_FILE}"
+	[[ "${verbose}" -eq 1 ]] && info "zip excludes: .cache/*, .config/google-cloud-sdk/logs/*, archive.zip"
+	(cd "${HOME}" && zip -r "${ARCHIVE_FILE}" . \
+		--exclude ".cache/*" \
+		--exclude ".config/google-cloud-sdk/logs/*" \
+		--exclude "archive.zip")
 
-  success "Backup created: ${ARCHIVE_FILE}"
+	success "Backup created: ${ARCHIVE_FILE}"
 
-  # Optional: upload to Azure Blob Storage
-  if [[ -f "${ENV_FILE}" ]]; then
-    cshell_env_load "${ENV_FILE}"
-  fi
+	# Optional: upload to Azure Blob Storage
+	if [[ -f "${ENV_FILE}" ]]; then
+		cshell_env_load "${ENV_FILE}"
+	fi
 
-  if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
-    info "Uploading archive to Azure Blob Storage ..."
-    if upload_blob_with_fallback \
-      "${AZURE_STORAGE_ACCOUNT}" \
-      "${AZURE_STORAGE_CONTAINER}" \
-      "archive.zip" \
-      "${ARCHIVE_FILE}"; then
-      success "Archive uploaded to Azure Blob Storage"
-      info "  Account  : ${AZURE_STORAGE_ACCOUNT}"
-      info "  Container: ${AZURE_STORAGE_CONTAINER}"
-    else
-      warn "Backup archive exists locally but upload failed."
-      warn "Grant one role like 'Storage Blob Data Contributor' on the storage account,"
-      warn "or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE} for key-based fallback."
-    fi
-  else
-    warn "No Azure storage config found. Skipping upload."
-    warn "Run 'cshell setup' to configure Azure Blob Storage."
-  fi
+	if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
+		info "Uploading archive to Azure Blob Storage ..."
+		if upload_blob_with_fallback \
+			"${AZURE_STORAGE_ACCOUNT}" \
+			"${AZURE_STORAGE_CONTAINER}" \
+			"archive.zip" \
+			"${ARCHIVE_FILE}"; then
+			success "Archive uploaded to Azure Blob Storage"
+			info "  Account  : ${AZURE_STORAGE_ACCOUNT}"
+			info "  Container: ${AZURE_STORAGE_CONTAINER}"
+		else
+			warn "Backup archive exists locally but upload failed."
+			warn "Grant one role like 'Storage Blob Data Contributor' on the storage account,"
+			warn "or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE} for key-based fallback."
+		fi
+	else
+		warn "No Azure storage config found. Skipping upload."
+		warn "Run 'cshell setup' to configure Azure Blob Storage."
+	fi
 }
 
 # ---------------------------------------------------------------------------
@@ -883,118 +885,118 @@ cmd_backup() {
 # ---------------------------------------------------------------------------
 
 cmd_restore() {
-  local dry_run=0 verbose=0
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      -n | --dry-run)
-        dry_run=1
-        shift
-        ;;
-      -v | --verbose)
-        verbose=1
-        shift
-        ;;
-      *)
-        warn "Unknown option for restore: $1"
-        exit 1
-        ;;
-    esac
-  done
+	local dry_run=0 verbose=0
+	while [[ $# -gt 0 ]]; do
+		case "$1" in
+			-n | --dry-run)
+				dry_run=1
+				shift
+				;;
+			-v | --verbose)
+				verbose=1
+				shift
+				;;
+			*)
+				warn "Unknown option for restore: $1"
+				exit 1
+				;;
+		esac
+	done
 
-  section "RESTORE" "Restore home directory" "cyan"
+	section "RESTORE" "Restore home directory" "cyan"
 
-  # Optionally download archive from Azure Blob Storage first
-  if [[ -f "${ENV_FILE}" ]]; then
-    cshell_env_load "${ENV_FILE}"
-  fi
+	# Optionally download archive from Azure Blob Storage first
+	if [[ -f "${ENV_FILE}" ]]; then
+		cshell_env_load "${ENV_FILE}"
+	fi
 
-  if [[ ! -f "${ARCHIVE_FILE}" ]]; then
-    if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
-      if [[ "${dry_run}" -eq 1 ]]; then
-        info "[dry-run] Would download archive.zip from Azure Blob Storage to ${ARCHIVE_FILE}."
-        return 0
-      fi
-      info "Local archive not found. Downloading from Azure Blob Storage ..."
-      if download_blob_with_fallback \
-        "${AZURE_STORAGE_ACCOUNT}" \
-        "${AZURE_STORAGE_CONTAINER}" \
-        "archive.zip" \
-        "${ARCHIVE_FILE}"; then
-        success "Archive downloaded from Azure Blob Storage"
-      else
-        error "Could not download archive from Azure Blob Storage."
-        error "Grant blob data permissions or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE}."
-        exit 1
-      fi
-    else
-      error "Archive not found at ${ARCHIVE_FILE}, and no Azure storage config is available."
-      warn "Place archive.zip in your home directory or run 'cshell setup' to configure Azure."
-      exit 1
-    fi
-  fi
+	if [[ ! -f "${ARCHIVE_FILE}" ]]; then
+		if [[ -n "${AZURE_STORAGE_ACCOUNT:-}" && -n "${AZURE_STORAGE_CONTAINER:-}" ]]; then
+			if [[ "${dry_run}" -eq 1 ]]; then
+				info "[dry-run] Would download archive.zip from Azure Blob Storage to ${ARCHIVE_FILE}."
+				return 0
+			fi
+			info "Local archive not found. Downloading from Azure Blob Storage ..."
+			if download_blob_with_fallback \
+				"${AZURE_STORAGE_ACCOUNT}" \
+				"${AZURE_STORAGE_CONTAINER}" \
+				"archive.zip" \
+				"${ARCHIVE_FILE}"; then
+				success "Archive downloaded from Azure Blob Storage"
+			else
+				error "Could not download archive from Azure Blob Storage."
+				error "Grant blob data permissions or set AZURE_STORAGE_ACCOUNT_KEY in ${ENV_FILE}."
+				exit 1
+			fi
+		else
+			error "Archive not found at ${ARCHIVE_FILE}, and no Azure storage config is available."
+			warn "Place archive.zip in your home directory or run 'cshell setup' to configure Azure."
+			exit 1
+		fi
+	fi
 
-  if [[ "${dry_run}" -eq 1 ]]; then
-    info "[dry-run] Would unzip ${ARCHIVE_FILE} into ${HOME} (overwriting files)."
-    [[ "${verbose}" -eq 1 ]] && info "[dry-run] Target exists: $([[ -f "${ARCHIVE_FILE}" ]] && echo yes || echo no)"
-    return 0
-  fi
+	if [[ "${dry_run}" -eq 1 ]]; then
+		info "[dry-run] Would unzip ${ARCHIVE_FILE} into ${HOME} (overwriting files)."
+		[[ "${verbose}" -eq 1 ]] && info "[dry-run] Target exists: $([[ -f "${ARCHIVE_FILE}" ]] && echo yes || echo no)"
+		return 0
+	fi
 
-  info "Restoring from ${ARCHIVE_FILE} into ${HOME} ..."
-  [[ "${verbose}" -eq 1 ]] && info "Running: unzip -o ${ARCHIVE_FILE}"
-  (cd "${HOME}" && unzip -o "${ARCHIVE_FILE}")
-  success "Restore completed from ${ARCHIVE_FILE}"
+	info "Restoring from ${ARCHIVE_FILE} into ${HOME} ..."
+	[[ "${verbose}" -eq 1 ]] && info "Running: unzip -o ${ARCHIVE_FILE}"
+	(cd "${HOME}" && unzip -o "${ARCHIVE_FILE}")
+	success "Restore completed from ${ARCHIVE_FILE}"
 }
 
 cmd_update() {
-  section "UPDATE" "Update ${SCRIPT_NAME} to latest release" "cyan"
+	section "UPDATE" "Update ${SCRIPT_NAME} to latest release" "cyan"
 
-  if ! command_exists curl; then
-    error "curl is required for update but not installed."
-    exit 1
-  fi
+	if ! command_exists curl; then
+		error "curl is required for update but not installed."
+		exit 1
+	fi
 
-  local latest_tag release_ref target_path target_dir raw_url tmp_file installed_version verified=0
+	local latest_tag release_ref target_path target_dir raw_url tmp_file installed_version verified=0
 
-  latest_tag="$(resolve_latest_release_tag || true)"
-  release_ref="${latest_tag:-${DEFAULT_REF}}"
-  target_path="$(resolve_update_target_path)"
-  target_dir="$(dirname "${target_path}")"
+	latest_tag="$(resolve_latest_release_tag || true)"
+	release_ref="${latest_tag:-${DEFAULT_REF}}"
+	target_path="$(resolve_update_target_path)"
+	target_dir="$(dirname "${target_path}")"
 
-  mkdir -p "${target_dir}"
+	mkdir -p "${target_dir}"
 
-  if [[ -n "${latest_tag}" ]]; then
-    info "Updating ${SCRIPT_NAME} to ${latest_tag} (verifying release tarball when available) ..."
-    if download_and_install_verified_release "${latest_tag}" "${target_path}"; then
-      verified=1
-    else
-      warn "Verified release install unavailable (missing python3/sha256sum, assets, or checksum mismatch). Falling back to raw download."
-    fi
-  else
-    warn "Could not resolve latest release tag. Falling back to ${DEFAULT_REF}."
-    info "Updating ${SCRIPT_NAME} from ${DEFAULT_REF} branch ..."
-  fi
+	if [[ -n "${latest_tag}" ]]; then
+		info "Updating ${SCRIPT_NAME} to ${latest_tag} (verifying release tarball when available) ..."
+		if download_and_install_verified_release "${latest_tag}" "${target_path}"; then
+			verified=1
+		else
+			warn "Verified release install unavailable (missing python3/sha256sum, assets, or checksum mismatch). Falling back to raw download."
+		fi
+	else
+		warn "Could not resolve latest release tag. Falling back to ${DEFAULT_REF}."
+		info "Updating ${SCRIPT_NAME} from ${DEFAULT_REF} branch ..."
+	fi
 
-  if [[ "${verified}" -eq 0 ]]; then
-    raw_url="https://raw.githubusercontent.com/${REPO_SLUG}/${release_ref}/${SCRIPT_NAME}"
-    tmp_file="$(mktemp "${target_dir}/${SCRIPT_NAME}.XXXXXX")"
-    info "Download source: ${raw_url}"
-    if ! curl_github "${raw_url}" -o "${tmp_file}"; then
-      rm -f "${tmp_file}"
-      error "Download failed. ${SCRIPT_NAME} was not changed."
-      exit 1
-    fi
-    chmod +x "${tmp_file}"
-    mv "${tmp_file}" "${target_path}"
-  fi
+	if [[ "${verified}" -eq 0 ]]; then
+		raw_url="https://raw.githubusercontent.com/${REPO_SLUG}/${release_ref}/${SCRIPT_NAME}"
+		tmp_file="$(mktemp "${target_dir}/${SCRIPT_NAME}.XXXXXX")"
+		info "Download source: ${raw_url}"
+		if ! curl_github "${raw_url}" -o "${tmp_file}"; then
+			rm -f "${tmp_file}"
+			error "Download failed. ${SCRIPT_NAME} was not changed."
+			exit 1
+		fi
+		chmod +x "${tmp_file}"
+		mv "${tmp_file}" "${target_path}"
+	fi
 
-  success "${SCRIPT_NAME} updated at ${target_path}"
+	success "${SCRIPT_NAME} updated at ${target_path}"
 
-  installed_version="$("${target_path}" --version 2>/dev/null || true)"
-  if [[ -n "${installed_version}" ]]; then
-    info "Installed version: ${installed_version}"
-  else
-    warn "Installed version could not be detected with '${target_path} --version'."
-  fi
+	installed_version="$("${target_path}" --version 2>/dev/null || true)"
+	if [[ -n "${installed_version}" ]]; then
+		info "Installed version: ${installed_version}"
+	else
+		warn "Installed version could not be detected with '${target_path} --version'."
+	fi
 }
 
 # ---------------------------------------------------------------------------
@@ -1002,7 +1004,7 @@ cmd_update() {
 # ---------------------------------------------------------------------------
 
 usage() {
-  cat <<EOF
+	cat <<EOF
 Usage: ${SCRIPT_NAME} [--no-update-check] <command> [args]
 
 Global options:
@@ -1035,70 +1037,70 @@ EOF
 CSHELL_NO_UPDATE_CHECK="${CSHELL_NO_UPDATE_CHECK:-0}"
 _main_rest=()
 while (($#)); do
-  case "$1" in
-    --no-update-check)
-      CSHELL_NO_UPDATE_CHECK=1
-      shift
-      ;;
-    *)
-      _main_rest+=("$1")
-      shift
-      ;;
-  esac
+	case "$1" in
+		--no-update-check)
+			CSHELL_NO_UPDATE_CHECK=1
+			shift
+			;;
+		*)
+			_main_rest+=("$1")
+			shift
+			;;
+	esac
 done
 set -- "${_main_rest[@]}"
 unset _main_rest
 
 main_cmd="${1:-}"
 if should_run_update_notice "${main_cmd}"; then
-  check_for_update_notice
+	check_for_update_notice
 fi
 
 case "${main_cmd}" in
-  --version | -v)
-    echo "${SCRIPT_NAME} ${SCRIPT_VERSION}"
-    ;;
-  init)
-    shift
-    cmd_init "$@"
-    ;;
-  setup)
-    shift
-    cmd_setup "$@"
-    ;;
-  hybrid)
-    shift
-    cmd_hybrid "$@"
-    ;;
-  backup)
-    shift
-    cmd_backup "$@"
-    ;;
-  restore)
-    shift
-    cmd_restore "$@"
-    ;;
-  update)
-    shift
-    cmd_update "$@"
-    ;;
-  config)
-    shift
-    cmd_config "$@"
-    ;;
-  docs)
-    shift
-    cmd_docs "$@"
-    ;;
-  help | -h | --help)
-    usage
-    ;;
-  "")
-    usage
-    exit 1
-    ;;
-  *)
-    usage
-    exit 1
-    ;;
+	--version | -v)
+		echo "${SCRIPT_NAME} ${SCRIPT_VERSION}"
+		;;
+	init)
+		shift
+		cmd_init "$@"
+		;;
+	setup)
+		shift
+		cmd_setup "$@"
+		;;
+	hybrid)
+		shift
+		cmd_hybrid "$@"
+		;;
+	backup)
+		shift
+		cmd_backup "$@"
+		;;
+	restore)
+		shift
+		cmd_restore "$@"
+		;;
+	update)
+		shift
+		cmd_update "$@"
+		;;
+	config)
+		shift
+		cmd_config "$@"
+		;;
+	docs)
+		shift
+		cmd_docs "$@"
+		;;
+	help | -h | --help)
+		usage
+		;;
+	"")
+		usage
+		exit 1
+		;;
+	*)
+		usage
+		exit 1
+		;;
 esac
