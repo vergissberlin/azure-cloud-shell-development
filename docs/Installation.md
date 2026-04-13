@@ -25,7 +25,7 @@ bash cshell setup
 - `cshell` binary (user-space by default)
 - Bash completion for `cshell`
 - Google Cloud SDK (`gcloud`) if missing
-- Azure Blob backup configuration prompts
+- Azure Blob backup configuration prompts (if you leave the storage account key empty and `az` is logged in, `cshell` resolves `AZURE_STORAGE_ACCOUNT_KEY` via Azure Resource Manager — `curl` to `listKeys`, with `az storage account keys list` as fallback)
 
 ## Validate Installation
 

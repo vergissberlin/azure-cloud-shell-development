@@ -91,6 +91,15 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "storage account key resolver calls ARM listKeys with curl" {
+	run grep -qF 'cshell_arm_fetch_storage_account_key' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+	run grep -qF 'listKeys?api-version=2023-01-01' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+	run grep -q 'curl -fsSL' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+}
+
 @test "hybrid --help prints flag summary and exits 0" {
 	run_cshell hybrid --help
 	[ "$status" -eq 0 ]

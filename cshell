@@ -584,6 +584,50 @@ download_blob_with_fallback() {
 	return 1
 }
 
+# Resolve the first storage account key via Azure Resource Manager (curl + ARM token from az).
+# Prints the key on stdout, or nothing on failure. Args: storage_account [resource_group]
+# resource_group may be empty; then az discovers the RG for that account name in the current subscription.
+cshell_arm_fetch_storage_account_key() {
+	local storage_account="$1"
+	local rg="${2-}"
+	local sub token url json key
+
+	[[ -n "${storage_account}" ]] || return 1
+	command_exists az || return 1
+	command_exists curl || return 1
+	command_exists python3 || return 1
+
+	sub="$(az account show --query id -o tsv 2>/dev/null)" || return 1
+	[[ -n "${sub}" ]] || return 1
+
+	if [[ -z "${rg}" ]]; then
+		rg="$(az storage account list --query "[?name=='${storage_account}'].resourceGroup | [0]" -o tsv 2>/dev/null)" || return 1
+	fi
+	[[ -n "${rg}" ]] || return 1
+
+	token="$(az account get-access-token --resource https://management.azure.com/ --query accessToken -o tsv 2>/dev/null)" || return 1
+	[[ -n "${token}" ]] || return 1
+
+	url="https://management.azure.com/subscriptions/${sub}/resourceGroups/${rg}/providers/Microsoft.Storage/storageAccounts/${storage_account}/listKeys?api-version=2023-01-01"
+
+	if json="$(curl -fsSL --max-time 60 --connect-timeout 10 -X POST \
+		-H "Authorization: Bearer ${token}" \
+		-H "Content-Type: application/json" \
+		-d '{}' \
+		"${url}" 2>/dev/null)"; then
+		key="$(printf '%s\n' "${json}" | python3 -c 'import json,sys; print(json.load(sys.stdin)["keys"][0]["value"])' 2>/dev/null)" || key=""
+		[[ -n "${key}" ]] && printf '%s\n' "${key}" && return 0
+	fi
+
+	key="$(az storage account keys list \
+		--resource-group "${rg}" \
+		--account-name "${storage_account}" \
+		--query "[0].value" \
+		--output tsv 2>/dev/null)" || key=""
+	[[ -n "${key}" ]] && printf '%s\n' "${key}" && return 0
+	return 1
+}
+
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
@@ -709,7 +753,17 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 
 	storage_account=$(ask "Azure Storage Account name" "${AZURE_STORAGE_ACCOUNT:-}")
 	container_name=$(ask "Azure Blob Container name" "${AZURE_STORAGE_CONTAINER:-backups}")
-	storage_account_key=$(ask "Azure Storage Account key (optional; enables upload fallback without RBAC role)" "${AZURE_STORAGE_ACCOUNT_KEY:-}")
+	storage_account_key=$(ask "Azure Storage Account key (optional; empty = fetch via ARM/curl when az is logged in)" "${AZURE_STORAGE_ACCOUNT_KEY:-}")
+
+	if [[ -z "${storage_account_key}" ]]; then
+		info "Resolving storage account key (ARM listKeys via curl, then az CLI fallback) ..."
+		if storage_account_key="$(cshell_arm_fetch_storage_account_key "${storage_account}" "${AZURE_RESOURCE_GROUP:-}")"; then
+			success "Storage account key resolved; will be saved to ${ENV_FILE}"
+		else
+			warn "Could not resolve storage account key automatically (login, permissions, or resource group missing)."
+			warn "Set AZURE_RESOURCE_GROUP in ${ENV_FILE} or paste AZURE_STORAGE_ACCOUNT_KEY when prompted next time."
+		fi
+	fi
 
 	cshell_env_write_setup_storage_block "${ENV_FILE}" "${storage_account}" "${container_name}" "${storage_account_key}" "${helm_charts_home_setup}"
 
@@ -1819,15 +1873,8 @@ cmd_init() {
 	# ── Try to resolve account key for auth fallback ───────────────────────────
 	storage_account_key="${AZURE_STORAGE_ACCOUNT_KEY:-}"
 	if [[ -z "${storage_account_key}" ]]; then
-		info "Trying to resolve storage account key for fallback auth ..."
-		storage_account_key="$(
-			az storage account keys list \
-				--resource-group "${resource_group}" \
-				--account-name "${storage_account}" \
-				--query "[0].value" \
-				--output tsv 2>/dev/null || true
-		)"
-		if [[ -n "${storage_account_key}" ]]; then
+		info "Trying to resolve storage account key for fallback auth (ARM listKeys via curl, then az CLI fallback) ..."
+		if storage_account_key="$(cshell_arm_fetch_storage_account_key "${storage_account}" "${resource_group}")"; then
 			success "Storage account key resolved and will be saved to ${ENV_FILE}"
 		else
 			warn "Could not resolve storage account key automatically."
