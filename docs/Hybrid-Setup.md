@@ -8,6 +8,10 @@
 cshell hybrid
 ```
 
+`cshell hybrid --check` runs read-only validation and prints **session checks** (GCP
+`gcloud` auth and AKS / `kubectl` reachability, plus optional `az aks show` when
+`AKS_RESOURCE_GROUP` is set) before the documented install checklist.
+
 ## What It Does
 
 - prompts for required Apigee environment values (including namespace, environment

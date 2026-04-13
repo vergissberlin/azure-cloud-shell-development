@@ -207,6 +207,9 @@ EOF
 	run_cshell hybrid --check --json
 	[ "$status" -eq 0 ]
 	[[ "$output" == *'"schema":"cshell.hybrid_check.v1"'* ]]
+	[[ "$output" == *'"prechecks"'* ]]
+	[[ "$output" == *'"id":"gcp_auth"'* ]]
+	[[ "$output" == *'"id":"aks_cluster"'* ]]
 	[[ "$output" == *'"checklist_fail_count"'* ]]
 	[[ "$output" == *'"steps"'* ]]
 	[[ "$output" == *'"id":1'* ]]

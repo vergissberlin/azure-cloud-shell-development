@@ -81,13 +81,19 @@ list (same as `cshell docs`).
   than `APIGEE_SETUP_NONINTERACTIVE`, which only warns when `DOMAIN` is empty).
   `CONTROL_PLANE_LOCATION` is optional. `CHART_REPO` / `CHART_VERSION` need not
   appear in the file when built-in defaults apply. After loading the env file it
-  prints a **numbered checklist** (items 1–13) in the same order as the Google
-  Apigee Hybrid v1.16 install topics (plus the community guide link), each item
-  with a separate **`Doc:`** line for the documentation URL (and optional **`↳`** notes), indented to
-  match the **first character of the step title**. **✓** /
-  **✗** / **○** use the following heuristics (status on the first line without `[` `]`):
+  prints **session checks**, then the Hybrid v1.16 **install checklist** (same order as
+  Google’s topics, plus the community guide link). Session checks (no **`Doc:`** line):
+  **GCP authentication** — ✓ when `gcloud auth print-access-token` succeeds, ✗ when
+  `gcloud` is missing or not logged in. **Create cluster** (checklist item with doc link)
+  reuses **AKS / Kubernetes** validation: ✓ when `kubectl cluster-info` succeeds; if
+  **`AKS_RESOURCE_GROUP`** and **`CLUSTER_NAME`** are set and **`az`** is on `PATH`, **`az aks show`**
+  must also succeed or the row is ✗ (Azure login / names). ○ when `kubectl` is not
+  available. JSON output adds a **`prechecks`** array (`id` **`gcp_auth`** and **`aks_cluster`**) in
+  addition to **`steps`**. Checklist rows otherwise have a **`Doc:`** line (`** notes),
+  indented to match the **first character of the step title**. ✓ / ✗ / ○ use the following
+  heuristics (status on the first line without `[` `]`):
   1. Required Hybrid variables (before you begin).
-  2. Cluster reachability (`kubectl cluster-info`) when `kubectl` is on `PATH`.
+  2. Same cluster / AKS checks as in the session block above (doc: create cluster).
   3. Unpacked chart directories under `APIGEE_HELM_CHARTS_HOME`.
   4. Namespace exists when `kubectl` uses a working context.
   5. **Service accounts:** non-prod key file `…/service-accounts/${PROJECT_ID}-apigee-non-prod.json`
@@ -112,15 +118,16 @@ list (same as `cshell docs`).
   13. **Community guide:** HTTP 2xx on the linked GitHub doc; **○** if unreachable
       (offline), not **✗**.
 
-  **`hybrid --check --strict`:** same checks; **exit status 1** if any row shows **✗**.
-  Rows marked **○** (not verifiable in this environment) do **not** fail `--strict`.
-  Without `--strict`, **exit status** still reflects **only** required-variable
-  validation (and env file presence), not the checklist. No file writes and no chart
-  downloads.
+  **`hybrid --check --strict`:** same checks; **exit status 1** if any row shows **✗**
+  (including failed **GCP authentication** in the session block). Rows marked **○** (not
+  verifiable in this environment) do **not** fail `--strict`. Without `--strict`, **exit
+  status** still reflects **only** required-variable validation (and env file presence), not
+  the checklist. No file writes and no chart downloads.
 
   **`hybrid --check --json`:** prints one JSON object on **stdout** (schema
-  `cshell.hybrid_check.v1`) with `strict`, `checklist_fail_count`, and a `steps`
-  array (`id`, `title`, `url`, `symbol`, `status` as `pass` / `fail` / `skip`, `note`).
+  `cshell.hybrid_check.v1`) with `strict`, `checklist_fail_count`, **`prechecks`** (same shape
+  as steps, string `id`), and a `steps` array (`id`, `title`, `url`, `symbol`, `status` as
+  `pass` / `fail` / `skip`, `note`).
   No ANSI styling or banner lines on stdout (errors still go to **stderr**). Can be
   combined with **`--strict`** (either order after `--check`). **Exit codes** match the non-JSON
   `--check` behavior.
