@@ -876,12 +876,18 @@ cmd_hybrid_env_validate() {
 
 # One checklist row: colored status + title, dimmed Doc URL line, optional note, trailing blank line.
 # Args: step_num title url status_symbol [note]
+# step_num empty = unnumbered row (Google "Before you begin" / step 0 — no "0." shown).
 cshell_hybrid_checklist_emit_step() {
 	local num="$1" title="$2" url="$3" sym="$4" note="${5:-}"
-	local num_fmt title_prefix cont_ind dim=''
-	num_fmt="$(printf '%2d' "${num}")"
-	# Unstyled prefix before title must match line 1 (colors have zero display width).
-	title_prefix="  ${sym}  ${num_fmt}. "
+	local num_fmt="" title_prefix cont_ind dim=''
+
+	if [[ -n "${num}" ]]; then
+		num_fmt="$(printf '%2d' "${num}")"
+		# Unstyled prefix before title must match line 1 (colors have zero display width).
+		title_prefix="  ${sym}  ${num_fmt}. "
+	else
+		title_prefix="  ${sym}  "
+	fi
 	cont_ind=$(printf '%*s' "${#title_prefix}" '')
 	if cshell_cli_colors_active; then
 		dim="${DIM:-\033[2m}"
@@ -896,7 +902,11 @@ cshell_hybrid_checklist_emit_step() {
 		title_color="${YELLOW}"
 	fi
 
-	echo -e "  ${sym_color}${sym}${RESET}  ${title_color}${num_fmt}. ${title}${RESET}"
+	if [[ -n "${num}" ]]; then
+		echo -e "  ${sym_color}${sym}${RESET}  ${title_color}${num_fmt}. ${title}${RESET}"
+	else
+		echo -e "  ${sym_color}${sym}${RESET}  ${title_color}${title}${RESET}"
+	fi
 	echo -e "${cont_ind}${dim}Doc: ${url}${RESET}"
 
 	if [[ -n "${note}" ]]; then
@@ -1019,19 +1029,19 @@ cmd_hybrid_install_checklist_print() {
 
 	if [[ "${emit_only_step}" != "0" && "${json_mode}" != "1" ]]; then
 		case "${emit_only_step}" in
-			1) cshell_hybrid_checklist_emit_step 1 "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" "" ;;
-			2) cshell_hybrid_checklist_emit_step 2 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}" ;;
-			3) cshell_hybrid_checklist_emit_step 3 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" "" ;;
-			4) cshell_hybrid_checklist_emit_step 4 "Create namespace" "${DOC_INSTALL_CREATE_NAMESPACE}" "${step4_sym}" "${step4_note}" ;;
-			5) cshell_hybrid_checklist_emit_step 5 "Service accounts" "${DOC_INSTALL_SERVICE_ACCOUNTS}" "${HYBRID_STEP5_SYM}" "${HYBRID_STEP5_NOTE}" ;;
-			6) cshell_hybrid_checklist_emit_step 6 "Service account authentication" "${DOC_INSTALL_SA_AUTH}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP6_NOTE}" ;;
-			7) cshell_hybrid_checklist_emit_step 7 "TLS certificates" "${DOC_INSTALL_TLS}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP7_NOTE}" ;;
-			8) cshell_hybrid_checklist_emit_step 8 "Overrides" "${DOC_INSTALL_OVERRIDES}" "${HYBRID_STEP8_SYM}" "${HYBRID_STEP8_NOTE}" ;;
-			9) cshell_hybrid_checklist_emit_step 9 "Control plane access" "${DOC_INSTALL_CONTROL_PLANE}" "${HYBRID_STEP9_SYM}" "${HYBRID_STEP9_NOTE}" ;;
-			10) cshell_hybrid_checklist_emit_step 10 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}" ;;
-			11) cshell_hybrid_checklist_emit_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}" ;;
-			12) cshell_hybrid_checklist_emit_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}" ;;
-			13) cshell_hybrid_checklist_emit_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}" ;;
+			1) cshell_hybrid_checklist_emit_step "" "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" "" ;;
+			2) cshell_hybrid_checklist_emit_step 1 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}" ;;
+			3) cshell_hybrid_checklist_emit_step 2 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" "" ;;
+			4) cshell_hybrid_checklist_emit_step 3 "Create namespace" "${DOC_INSTALL_CREATE_NAMESPACE}" "${step4_sym}" "${step4_note}" ;;
+			5) cshell_hybrid_checklist_emit_step 4 "Service accounts" "${DOC_INSTALL_SERVICE_ACCOUNTS}" "${HYBRID_STEP5_SYM}" "${HYBRID_STEP5_NOTE}" ;;
+			6) cshell_hybrid_checklist_emit_step 5 "Service account authentication" "${DOC_INSTALL_SA_AUTH}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP6_NOTE}" ;;
+			7) cshell_hybrid_checklist_emit_step 6 "TLS certificates" "${DOC_INSTALL_TLS}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP7_NOTE}" ;;
+			8) cshell_hybrid_checklist_emit_step 7 "Overrides" "${DOC_INSTALL_OVERRIDES}" "${HYBRID_STEP8_SYM}" "${HYBRID_STEP8_NOTE}" ;;
+			9) cshell_hybrid_checklist_emit_step 8 "Control plane access" "${DOC_INSTALL_CONTROL_PLANE}" "${HYBRID_STEP9_SYM}" "${HYBRID_STEP9_NOTE}" ;;
+			10) cshell_hybrid_checklist_emit_step 9 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}" ;;
+			11) cshell_hybrid_checklist_emit_step 10 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}" ;;
+			12) cshell_hybrid_checklist_emit_step 11 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}" ;;
+			13) cshell_hybrid_checklist_emit_step 12 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}" ;;
 			*)
 				error "Internal error: invalid emit_only_step '${emit_only_step}'."
 				return 1
@@ -1068,19 +1078,19 @@ cmd_hybrid_install_checklist_print() {
 		return 0
 	fi
 
-	cshell_hybrid_checklist_emit_step 1 "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" ""
-	cshell_hybrid_checklist_emit_step 2 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}"
-	cshell_hybrid_checklist_emit_step 3 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" ""
-	cshell_hybrid_checklist_emit_step 4 "Create namespace" "${DOC_INSTALL_CREATE_NAMESPACE}" "${step4_sym}" "${step4_note}"
-	cshell_hybrid_checklist_emit_step 5 "Service accounts" "${DOC_INSTALL_SERVICE_ACCOUNTS}" "${HYBRID_STEP5_SYM}" "${HYBRID_STEP5_NOTE}"
-	cshell_hybrid_checklist_emit_step 6 "Service account authentication" "${DOC_INSTALL_SA_AUTH}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP6_NOTE}"
-	cshell_hybrid_checklist_emit_step 7 "TLS certificates" "${DOC_INSTALL_TLS}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP7_NOTE}"
-	cshell_hybrid_checklist_emit_step 8 "Overrides" "${DOC_INSTALL_OVERRIDES}" "${HYBRID_STEP8_SYM}" "${HYBRID_STEP8_NOTE}"
-	cshell_hybrid_checklist_emit_step 9 "Control plane access" "${DOC_INSTALL_CONTROL_PLANE}" "${HYBRID_STEP9_SYM}" "${HYBRID_STEP9_NOTE}"
-	cshell_hybrid_checklist_emit_step 10 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}"
-	cshell_hybrid_checklist_emit_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}"
-	cshell_hybrid_checklist_emit_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}"
-	cshell_hybrid_checklist_emit_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}"
+	cshell_hybrid_checklist_emit_step "" "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" ""
+	cshell_hybrid_checklist_emit_step 1 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}"
+	cshell_hybrid_checklist_emit_step 2 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" ""
+	cshell_hybrid_checklist_emit_step 3 "Create namespace" "${DOC_INSTALL_CREATE_NAMESPACE}" "${step4_sym}" "${step4_note}"
+	cshell_hybrid_checklist_emit_step 4 "Service accounts" "${DOC_INSTALL_SERVICE_ACCOUNTS}" "${HYBRID_STEP5_SYM}" "${HYBRID_STEP5_NOTE}"
+	cshell_hybrid_checklist_emit_step 5 "Service account authentication" "${DOC_INSTALL_SA_AUTH}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP6_NOTE}"
+	cshell_hybrid_checklist_emit_step 6 "TLS certificates" "${DOC_INSTALL_TLS}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP7_NOTE}"
+	cshell_hybrid_checklist_emit_step 7 "Overrides" "${DOC_INSTALL_OVERRIDES}" "${HYBRID_STEP8_SYM}" "${HYBRID_STEP8_NOTE}"
+	cshell_hybrid_checklist_emit_step 8 "Control plane access" "${DOC_INSTALL_CONTROL_PLANE}" "${HYBRID_STEP9_SYM}" "${HYBRID_STEP9_NOTE}"
+	cshell_hybrid_checklist_emit_step 9 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}"
+	cshell_hybrid_checklist_emit_step 10 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}"
+	cshell_hybrid_checklist_emit_step 11 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}"
+	cshell_hybrid_checklist_emit_step 12 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}"
 	info "Vault-only or Workload Identity setups may not show ${HYBRID_CHK_PASS} for service-account rows; confirm against Google's docs if needed."
 }
 

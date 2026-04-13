@@ -546,7 +546,8 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --step 1
 	[ "$status" -eq 1 ]
-	[[ "$output" == *"1. Before you begin"* ]]
+	[[ "$output" == *"Before you begin"* ]]
+	[[ "$output" != *"1. Before you begin"* ]]
 	[[ "$output" == *Missing* ]]
 }
 
@@ -573,6 +574,7 @@ EOF
 	run_cshell hybrid --step 1
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"Before you begin"* ]]
+	[[ "$output" != *"1. Before you begin"* ]]
 	[[ "$output" == *"All required"* ]] || [[ "$output" == *".cshell.env"* ]]
 }
 
