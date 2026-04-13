@@ -1,3 +1,0 @@
-1..2
-ok 1 cshell_hybrid_fetch_aks_kubeconfig invokes az with resource group and cluster
-ok 2 cshell_hybrid_fetch_aks_kubeconfig skips when resource group is empty
