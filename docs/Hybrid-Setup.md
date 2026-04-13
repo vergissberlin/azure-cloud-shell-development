@@ -39,6 +39,7 @@ cshell hybrid
 - **Helm** v3.14 or newer (Apigee Hybrid v1.16 expectation). Older versions are rejected.
 - **GCP auth** for the OCI registry `oci://us-docker.pkg.dev/apigee-release/...`
   (for example `gcloud auth login` or `gcloud auth application-default login`).
+  `cshell setup` starts **`gcloud auth login`** after installing the SDK when the session is interactive; for OCI chart pulls you typically still need **`gcloud auth application-default login`** as in Google’s Hybrid docs.
   See the official *Download the Apigee Helm charts* page linked below.
 
 ## Non-interactive use

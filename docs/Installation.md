@@ -24,7 +24,7 @@ bash cshell setup
 
 - `cshell` binary (user-space by default)
 - Bash completion for `cshell`
-- Google Cloud SDK (`gcloud`) if missing
+- Google Cloud SDK (`gcloud`) if missing; after a **fresh** install, `cshell` runs **`gcloud auth login`** when stdin is a TTY and neither **`APIGEE_SETUP_NONINTERACTIVE=1`** nor **`CI`** is set (otherwise it prints the command to run manually). If `gcloud` already has an active account, login is skipped.
 - Azure Blob backup configuration prompts (if you leave the storage account key empty and `az` is logged in, `cshell` resolves `AZURE_STORAGE_ACCOUNT_KEY` via Azure Resource Manager — `curl` to `listKeys`, with `az storage account keys list` as fallback)
 
 ## Validate Installation

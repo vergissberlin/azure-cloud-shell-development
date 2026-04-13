@@ -100,6 +100,13 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "setup offers gcloud auth login after fresh SDK install" {
+	run grep -qF '"${gcloud_cmd}" auth login' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+	run grep -qF 'Skipping interactive gcloud auth login' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+}
+
 @test "hybrid --help prints flag summary and exits 0" {
 	run_cshell hybrid --help
 	[ "$status" -eq 0 ]

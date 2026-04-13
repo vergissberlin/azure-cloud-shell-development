@@ -736,6 +736,26 @@ https://packages.cloud.google.com/apt cloud-sdk main" \
 			fi
 		fi
 		success "gcloud installed"
+		local gcloud_cmd active_acct
+		gcloud_cmd="$(command -v gcloud 2>/dev/null || true)"
+		if [[ -z "${gcloud_cmd}" && -x "${HOME}/google-cloud-sdk/bin/gcloud" ]]; then
+			gcloud_cmd="${HOME}/google-cloud-sdk/bin/gcloud"
+		fi
+		if [[ -n "${gcloud_cmd}" ]]; then
+			active_acct="$("${gcloud_cmd}" auth list --filter=status:ACTIVE --format='value(account)' 2>/dev/null | head -n 1)" || active_acct=""
+			if [[ -n "${active_acct}" ]]; then
+				info "gcloud already has active account '${active_acct}'; skipping auth login."
+			elif [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" == "1" ]] || [[ -n "${CI:-}" ]] || [[ ! -t 0 ]]; then
+				info "Skipping interactive gcloud auth login (non-interactive, CI, or no TTY). When ready, run: ${gcloud_cmd} auth login"
+			else
+				info "Starting Google Cloud authentication (gcloud auth login) ..."
+				if ! "${gcloud_cmd}" auth login; then
+					warn "gcloud auth login exited with an error. Run manually when ready: ${gcloud_cmd} auth login"
+				fi
+			fi
+		else
+			warn "gcloud not found on PATH after install; add ~/.local/bin to PATH if needed, then run: gcloud auth login"
+		fi
 	fi
 
 	# ── 4. Interactive storage-account setup ─────────────────────────────────
