@@ -1,5 +1,46 @@
 # Changelog
 
+## [1.21.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.20.0...1.21.0) (2026-04-13)
+
+
+### Features
+
+* **cshell:** add automatic gcloud auth login post-install ([030d26d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/030d26d081cfa75c194f3d701475b41045b5b7a2))
+* **cshell:** add function to resolve storage account key via ARM ([f5d6383](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f5d638348e9e6909be6c1f98595b2ebb9bf96b1c))
+* **cshell:** add precheck for GCP and AKS connectivity ([47c8704](https://github.com/vergissberlin/azure-cloud-shell-development/commit/47c8704d2c0e5b91aeb94ebcd12763e1865bac93))
+* **cshell:** allow unnumbered checklist step for "Before you begin" ([521e19d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/521e19d1584670065ab029f5c4e2ee7d3a326274))
+
+
+### Bug Fixes
+
+* **backup:** exclude google-cloud-sdk from backup to prevent unnecessary data storage ([c7c5f4c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c7c5f4c612425d3eae1e4516400dfa92e60a9355))
+* **cshell:** change precheck symbol for missing gcloud to skip ([b250209](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b2502097190215fffe8cc44ec680ec5d4ca8ab48))
+* **cshell:** conditionally display documentation URL ([47c8704](https://github.com/vergissberlin/azure-cloud-shell-development/commit/47c8704d2c0e5b91aeb94ebcd12763e1865bac93))
+* **cshell:** update checklist numbering to reflect new structure ([9624c46](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9624c467e72bab121ede3432adde837ccfe68047))
+
+
+### Documentation
+
+* **backup:** update documentation to reflect exclusion of google-cloud-sdk from backups ([c7c5f4c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c7c5f4c612425d3eae1e4516400dfa92e60a9355))
+* clarify hybrid command usage and step numbering in cshell and documentation ([33b51cf](https://github.com/vergissberlin/azure-cloud-shell-development/commit/33b51cf9a8cf95b24c68a3e22d6492377b8bd406))
+* **Command-Reference.md:** clarify session checks for GCP authentication by adding a new status indicator for when `gcloud` is not on `PATH` ([b32e961](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b32e96197b0642bbbae22f75140b975b9287e0b8))
+* **Command-Reference.md:** correct formatting in checklist documentation ([b250209](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b2502097190215fffe8cc44ec680ec5d4ca8ab48))
+* **Command-Reference.md:** update session checks and checklist details for clarity ([c5d9331](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c5d933157316b9e92413e7bd082354318ab8d394))
+* **Hybrid-Setup.md:** add description of session checks in hybrid command ([c5d9331](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c5d933157316b9e92413e7bd082354318ab8d394))
+* **Installation.md:** update Azure Blob backup configuration ([f5d6383](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f5d638348e9e6909be6c1f98595b2ebb9bf96b1c))
+* **README.md, cshell:** update checklist numbering and description ([87d3bd9](https://github.com/vergissberlin/azure-cloud-shell-development/commit/87d3bd966b07334a61d16c325d8c6832cb4abaf3))
+* update Hybrid-Setup and Installation with gcloud auth info ([030d26d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/030d26d081cfa75c194f3d701475b41045b5b7a2))
+
+
+### Tests
+
+* **backup:** add test to verify google-cloud-sdk is excluded from backup archive ([c7c5f4c](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c7c5f4c612425d3eae1e4516400dfa92e60a9355))
+* **cshell_cli.bats:** add checks for session and GCP authentication output ([b250209](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b2502097190215fffe8cc44ec680ec5d4ca8ab48))
+* **cshell_cli.bats:** add test for storage account key resolver ([f5d6383](https://github.com/vergissberlin/azure-cloud-shell-development/commit/f5d638348e9e6909be6c1f98595b2ebb9bf96b1c))
+* **cshell_cli.bats:** add tests for prechecks in hybrid --check --json output ([c5d9331](https://github.com/vergissberlin/azure-cloud-shell-development/commit/c5d933157316b9e92413e7bd082354318ab8d394))
+* **cshell_cli.bats:** adjust tests to match updated checklist format ([9624c46](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9624c467e72bab121ede3432adde837ccfe68047))
+* **cshell_cli:** add test for gcloud auth login prompt ([030d26d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/030d26d081cfa75c194f3d701475b41045b5b7a2))
+
 ## [1.20.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.19.1...1.20.0) (2026-04-09)
 
 
