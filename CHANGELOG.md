@@ -1,5 +1,67 @@
 # Changelog
 
+## [1.22.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.21.0...1.22.0) (2026-04-13)
+
+
+### Features
+
+* **cshell:** add command logging with terminal styling for hybrid automation ([84ccb87](https://github.com/vergissberlin/azure-cloud-shell-development/commit/84ccb87dffff4476d05c2f2ef7b850804070ea14))
+* **cshell:** add production overrides support ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **cshell:** add support for custom repo slug and chart version ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **cshell:** introduce support for production overrides profile ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **env-file.sh:** add APIGEE_OVERRIDES_PROFILE to allowed keys ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **Hybrid-Setup.md:** add production environment setup details ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **install.sh:** allow custom repo slug for cshell releases ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **lib:** add hybrid-overrides-prod.sh for production overrides ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+
+
+### Bug Fixes
+
+* **cshell:** ensure consistent command execution with logging ([84ccb87](https://github.com/vergissberlin/azure-cloud-shell-development/commit/84ccb87dffff4476d05c2f2ef7b850804070ea14))
+* **cshell:** update documentation links to official install hub ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **hybrid-checklist.sh:** update step 13 description for install hub URL ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+
+
+### Documentation
+
+* **Command-Reference.md:** update command descriptions for clarity and accuracy ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **Configuration.md:** add optional shell environment variables section for better configuration management ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **contributing:** add guidelines for Apigee Hybrid chart version updates ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **Hybrid-Setup.md:** document command logging behavior ([84ccb87](https://github.com/vergissberlin/azure-cloud-shell-development/commit/84ccb87dffff4476d05c2f2ef7b850804070ea14))
+* **Hybrid-Setup.md:** update instructions for TLS and overrides profiles ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **readme:** expand on trust, supply chain, and Apigee Hybrid setup ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **Release-and-CI.md:** include prod overrides script in fallback download ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **security:** add SECURITY.md for vulnerability reporting and install integrity ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+
+
+### Code Refactoring
+
+* **cshell:** replace community guide with official install hub ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+
+
+### Tests
+
+* add BATS test output files to track test results and ensure test coverage ([84ccb87](https://github.com/vergissberlin/azure-cloud-shell-development/commit/84ccb87dffff4476d05c2f2ef7b850804070ea14))
+* **bats-all.out:** add new test cases for hybrid and config commands ([9fb7cb1](https://github.com/vergissberlin/azure-cloud-shell-development/commit/9fb7cb1abc32545b8b35a35571274e114769d57f))
+* **cshell_cli:** update test description for install guide ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **hybrid_aks_kubeconfig.bats:** capture and verify output of cshell_hybrid_fetch_aks_kubeconfig to ensure command execution ([84ccb87](https://github.com/vergissberlin/azure-cloud-shell-development/commit/84ccb87dffff4476d05c2f2ef7b850804070ea14))
+* **hybrid_overrides_prod:** add tests for production overrides ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+
+
+### Continuous Integration
+
+* **workflow:** add hybrid-command-log.sh to standalone build check for improved script validation ([84ccb87](https://github.com/vergissberlin/azure-cloud-shell-development/commit/84ccb87dffff4476d05c2f2ef7b850804070ea14))
+* **workflow:** add hybrid-overrides-prod.sh to shell script linting ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+
+
+### Chores
+
+* **build:** include hybrid-overrides-prod.sh in build script ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **cshell:** add shellcheck directive for new source file ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **install.sh:** add prod overrides script to download list ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* **justfile:** include prod overrides script in syntax check ([e26d5cc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/e26d5cc451b0e7c47d6437fd20edae439781fadc))
+* remove obsolete test output files ([b77bb72](https://github.com/vergissberlin/azure-cloud-shell-development/commit/b77bb72c4b0d17b4af9ca0e8affb9f818a2eb578))
+
 ## [1.21.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.20.0...1.21.0) (2026-04-13)
 
 
