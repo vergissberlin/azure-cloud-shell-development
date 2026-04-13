@@ -145,7 +145,9 @@ APIGEE_HELM_CHARTS_HOME=/tmp/charts
 EOF
 	run_cshell hybrid --check
 	[ "$status" -eq 0 ]
+	[[ "$output" == *"Session checks"* ]]
 	[[ "$output" == *"install checklist"* ]]
+	[[ "$output" == *"GCP authentication"* ]]
 	[[ "$output" == *"✓"*"Before you begin"* ]]
 	[[ "$output" != *"0. Before you begin"* ]]
 	[[ "$output" != *"1. Before you begin"* ]]

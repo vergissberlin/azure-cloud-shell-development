@@ -89,7 +89,7 @@ list (same as `cshell docs`).
   **`AKS_RESOURCE_GROUP`** and **`CLUSTER_NAME`** are set and **`az`** is on `PATH`, **`az aks show`**
   must also succeed or the row is ✗ (Azure login / names). ○ when `kubectl` is not
   available. JSON output adds a **`prechecks`** array (`id` **`gcp_auth`** and **`aks_cluster`**) in
-  addition to **`steps`**. Checklist rows otherwise have a **`Doc:`** line (`** notes),
+  addition to **`steps`**. Checklist rows otherwise have a **`Doc:`** line (and optional **`↳`** notes),
   indented to match the **first character of the step title**. ✓ / ✗ / ○ use the following
   heuristics (status on the first line without `[` `]`):
   1. Required Hybrid variables (before you begin).

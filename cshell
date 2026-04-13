@@ -990,12 +990,13 @@ cmd_hybrid_install_checklist_print() {
 		fi
 	fi
 
-	local precheck_gcp_sym="${sym_fail}" precheck_gcp_note="gcloud not in PATH"
+	local precheck_gcp_sym="${sym_skip}" precheck_gcp_note="gcloud not in PATH"
 	if command_exists gcloud; then
 		if gcloud auth print-access-token &>/dev/null; then
 			precheck_gcp_sym="${sym_done}"
 			precheck_gcp_note=""
 		else
+			precheck_gcp_sym="${sym_fail}"
 			precheck_gcp_note="gcloud auth failed (try: gcloud auth login or gcloud auth application-default login)"
 		fi
 	fi
