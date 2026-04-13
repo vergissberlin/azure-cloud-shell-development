@@ -907,7 +907,9 @@ cshell_hybrid_checklist_emit_step() {
 	else
 		echo -e "  ${sym_color}${sym}${RESET}  ${title_color}${title}${RESET}"
 	fi
-	echo -e "${cont_ind}${dim}Doc: ${url}${RESET}"
+	if [[ -n "${url}" ]]; then
+		echo -e "${cont_ind}${dim}Doc: ${url}${RESET}"
+	fi
 
 	if [[ -n "${note}" ]]; then
 		if [[ "${sym}" == "${HYBRID_CHK_FAIL}" ]]; then
@@ -954,6 +956,16 @@ cshell_hybrid_json_step() {
 		"$(cshell_json_escape "${sym}")" "${st}" "$(cshell_json_escape "${note}")"
 }
 
+# Session precheck as JSON object (string id, no doc URL).
+cshell_hybrid_json_precheck() {
+	local id="$1" title="$2" sym="$3" note="$4"
+	local st
+	st="$(cshell_hybrid_step_status_from_sym "${sym}")"
+	printf '{"id":"%s","title":"%s","url":"","symbol":"%s","status":"%s","note":"%s"}' \
+		"$(cshell_json_escape "${id}")" "$(cshell_json_escape "${title}")" \
+		"$(cshell_json_escape "${sym}")" "${st}" "$(cshell_json_escape "${note}")"
+}
+
 # Print numbered Hybrid v1.16 install checklist (docs order). Uses current shell state after cshell_env_load.
 # $1: "1" when invoked from hybrid --check --strict (banner / JSON strict field only).
 # $2: "1" for machine-readable JSON on stdout (no ANSI, no human banners).
@@ -974,24 +986,42 @@ cmd_hybrid_install_checklist_print() {
 		if [[ "${strict_banner}" == "1" ]]; then
 			info "Hybrid v1.16 install checklist (documentation order). With --strict, exit status also reflects any ${HYBRID_CHK_FAIL} below (${HYBRID_CHK_SKIP} is not a failure)."
 		else
-			info "Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
+			info "Session checks (GCP + AKS), then Hybrid v1.16 install checklist (documentation order; without --strict, exit status still reflects only ${ENV_FILE} required variables):"
+		fi
+	fi
+
+	local precheck_gcp_sym="${sym_fail}" precheck_gcp_note="gcloud not in PATH"
+	if command_exists gcloud; then
+		if gcloud auth print-access-token &>/dev/null; then
+			precheck_gcp_sym="${sym_done}"
+			precheck_gcp_note=""
+		else
+			precheck_gcp_note="gcloud auth failed (try: gcloud auth login or gcloud auth application-default login)"
+		fi
+	fi
+
+	local precheck_aks_sym="${sym_skip}" precheck_aks_note="kubectl not in PATH"
+	if command_exists kubectl; then
+		precheck_aks_note=""
+		if kubectl cluster-info --request-timeout=5s &>/dev/null; then
+			precheck_aks_sym="${sym_done}"
+			if [[ -n "${AKS_RESOURCE_GROUP:-}" && -n "${CLUSTER_NAME:-}" ]] && command_exists az; then
+				if ! az aks show --resource-group "${AKS_RESOURCE_GROUP}" --name "${CLUSTER_NAME}" --output none &>/dev/null; then
+					precheck_aks_sym="${sym_fail}"
+					precheck_aks_note="kubectl OK but az aks show failed (Azure login, subscription, or cluster name?)"
+				fi
+			fi
+		else
+			precheck_aks_sym="${sym_fail}"
+			precheck_aks_note="cluster not reachable or not configured"
 		fi
 	fi
 
 	local step1_sym="${sym_done}"
 	((${#hybrid_missing_required[@]} > 0)) && step1_sym="${sym_fail}"
 
-	local step2_sym="${sym_skip}"
-	local step2_note="kubectl not in PATH"
-	if command_exists kubectl; then
-		step2_note=""
-		if kubectl cluster-info --request-timeout=5s &>/dev/null; then
-			step2_sym="${sym_done}"
-		else
-			step2_sym="${sym_fail}"
-			step2_note="cluster not reachable or not configured"
-		fi
-	fi
+	local step2_sym="${precheck_aks_sym}"
+	local step2_note="${precheck_aks_note}"
 
 	local step3_sym="${sym_fail}"
 	local c missing_chart=0
@@ -1051,7 +1081,7 @@ cmd_hybrid_install_checklist_print() {
 	fi
 
 	local _sym
-	for _sym in "${step1_sym}" "${step2_sym}" "${step3_sym}" "${step4_sym}" \
+	for _sym in "${precheck_gcp_sym}" "${step1_sym}" "${step2_sym}" "${step3_sym}" "${step4_sym}" \
 		"${HYBRID_STEP5_SYM}" "${HYBRID_STEP6_SYM}" "${HYBRID_STEP7_SYM}" "${HYBRID_STEP8_SYM}" \
 		"${HYBRID_STEP9_SYM}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP13_SYM}"; do
 		[[ "${_sym}" == "${sym_fail}" ]] && hybrid_checklist_fail_count=$((hybrid_checklist_fail_count + 1))
@@ -1060,7 +1090,9 @@ cmd_hybrid_install_checklist_print() {
 	if [[ "${json_mode}" == "1" ]]; then
 		local strict_js='false'
 		[[ "${strict_banner}" == "1" ]] && strict_js='true'
-		local sj_out
+		local sj_out prechecks_json
+		prechecks_json="$(cshell_hybrid_json_precheck "gcp_auth" "GCP authentication" "${precheck_gcp_sym}" "${precheck_gcp_note}")"
+		prechecks_json+=",$(cshell_hybrid_json_precheck "aks_cluster" "AKS / Kubernetes connectivity" "${precheck_aks_sym}" "${precheck_aks_note}")"
 		sj_out="$(cshell_hybrid_json_step 1 "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" "")"
 		sj_out+=",$(cshell_hybrid_json_step 2 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}")"
 		sj_out+=",$(cshell_hybrid_json_step 3 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" "")"
@@ -1074,10 +1106,11 @@ cmd_hybrid_install_checklist_print() {
 		sj_out+=",$(cshell_hybrid_json_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}")"
 		sj_out+=",$(cshell_hybrid_json_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}")"
 		sj_out+=",$(cshell_hybrid_json_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}")"
-		printf '%s\n' "{\"schema\":\"cshell.hybrid_check.v1\",\"strict\":${strict_js},\"checklist_fail_count\":${hybrid_checklist_fail_count},\"steps\":[${sj_out}]}"
+		printf '%s\n' "{\"schema\":\"cshell.hybrid_check.v1\",\"strict\":${strict_js},\"checklist_fail_count\":${hybrid_checklist_fail_count},\"prechecks\":[${prechecks_json}],\"steps\":[${sj_out}]}"
 		return 0
 	fi
 
+	cshell_hybrid_checklist_emit_step "" "GCP authentication" "" "${precheck_gcp_sym}" "${precheck_gcp_note}"
 	cshell_hybrid_checklist_emit_step "" "Before you begin" "${DOC_BEFORE_BEGIN}" "${step1_sym}" ""
 	cshell_hybrid_checklist_emit_step 1 "Create cluster" "${DOC_INSTALL_CREATE_CLUSTER}" "${step2_sym}" "${step2_note}"
 	cshell_hybrid_checklist_emit_step 2 "Download Helm charts" "${DOC_DOWNLOAD_CHARTS}" "${step3_sym}" ""
