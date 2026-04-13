@@ -24,6 +24,19 @@ from that tag by default. When GitHub release assets include
 binary. If verification is not possible, it falls back to downloading the raw
 `cshell` script from the tag (no integrity check — prefer official releases).
 
+### Trust and supply chain
+
+- Prefer **release tarballs** plus the published `.sha256`, or **`install-<version>.sh`**
+  from [Releases](https://github.com/vergissberlin/azure-cloud-shell-development/releases),
+  when you need a verified artifact.
+- The `main` bootstrap is convenient; `install.sh` still prefers checksum-verified assets
+  when the GitHub API returns them.
+- **Pin a SemVer tag** for reproducible installs (raw `cshell` from that tag, or extract
+  from the matching tarball after `sha256sum -c`).
+
+**Forks:** export **`CSHELL_REPO_SLUG=owner/repo`** before running **`install.sh`** or
+**`cshell`** so release lookups and raw `lib/*.sh` downloads use your GitHub repository.
+
 #### Verify a release tarball manually (optional)
 
 ```bash
@@ -156,7 +169,21 @@ az storage blob upload \
 
 ### `cshell hybrid`
 
-Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin) environment:
+Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin) environment.
+
+**Automation vs manual steps**
+
+- **Non-prod (`APIGEE_OVERRIDES_PROFILE=nonprod`, default):** interactive wizard builds
+  **`overrides.yaml`** using a **single** non-prod Kubernetes secret (aligned with Google’s
+  trial / non-prod flow).
+- **Production (`APIGEE_OVERRIDES_PROFILE=prod`):** wizard builds **`overrides.yaml`** with
+  the **seven** per-component `apigee-*-svc-account` secret references from Google’s
+  production install guide.
+- **`cshell hybrid --check`:** read-only checklist for **both** paths (service-account keys,
+  secrets, TLS, Helm, etc.); production still needs CA-signed certs and the full Google
+  procedure outside what cshell generates.
+
+Primary target environment is **Azure Cloud Shell** (bash); other bash setups are best-effort. Then:
 
 1. Interactively prompts for all required environment variables and writes them
    to `~/.cshell.env`
@@ -208,9 +235,10 @@ environment (`PROJECT_ID` required). To merge **AKS** credentials into
 | `CONTROL_PLANE_LOCATION`   | Optional; only for data residency (`contractProvider` in generated `overrides.yaml`)                               | –                                                                                                                      |
 | `APIGEE_HELM_CHARTS_HOME`  | Local path to Helm charts directory                                                                             | `~/apigee-hybrid/helm-charts` (created by **`cshell setup`**); `cshell hybrid` uses the same default when prompting |
 | `CHART_REPO`               | OCI repo for Hybrid charts                                                                                      | built-in default                                                                                                       |
-| `CHART_VERSION`            | Chart version (e.g. `1.16.0-hotfix.1`)                                                                          | built-in default                                                                                                       |
+| `CHART_VERSION`            | Chart version (e.g. `1.16.0-hotfix.1`)                                                                          | built-in default; optional shell override `CSHELL_CHART_VERSION` (unsupported — confirm against Apigee release notes)   |
+| `APIGEE_OVERRIDES_PROFILE` | `nonprod` or `prod` — which `overrides.yaml` generator `cshell hybrid` uses | `nonprod`                                                                                                              |
 
-Optional variables for Helm `overrides.yaml` (for example `APIGEE_INSTANCE_ID`, `APIGEE_NONPROD_SA_SECRET`) are written by `cshell hybrid` when set; see [docs/Configuration.md](docs/Configuration.md).
+Optional variables for Helm `overrides.yaml` (for example `APIGEE_INSTANCE_ID`, `APIGEE_NONPROD_SA_SECRET` for non-prod) are written by `cshell hybrid` when set; see [docs/Configuration.md](docs/Configuration.md).
 
 **Helm charts downloaded:**
 
@@ -236,7 +264,7 @@ Inspect values with `cshell config show` instead of `source ~/.cshell.env`
 - [cert-manager](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-cert-manager)
 - [CRDs](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-crds)
 - [Helm install (Hybrid)](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-helm-charts)
-- [Install Apigee Hybrid (community guide)](https://github.com/vergissberlin/apigee-hybride-development/blob/main/docs/install-apigee-hybrid.md)
+- [Hybrid v1.16 — Before you begin (official hub)](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-before-begin) (same link as checklist step 12 / “Official Hybrid install hub”)
 
 Run `cshell docs` for the same list with copy-friendly URLs.
 

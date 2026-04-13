@@ -16,6 +16,7 @@ LIB_FILES=(
 	"${ROOT_DIR}/lib/hybrid-checklist.sh"
 	"${ROOT_DIR}/lib/hybrid-aks-kubeconfig.sh"
 	"${ROOT_DIR}/lib/hybrid-overrides-nonprod.sh"
+	"${ROOT_DIR}/lib/hybrid-overrides-prod.sh"
 )
 
 if [[ ! -f "${UTILS_FILE}" ]]; then

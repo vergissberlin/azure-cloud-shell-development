@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_NAME="cshell"
 SCRIPT_VERSION="1.21.0" # x-release-please-version
-REPO_SLUG="vergissberlin/azure-cloud-shell-development"
+REPO_SLUG="${CSHELL_REPO_SLUG:-vergissberlin/azure-cloud-shell-development}"
 DEFAULT_REF="main"
 LATEST_RELEASE_API="https://api.github.com/repos/${REPO_SLUG}/releases/latest"
 INSTALL_PATH_DEFAULT="/usr/bin/${SCRIPT_NAME}"
@@ -22,7 +22,7 @@ CLI_UTILS_PATH="${SCRIPT_DIR}/scripts/misc-cli-utils.sh"
 CSHELL_NO_UPDATE_CHECK="${CSHELL_NO_UPDATE_CHECK:-0}"
 
 CHART_REPO="oci://us-docker.pkg.dev/apigee-release/apigee-hybrid-helm-charts"
-CHART_VERSION="1.16.0-hotfix.1"
+CHART_VERSION="${CSHELL_CHART_VERSION:-1.16.0-hotfix.1}"
 # Default Hybrid Helm chart directory (non-interactive defaults and `cshell setup`).
 DEFAULT_APIGEE_HELM_CHARTS_HOME="${HOME}/apigee-hybrid/helm-charts"
 APIGEE_CHARTS=(
@@ -50,7 +50,8 @@ DOC_INSTALL_CERT_MANAGER="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16
 DOC_INSTALL_CRDS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-crds"
 DOC_INSTALL_HELM_CHARTS="https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-helm-charts"
 DOC_HELM_INSTALL="https://helm.sh/docs/intro/install/"
-DOC_INSTALL_HYBRID="https://github.com/vergissberlin/apigee-hybride-development/blob/main/docs/install-apigee-hybrid.md"
+# Public checklist/doc link (same hub as "Before you begin"; replaces former third-party guide URL).
+DOC_OFFICIAL_INSTALL_HUB="${DOC_BEFORE_BEGIN}"
 DOC_PROJECT_README="https://github.com/${REPO_SLUG}#readme"
 DOC_PROJECT_RELEASES="https://github.com/${REPO_SLUG}/releases"
 DOC_PROJECT_ISSUES="https://github.com/${REPO_SLUG}/issues"
@@ -152,6 +153,8 @@ source "${_CSHELL_LIB_ROOT}/lib/hybrid-checklist.sh"
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-aks-kubeconfig.sh"
 # shellcheck source=lib/hybrid-overrides-nonprod.sh
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-overrides-nonprod.sh"
+# shellcheck source=lib/hybrid-overrides-prod.sh
+source "${_CSHELL_LIB_ROOT}/lib/hybrid-overrides-prod.sh"
 # END_CSHELL_LIBS
 
 ask() {
@@ -414,7 +417,7 @@ download_cshell_support_libs_from_raw() {
 
 	base="https://raw.githubusercontent.com/${REPO_SLUG}/${ref}/lib"
 	work="$(mktemp -d)"
-	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh; do
+	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh hybrid-overrides-prod.sh; do
 		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
 			rm -rf "${work}"
 			error "Failed to download ${name} from ${base}/${name}"
@@ -827,6 +830,20 @@ HYBRID_REQUIRED_VARS=(
 	APIGEE_HELM_CHARTS_HOME
 )
 
+# Normalize APIGEE_OVERRIDES_PROFILE to nonprod or prod.
+cmd_hybrid_normalize_overrides_profile() {
+	local p="${1:-nonprod}"
+	if [[ "${BASH_VERSINFO[0]:-0}" -ge 4 ]]; then
+		p="${p,,}"
+	else
+		p="$(printf '%s' "${p}" | tr '[:upper:]' '[:lower:]')"
+	fi
+	case "${p}" in
+		prod | production) printf '%s' 'prod' ;;
+		*) printf '%s' 'nonprod' ;;
+	esac
+}
+
 # Hybrid install checklist status glyphs (human output + JSON symbol field). Independent of CHECKMARK/CROSS in success/error.
 HYBRID_CHK_PASS='✓'
 HYBRID_CHK_FAIL='✗'
@@ -1056,7 +1073,7 @@ cmd_hybrid_install_checklist_print() {
 		fi
 	fi
 
-	cshell_hybrid_eval_checklist_steps_5_13 "${sym_done}" "${sym_fail}" "${sym_skip}" "${DOC_INSTALL_HYBRID}"
+	cshell_hybrid_eval_checklist_steps_5_13 "${sym_done}" "${sym_fail}" "${sym_skip}" "${DOC_OFFICIAL_INSTALL_HUB}"
 
 	if [[ "${emit_only_step}" != "0" && "${json_mode}" != "1" ]]; then
 		case "${emit_only_step}" in
@@ -1072,7 +1089,7 @@ cmd_hybrid_install_checklist_print() {
 			10) cshell_hybrid_checklist_emit_step 9 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}" ;;
 			11) cshell_hybrid_checklist_emit_step 10 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}" ;;
 			12) cshell_hybrid_checklist_emit_step 11 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}" ;;
-			13) cshell_hybrid_checklist_emit_step 12 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}" ;;
+			13) cshell_hybrid_checklist_emit_step 12 "Official Hybrid install hub" "${DOC_OFFICIAL_INSTALL_HUB}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}" ;;
 			*)
 				error "Internal error: invalid emit_only_step '${emit_only_step}'."
 				return 1
@@ -1106,7 +1123,7 @@ cmd_hybrid_install_checklist_print() {
 		sj_out+=",$(cshell_hybrid_json_step 10 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}")"
 		sj_out+=",$(cshell_hybrid_json_step 11 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}")"
 		sj_out+=",$(cshell_hybrid_json_step 12 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}")"
-		sj_out+=",$(cshell_hybrid_json_step 13 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}")"
+		sj_out+=",$(cshell_hybrid_json_step 13 "Official Hybrid install hub" "${DOC_OFFICIAL_INSTALL_HUB}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}")"
 		printf '%s\n' "{\"schema\":\"cshell.hybrid_check.v1\",\"strict\":${strict_js},\"checklist_fail_count\":${hybrid_checklist_fail_count},\"prechecks\":[${prechecks_json}],\"steps\":[${sj_out}]}"
 		return 0
 	fi
@@ -1124,7 +1141,7 @@ cmd_hybrid_install_checklist_print() {
 	cshell_hybrid_checklist_emit_step 9 "cert-manager" "${DOC_INSTALL_CERT_MANAGER}" "${HYBRID_STEP10_SYM}" "${HYBRID_STEP10_NOTE}"
 	cshell_hybrid_checklist_emit_step 10 "CRDs" "${DOC_INSTALL_CRDS}" "${HYBRID_STEP11_SYM}" "${HYBRID_STEP11_NOTE}"
 	cshell_hybrid_checklist_emit_step 11 "Helm install (Hybrid)" "${DOC_INSTALL_HELM_CHARTS}" "${HYBRID_STEP12_SYM}" "${HYBRID_STEP12_NOTE}"
-	cshell_hybrid_checklist_emit_step 12 "Community install guide" "${DOC_INSTALL_HYBRID}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}"
+	cshell_hybrid_checklist_emit_step 12 "Official Hybrid install hub" "${DOC_OFFICIAL_INSTALL_HUB}" "${HYBRID_STEP13_SYM}" "${HYBRID_STEP13_NOTE}"
 	info "Vault-only or Workload Identity setups may not show ${HYBRID_CHK_PASS} for service-account rows; confirm against Google's docs if needed."
 }
 
@@ -1141,6 +1158,9 @@ cmd_hybrid_pull_apigee_charts() {
 		return 1
 	fi
 	info "Pulling OCI charts requires GCP auth for ${CHART_REPO} (e.g. gcloud auth login or gcloud auth application-default login). See: ${DOC_DOWNLOAD_CHARTS}"
+	if [[ -n "${CSHELL_CHART_VERSION:-}" ]]; then
+		warn "CSHELL_CHART_VERSION is set — using chart version ${CHART_VERSION} (confirm against Apigee release notes; unsupported override)."
+	fi
 	info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
 	(
 		cd "${helm_charts_home}" || exit 1
@@ -1173,6 +1193,29 @@ cshell_hybrid_preview_confirm_write_nonprod_overrides() {
 		fi
 	fi
 	if cshell_hybrid_atomic_write_nonprod_overrides "${charts_home}" "1" "$@"; then
+		return 0
+	fi
+	return 1
+}
+
+# Print proposed production overrides.yaml, optionally prompt, then atomic write.
+# Args: charts_home then 17 args for cshell_hybrid_emit_prod_overrides_secretrefs.
+# Returns: 0 wrote OK, 1 write error, 2 user declined (interactive only).
+cshell_hybrid_preview_confirm_write_prod_overrides() {
+	local charts_home="$1"
+	shift
+	local ov_out="${charts_home}/overrides.yaml"
+	if [[ "${APIGEE_SETUP_NONINTERACTIVE:-0}" != "1" ]]; then
+		printf '%s\n' "--- Proposed overrides.yaml (production, not yet written) ---"
+		cshell_hybrid_emit_prod_overrides_secretrefs "$@"
+		printf '%s\n' "--- end proposed overrides ---"
+		echo ""
+		if declare -F confirm >/dev/null 2>&1 && ! confirm "Write this to ${ov_out}?" "n"; then
+			info "Skipped writing overrides.yaml."
+			return 2
+		fi
+	fi
+	if cshell_hybrid_atomic_write_prod_overrides "${charts_home}" "1" "$@"; then
 		return 0
 	fi
 	return 1
@@ -1386,17 +1429,35 @@ cmd_hybrid_run_step_actions() {
 			local override_large_payload="${APIGEE_OVERRIDE_LARGE_PAYLOAD:-0}"
 			local control_plane_location="${CONTROL_PLANE_LOCATION:-}"
 			local wr=0
+			local ov_prof
+			ov_prof="$(cmd_hybrid_normalize_overrides_profile "${APIGEE_OVERRIDES_PROFILE:-nonprod}")"
 			# shellcheck disable=SC2153
-			cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
-				"${APIGEE_INSTANCE_ID}" "${APIGEE_NAMESPACE}" "${PROJECT_ID}" "${ANALYTICS_REGION}" \
-				"${CLUSTER_NAME}" "${CLUSTER_REGION}" "${ORG_NAME}" \
-				"${ENVIRONMENT_NAME}" "${ENV_GROUP}" "${control_plane_location}" \
-				"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
-				"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
-				"${override_runtime_tag}" "${override_large_payload}"
+			if [[ "${ov_prof}" == "prod" ]]; then
+				cshell_hybrid_preview_confirm_write_prod_overrides "${helm_charts_home}" \
+					"${APIGEE_INSTANCE_ID}" "${APIGEE_NAMESPACE}" "${PROJECT_ID}" "${ANALYTICS_REGION}" \
+					"${CLUSTER_NAME}" "${CLUSTER_REGION}" "${ORG_NAME}" \
+					"${ENVIRONMENT_NAME}" "${ENV_GROUP}" "${control_plane_location}" \
+					"${ingress_gateway_name}" \
+					"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
+					"${override_runtime_tag}" "${override_large_payload}"
+			else
+				cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
+					"${APIGEE_INSTANCE_ID}" "${APIGEE_NAMESPACE}" "${PROJECT_ID}" "${ANALYTICS_REGION}" \
+					"${CLUSTER_NAME}" "${CLUSTER_REGION}" "${ORG_NAME}" \
+					"${ENVIRONMENT_NAME}" "${ENV_GROUP}" "${control_plane_location}" \
+					"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
+					"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
+					"${override_runtime_tag}" "${override_large_payload}"
+			fi
 			wr=$?
 			case "${wr}" in
-				0) success "Wrote non-prod ${ov_out}" ;;
+				0)
+					if [[ "${ov_prof}" == "prod" ]]; then
+						success "Wrote production ${ov_out}"
+					else
+						success "Wrote non-prod ${ov_out}"
+					fi
+					;;
 				2) ;;
 				*)
 					error "Could not write overrides.yaml (is ${helm_charts_home} writable and present?)."
@@ -1417,7 +1478,7 @@ cmd_hybrid_run_step_actions() {
 			info "Helm install for Hybrid charts: ${DOC_INSTALL_HELM_CHARTS}"
 			;;
 		13)
-			info "Community install guide: ${DOC_INSTALL_HYBRID}"
+			info "Official Hybrid install hub: ${DOC_OFFICIAL_INSTALL_HUB}"
 			;;
 		*)
 			error "Invalid step number '${n}'."
@@ -1639,7 +1700,7 @@ cmd_hybrid() {
 		"Google — cert-manager: ${DOC_INSTALL_CERT_MANAGER}" \
 		"Google — CRDs: ${DOC_INSTALL_CRDS}" \
 		"Google — Helm install: ${DOC_INSTALL_HELM_CHARTS}" \
-		"Community install guide: ${DOC_INSTALL_HYBRID}"
+		"Official Hybrid install hub: ${DOC_OFFICIAL_INSTALL_HUB}"
 
 	# ── 1. Interactive environment variables ─────────────────────────────────
 	section "ENV" "Apigee Hybrid environment variables" "blue"
@@ -1684,15 +1745,24 @@ cmd_hybrid() {
 
 	local apigee_instance_id apigee_nonprod_sa_secret ingress_gateway_name \
 		override_tls_cert_rel override_tls_key_rel ingress_svc_ann_key ingress_svc_ann_val \
-		override_runtime_tag override_large_payload
+		override_runtime_tag override_large_payload overrides_profile
 
-	section "OVERRIDES" "Non-prod overrides.yaml (Kubernetes Secrets)" "blue"
+	section "OVERRIDES" "Helm overrides.yaml (Kubernetes Secrets)" "blue"
 	info "Values are merged into ${ENV_FILE} when set; file is written after Helm charts are pulled."
+
+	overrides_profile=$(ask "Overrides profile: nonprod (single SA) or prod (seven SAs)" "${APIGEE_OVERRIDES_PROFILE:-nonprod}")
+	overrides_profile="$(cmd_hybrid_normalize_overrides_profile "${overrides_profile}")"
+	info "Overrides profile: ${overrides_profile}"
 
 	local _id_default
 	_id_default="$(cshell_hybrid_suggest_instance_id "${org_name}" "${cluster_name}")"
 	apigee_instance_id=$(ask "Apigee hybrid instanceID (unique per cluster; max 63 chars)" "${APIGEE_INSTANCE_ID:-${_id_default}}")
-	apigee_nonprod_sa_secret=$(ask "Kubernetes secret name for non-prod service account" "${APIGEE_NONPROD_SA_SECRET:-apigee-non-prod-svc-account}")
+	if [[ "${overrides_profile}" == "prod" ]]; then
+		apigee_nonprod_sa_secret=""
+		info "Production overrides use the seven apigee-*-svc-account secrets from Google's install guide (${DOC_INSTALL_SA_AUTH})."
+	else
+		apigee_nonprod_sa_secret=$(ask "Kubernetes secret name for non-prod service account" "${APIGEE_NONPROD_SA_SECRET:-apigee-non-prod-svc-account}")
+	fi
 	ingress_gateway_name=$(ask "Ingress gateway name (max 17 chars, lowercase)" "${APIGEE_INGRESS_NAME:-$(cshell_hybrid_suggest_ingress_name "${environment_name}")}")
 	if ! cshell_hybrid_validate_ingress_name "${ingress_gateway_name}"; then
 		warn "Ingress name '${ingress_gateway_name}' is invalid — using 'apigee-ingress'."
@@ -1762,8 +1832,11 @@ cmd_hybrid() {
 		printf 'APIGEE_HELM_CHARTS_HOME=%s\n' "${helm_charts_home}"
 		printf 'CHART_REPO=%s\n' "${CHART_REPO}"
 		printf 'CHART_VERSION=%s\n' "${CHART_VERSION}"
+		printf 'APIGEE_OVERRIDES_PROFILE=%s\n' "${overrides_profile}"
 		printf 'APIGEE_INSTANCE_ID=%s\n' "${apigee_instance_id}"
-		printf 'APIGEE_NONPROD_SA_SECRET=%s\n' "${apigee_nonprod_sa_secret}"
+		if [[ "${overrides_profile}" != "prod" ]]; then
+			printf 'APIGEE_NONPROD_SA_SECRET=%s\n' "${apigee_nonprod_sa_secret}"
+		fi
 		printf 'APIGEE_INGRESS_NAME=%s\n' "${ingress_gateway_name}"
 		printf 'APIGEE_OVERRIDE_TLS_CERT_REL=%s\n' "${override_tls_cert_rel}"
 		printf 'APIGEE_OVERRIDE_TLS_KEY_REL=%s\n' "${override_tls_key_rel}"
@@ -1810,16 +1883,32 @@ cmd_hybrid() {
 	fi
 	if [[ "${ov_write}" == "1" ]]; then
 		local wr=0
-		cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
-			"${apigee_instance_id}" "${apigee_namespace}" "${project_id}" "${analytics_region}" \
-			"${cluster_name}" "${cluster_region}" "${org_name}" \
-			"${environment_name}" "${env_group}" "${control_plane_location}" \
-			"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
-			"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
-			"${override_runtime_tag}" "${override_large_payload}"
+		if [[ "${overrides_profile}" == "prod" ]]; then
+			cshell_hybrid_preview_confirm_write_prod_overrides "${helm_charts_home}" \
+				"${apigee_instance_id}" "${apigee_namespace}" "${project_id}" "${analytics_region}" \
+				"${cluster_name}" "${cluster_region}" "${org_name}" \
+				"${environment_name}" "${env_group}" "${control_plane_location}" \
+				"${ingress_gateway_name}" \
+				"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
+				"${override_runtime_tag}" "${override_large_payload}"
+		else
+			cshell_hybrid_preview_confirm_write_nonprod_overrides "${helm_charts_home}" \
+				"${apigee_instance_id}" "${apigee_namespace}" "${project_id}" "${analytics_region}" \
+				"${cluster_name}" "${cluster_region}" "${org_name}" \
+				"${environment_name}" "${env_group}" "${control_plane_location}" \
+				"${apigee_nonprod_sa_secret}" "${ingress_gateway_name}" \
+				"${override_tls_cert_rel}" "${override_tls_key_rel}" "${ingress_svc_ann_key}" "${ingress_svc_ann_val}" \
+				"${override_runtime_tag}" "${override_large_payload}"
+		fi
 		wr=$?
 		case "${wr}" in
-			0) success "Wrote non-prod ${ov_out}" ;;
+			0)
+				if [[ "${overrides_profile}" == "prod" ]]; then
+					success "Wrote production ${ov_out}"
+				else
+					success "Wrote non-prod ${ov_out}"
+				fi
+				;;
 			2) ;;
 			*) warn "Could not write overrides.yaml (charts directory missing?)." ;;
 		esac
@@ -1847,7 +1936,7 @@ cmd_docs() {
 		"Google — cert-manager: ${DOC_INSTALL_CERT_MANAGER}" \
 		"Google — CRDs: ${DOC_INSTALL_CRDS}" \
 		"Google — Helm install: ${DOC_INSTALL_HELM_CHARTS}" \
-		"Community install guide: ${DOC_INSTALL_HYBRID}"
+		"Official Hybrid install hub: ${DOC_OFFICIAL_INSTALL_HUB}"
 }
 
 # ---------------------------------------------------------------------------
@@ -2220,7 +2309,7 @@ Documentation:
   Contributing                   : ${DOC_PROJECT_CONTRIBUTING}
   Apigee Hybrid before you begin : ${DOC_BEFORE_BEGIN}
   Apigee Hybrid download charts  : ${DOC_DOWNLOAD_CHARTS}
-  Install guide                  : ${DOC_INSTALL_HYBRID}
+  Install guide                  : ${DOC_OFFICIAL_INSTALL_HUB}
   Google Hybrid v1.16 all steps  : run '${SCRIPT_NAME} docs'
 EOF
 }

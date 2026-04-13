@@ -24,7 +24,7 @@
 2. latest release tag metadata from the GitHub API
 3. fallback raw download of `cshell` plus `lib/env-file.sh`, `lib/portable.sh`,
    `lib/config-cmd.sh`, `lib/hybrid-checklist.sh`, `lib/hybrid-aks-kubeconfig.sh`,
-   and `lib/hybrid-overrides-nonprod.sh` from the same Git ref (`main`
+   `lib/hybrid-overrides-nonprod.sh`, and `lib/hybrid-overrides-prod.sh` from the same Git ref (`main`
    or the release tag)
    when verified assets are unavailable or verification fails
 

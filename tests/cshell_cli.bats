@@ -152,7 +152,7 @@ EOF
 	[[ "$output" != *"0. Before you begin"* ]]
 	[[ "$output" != *"1. Before you begin"* ]]
 	[[ "$output" == *"Doc:"*install-before-begin* ]]
-	[[ "$output" == *"12. Community install guide"* ]]
+	[[ "$output" == *"12. Official Hybrid install hub"* ]]
 	[[ "$output" == *"All required"* ]]
 }
 

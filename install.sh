@@ -4,6 +4,7 @@
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh | bash
+# Forks: export CSHELL_REPO_SLUG=owner/repo before running to resolve releases from another GitHub repo.
 #
 # Or download manually and run:
 #   curl -fsSL https://raw.githubusercontent.com/vergissberlin/azure-cloud-shell-development/main/install.sh -o install.sh
@@ -12,7 +13,7 @@
 
 set -euo pipefail
 
-REPO="vergissberlin/azure-cloud-shell-development"
+REPO="${CSHELL_REPO_SLUG:-vergissberlin/azure-cloud-shell-development}"
 DEFAULT_REF="main"
 RELEASE_REF=""
 RAW_BASE=""
@@ -117,7 +118,7 @@ download_cshell_support_libs_from_raw() {
 
 	base="https://raw.githubusercontent.com/${REPO}/${ref}/lib"
 	work="$(mktemp -d)"
-	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh; do
+	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh hybrid-overrides-prod.sh; do
 		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
 			rm -rf "${work}"
 			error "Failed to download ${name}"

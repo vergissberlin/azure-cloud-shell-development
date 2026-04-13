@@ -38,8 +38,14 @@ Thank you for your interest in contributing to **azure-cloud-shell-development**
 - New subcommands go into their own `cmd_<name>()` function and must be wired
   up in the `case` block at the bottom of the script and documented in
   `usage()` and `docs/Command-Reference.md`.
-- Shared, testable helpers should live under `lib/*.sh` (embedded into
-  `dist/cshell` by `scripts/build-standalone-scripts.sh`).
+- Shared, testable helpers should live under `lib/*.sh` (embedded into `dist/cshell` by `scripts/build-standalone-scripts.sh`).
+
+### Apigee Hybrid chart version
+
+When Google publishes a new **Apigee Hybrid Helm** patch aligned with this project’s
+supported doc set, bump the default in **`cshell`** (`CHART_VERSION=…` assignment near
+the top) and extend **Bats** coverage if behavior changes. Mention the bump in the PR
+and confirm against Google’s v1.16 install topics.
 
 ---
 

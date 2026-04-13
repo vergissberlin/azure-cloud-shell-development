@@ -54,9 +54,10 @@ Performs first-time setup:
 Prepares Apigee Hybrid environment variables (including namespace, environment
 name, environment group, hostname, optional **`AKS_RESOURCE_GROUP`** for Azure
 Kubernetes Service, and optional control-plane location for data residency),
-prompts for non-prod **Helm `overrides.yaml`** settings (with defaults from the
-same wizard / `~/.cshell.env` where applicable), then pulls required Helm charts and
-writes **`${APIGEE_HELM_CHARTS_HOME}/overrides.yaml`** (non-prod, Kubernetes Secrets).
+prompts for **`APIGEE_OVERRIDES_PROFILE`** (**`nonprod`** or **`prod`**) and for **Helm
+`overrides.yaml`** settings (with defaults from the same wizard / `~/.cshell.env` where
+applicable), then pulls required Helm charts and writes **`${APIGEE_HELM_CHARTS_HOME}/overrides.yaml`** (Kubernetes Secrets pattern: one shared
+secret for **nonprod**, seven **`apigee-*-svc-account`** references for **prod**).
 In **interactive** mode, cshell prints the **full rendered YAML** and asks **Write this
 to …?** (default **no**) before writing; if **`overrides.yaml`** already exists, you are
 still asked first whether to replace it. With **`APIGEE_SETUP_NONINTERACTIVE=1`**, there
@@ -82,7 +83,7 @@ list (same as `cshell docs`).
   `CONTROL_PLANE_LOCATION` is optional. `CHART_REPO` / `CHART_VERSION` need not
   appear in the file when built-in defaults apply. After loading the env file it
   prints **session checks**, then the Hybrid v1.16 **install checklist** (same order as
-  Google’s topics, plus the community guide link). Session checks (no **`Doc:`** line):
+  Google’s topics, plus reachability of the **Official Hybrid install hub** URL). Session checks (no **`Doc:`** line):
   **GCP authentication** — ✓ when `gcloud auth print-access-token` succeeds, ✗ when
   `gcloud` is installed but not logged in; ○ when `gcloud` is not on `PATH`. **Create cluster** (checklist item with doc link)
   reuses **AKS / Kubernetes** validation: ✓ when `kubectl cluster-info` succeeds; if
@@ -115,7 +116,7 @@ list (same as `cshell docs`).
       `cert-manager` pod list when the cluster is reachable.
   11. **CRDs:** `apigeeorganizations.apigee.cloud.google.com` installed.
   12. **Helm:** release name `apigee-operator` in `APIGEE_NAMESPACE`.
-  13. **Community guide:** HTTP 2xx on the linked GitHub doc; **○** if unreachable
+  13. **Official Hybrid install hub:** HTTP 2xx on the *Before you begin* documentation URL; **○** if unreachable
       (offline), not **✗**.
 
   **`hybrid --check --strict`:** same checks; **exit status 1** if any row shows **✗**
@@ -148,7 +149,7 @@ list (same as `cshell docs`).
 - `hybrid --step <1-13>`: run a **single** Hybrid install checklist item (same **Doc:** URLs
   as `hybrid --check`). Human checklist output shows *Before you begin* **without** a step
   number (Google’s pre-step), then **1–12** for the Part 2 rows; **`--step`** indices stay
-  **1–13** (**1** = *Before you begin*, **13** = community guide). For example,
+  **1–13** (**1** = *Before you begin*, **13** = official install hub). For example,
   **`hybrid --step 7`** matches Google **Step 6: Create TLS certificates**. Prints that row’s
   status (✓ / ✗ / ○), then runs the matching automation where cshell can do so safely:
   - **1** — same required-variable gate as `--check` for step 1 only (exits **1** if any
@@ -175,7 +176,7 @@ list (same as `cshell docs`).
     **`APIGEE_OVERRIDE_TLS_CERT_REL`** / **`APIGEE_OVERRIDE_TLS_KEY_REL`** (defaults
     **`certs/tls.crt`** / **`certs/tls.key`**). Existing files are not overwritten.
   - **8** — writes **`overrides.yaml`** like interactive `hybrid` (needs
-    **`APIGEE_INSTANCE_ID`** and other override keys in **`~/.cshell.env`**). In interactive
+    **`APIGEE_INSTANCE_ID`** and other override keys in **`~/.cshell.env`**; respects **`APIGEE_OVERRIDES_PROFILE`** for **nonprod** vs **prod**). In interactive
     mode, prints the full proposed YAML and asks for confirmation before writing (default
     **no**); respects the same overwrite rules as **`APIGEE_SETUP_NONINTERACTIVE`** /
     **`APIGEE_OVERRIDES_OVERWRITE`** / **`confirm`** for existing files.

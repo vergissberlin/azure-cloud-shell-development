@@ -12,6 +12,15 @@
 | `AZURE_STORAGE_CONTAINER`   | Blob container name.                                                |
 | `AZURE_STORAGE_ACCOUNT_KEY` | Optional; enables account-key auth when Azure AD login is not used. |
 
+## Shell environment (optional)
+
+These are read from the process environment when **`install.sh`** or **`cshell`** starts (they are not required inside `~/.cshell.env` unless you export them before every run).
+
+| Variable              | Description |
+|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| `CSHELL_REPO_SLUG`  | `owner/repo` on GitHub for release API, update checks, and raw `lib/*.sh` downloads (forks and mirrors). Default: this project’s upstream slug. |
+| `CSHELL_CHART_VERSION` | Overrides the built-in Apigee Hybrid Helm chart version used for `helm pull`. **Unsupported** — cshell prints a warning; confirm against Google’s release notes. |
+
 ## Apigee Hybrid (`cshell hybrid`)
 
 | Variable                   | Description                                                                                                                                                                                                                                              |
@@ -34,8 +43,9 @@
 | `APIGEE_HELM_CHARTS_HOME`  | Local directory where Hybrid Helm charts are stored (default **`~/apigee-hybrid/helm-charts`**, created by `cshell setup` with `mkdir -p`). After `setup`, `hybrid`, `init`, or `config set`, cshell regenerates **`~/.cshell-env-exports.sh`** (allowlisted `KEY=value` pairs only, safely quoted) and adds hooks so **new Bash sessions** load it: **`~/.bashrc`**, **`~/.profile`** (bash login shells), and **`~/.bash_profile`** (if that file exists). Requires **bash 4+**. Use **`. ~/.cshell-env-exports.sh`** in the current shell (the file is not `+x` on purpose).                                                                                         |
 | `CHART_REPO`               | OCI repository URL for Apigee Hybrid charts.                                                                                                                                                                                                             |
 | `CHART_VERSION`            | Helm chart version (e.g. `1.16.0-hotfix.1`).                                                                                                                                                                                                             |
+| `APIGEE_OVERRIDES_PROFILE` | `nonprod` or `prod`: which **`overrides.yaml`** template **`cshell hybrid`** / **`hybrid --step 8`** uses (`nonprod` = single shared secret; `prod` = seven `apigee-*-svc-account` secret names). Default **`nonprod`**. |
 | `APIGEE_INSTANCE_ID`      | Unique hybrid `instanceID` in `overrides.yaml` (persisted after `cshell hybrid`).                                                                                                                                                                         |
-| `APIGEE_NONPROD_SA_SECRET` | Kubernetes secret name for the non-prod service account (default `apigee-non-prod-svc-account`).                                                                                                                                                         |
+| `APIGEE_NONPROD_SA_SECRET` | Kubernetes secret name for the non-prod service account (default `apigee-non-prod-svc-account`). Omitted from the Hybrid block when **`APIGEE_OVERRIDES_PROFILE=prod`**.                                                                 |
 | `APIGEE_INGRESS_NAME`     | Ingress gateway name (max 17 characters; see Google Hybrid docs).                                                                                                                                                                                          |
 | `APIGEE_OVERRIDE_TLS_CERT_REL` | `sslCertPath` in `overrides.yaml`, relative to the `apigee-virtualhost` chart (e.g. `certs/tls.crt` or Google quickstart `certs/keystore_<ENV_GROUP>.pem`).                                                                                                                                                |
 | `APIGEE_OVERRIDE_TLS_KEY_REL` | `sslKeyPath` relative to the `apigee-virtualhost` chart (e.g. `certs/tls.key` or `certs/keystore_<ENV_GROUP>.key`).                                                                                                                                                                        |

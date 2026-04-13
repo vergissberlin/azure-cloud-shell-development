@@ -310,7 +310,7 @@ cshell_hybrid_eval_checklist_steps_5_13() {
 		HYBRID_STEP12_NOTE="Helm release apigee-operator not found in namespace ${APIGEE_NAMESPACE}"
 	fi
 
-	# --- Step 13: Community guide URL ---
+	# --- Step 13: Official install hub URL reachability ---
 	HYBRID_STEP13_SYM="${sym_skip}"
 	HYBRID_STEP13_NOTE=""
 	local ccode
@@ -318,6 +318,6 @@ cshell_hybrid_eval_checklist_steps_5_13() {
 	if [[ "${ccode}" =~ ^2 ]]; then
 		HYBRID_STEP13_SYM="${sym_done}"
 	else
-		HYBRID_STEP13_NOTE="community guide URL not reachable (HTTP ${ccode}; offline?)"
+		HYBRID_STEP13_NOTE="official install hub URL not reachable (HTTP ${ccode}; offline?)"
 	fi
 }

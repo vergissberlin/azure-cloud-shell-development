@@ -15,24 +15,28 @@ cshell hybrid
 ## What It Does
 
 - prompts for required Apigee environment values (including namespace, environment
-  group, and hostname for non-prod TLS steps)
-- prompts for non-prod **`overrides.yaml`** fields that are not already in the Hybrid
+  group, and hostname for TLS steps)
+- prompts for an **`overrides` profile**: **`nonprod`** (single shared service-account
+  secret) or **`prod`** (seven distinct `apigee-*-svc-account` secrets per Google’s
+  production flow), stored as **`APIGEE_OVERRIDES_PROFILE`**
+- prompts for shared **`overrides.yaml`** fields that are not already in the Hybrid
   block (for example **`instanceID`**, ingress gateway name, TLS paths relative to the
   `apigee-virtualhost` chart, optional ingress service annotations, runtime image tag,
-  and optional large-payload runtime tuning), using known values from the wizard where
-  they apply
+  and optional large-payload runtime tuning). For **nonprod** only, also prompts for the
+  non-prod Kubernetes secret name (`APIGEE_NONPROD_SA_SECRET`).
 - updates the Apigee Hybrid block in `~/.cshell.env` without removing unrelated keys
   (including optional overrides-related keys when set; see **Configuration**)
 - downloads required Helm charts into `APIGEE_HELM_CHARTS_HOME` (default
   `~/apigee-hybrid/helm-charts`, created by `cshell setup` with `mkdir -p` when needed)
-- writes a starter **non-prod** [`overrides.yaml`](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-overrides)
+- writes a starter [`overrides.yaml`](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-create-overrides)
   under **`APIGEE_HELM_CHARTS_HOME`** using the **Kubernetes Secrets** pattern
-  (`serviceAccountSecretRefs` / `serviceAccountRef`), with a single valid `runtime:`
-  block (Google’s docs show two `runtime:` keys; the generator merges them when
-  large-payload tuning is enabled). In interactive mode, cshell **prints the full file**
-  and asks for confirmation before writing (default **no**). If **`overrides.yaml`**
-  already exists, you are asked whether to replace it first; in non-interactive mode it
-  is left unchanged unless **`APIGEE_OVERRIDES_OVERWRITE=1`**
+  (`serviceAccountSecretRefs` / `serviceAccountRef`): **nonprod** uses one secret for
+  multiple components; **prod** maps each component to the matching **`apigee-<role>-svc-account`** secret name. The file has a single valid top-level
+  `runtime:` block (Google’s docs show two `runtime:` keys in some examples; the
+  generator merges image and large-payload tuning into one block). In interactive mode,
+  cshell **prints the full file** and asks for confirmation before writing (default **no**).
+  If **`overrides.yaml`** already exists, you are asked whether to replace it first; in
+  non-interactive mode it is left unchanged unless **`APIGEE_OVERRIDES_OVERWRITE=1`**
 - when **`AKS_RESOURCE_GROUP`** is non-empty and **`CLUSTER_NAME`** matches your AKS
   cluster, runs **`az aks get-credentials --resource-group … --name …
   --overwrite-existing`** so `kubectl` can use that cluster (requires Azure CLI on
@@ -52,6 +56,8 @@ With `APIGEE_SETUP_NONINTERACTIVE=1`, `cshell hybrid` does not read from the TTY
 it uses the default shown in each prompt, typically from existing environment
 variables or from `~/.cshell.env` (load a complete Hybrid block first).
 `PROJECT_ID` must be non-empty; if `DOMAIN` is empty, a warning is printed.
+Set **`APIGEE_OVERRIDES_PROFILE=prod`** (or **`nonprod`**) before running so the correct
+**`overrides.yaml`** generator runs.
 **`overrides.yaml`** is written **without** a terminal preview or extra write confirmation.
 Existing **`overrides.yaml`** files are not overwritten unless **`APIGEE_OVERRIDES_OVERWRITE=1`**.
 Use **`APIGEE_OVERRIDE_LARGE_PAYLOAD=1`** to enable large-payload runtime tuning without
@@ -71,7 +77,7 @@ and, when needed, a **`↳`** hint — both indented to align with the **first c
 The checklist includes automated hints for every step
 (Helm chart layout, service-account keys or `gcloud`, Kubernetes secrets, TLS
 material, `overrides.yaml`, Apigee control-plane access, cert-manager, CRDs, Helm
-releases, and the community doc link). **Exit status** still depends only on required
+releases, and reachability of the official install hub URL). **Exit status** still depends only on required
 Hybrid variables unless you pass **`--strict`**, in which case any **✗** row fails the
 command (rows marked **○** do not).
 
@@ -87,11 +93,23 @@ automation cshell supports for that item — for example **`--step 3`** to pull 
 charts only, **`--step 5`** to prepare **`service-accounts/`** and see expected key paths,
 or **`--step 7`** for TLS (Google Part 2 **Step 6** in the install sidebar; cshell keeps
 **before you begin** as item **1**, so Google’s numbered steps map to **`--step` (N+1)** for
-**N = 1…11**). For **non-prod**, **`hybrid --step 7`** generates a quickstart self-signed
+**N = 1…11**). Checklist step **13** is the **Official Hybrid install hub** (same URL as *Before you begin*).
+For **non-prod**, **`hybrid --step 7`** generates a quickstart self-signed
 **`keystore_<ENV_GROUP>.pem`/`.key`** by default and syncs **`APIGEE_OVERRIDE_TLS_*`**;
 set **`APIGEE_TLS_SKIP_SELF_SIGNED=1`** to disable. Step **1** only requires a readable, non-empty
 **`~/.cshell.env`**; steps **2–13** need the same required Hybrid variables as
 **`hybrid --check`**. See **Command Reference** for the full matrix.
+
+## Production environments
+
+For **production**, Google’s install requires **seven** Apigee service accounts, key
+files under `service-accounts/`, Kubernetes secrets named **`apigee-logger-svc-account`**
+through **`apigee-runtime-svc-account`** (see **`hybrid --check`** heuristics), and
+**CA-signed** TLS material. Choosing **`APIGEE_OVERRIDES_PROFILE=prod`** (or **`prod`**
+in the wizard) makes cshell emit an **`overrides.yaml`** that references those secret
+names; you must still create the accounts, keys, and secrets per
+[Service accounts](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-service-accounts)
+and [Service account authentication](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/install-sa-authentication).
 
 ## Non-production environments
 
