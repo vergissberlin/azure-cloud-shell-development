@@ -42,7 +42,7 @@ syntax: build
 	#!/usr/bin/env bash
 	set -euo pipefail
 	bash -n cshell install.sh scripts/build-standalone-scripts.sh
-	bash -n lib/env-file.sh lib/portable.sh lib/config-cmd.sh lib/hybrid-checklist.sh lib/hybrid-aks-kubeconfig.sh lib/hybrid-overrides-nonprod.sh lib/hybrid-overrides-prod.sh
+	bash -n lib/env-file.sh lib/portable.sh lib/config-cmd.sh lib/hybrid-checklist.sh lib/hybrid-command-log.sh lib/hybrid-aks-kubeconfig.sh lib/hybrid-overrides-nonprod.sh lib/hybrid-overrides-prod.sh
 	bash -n dist/cshell dist/install.sh
 
 # ShellCheck on sources and dist/cshell (requires build)

@@ -626,6 +626,8 @@ EOF
 	run_cshell_with_path "${stub_bin}:${hp}" hybrid --step 3
 	[ "$status" -eq 0 ]
 	[[ "$output" == *"Download Helm charts"* ]] || [[ "$output" == *"Helm charts"* ]]
+	[[ "$output" == *"helm pull"* ]]
+	[[ "$output" == *"oci://us-docker.pkg.dev"* ]] || [[ "$output" == *"apigee-hybrid-helm-charts"* ]]
 }
 
 # hybrid --step validations: env file and required variables (step 1 vs steps 2–13)

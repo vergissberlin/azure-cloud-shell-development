@@ -100,6 +100,8 @@ set **`APIGEE_TLS_SKIP_SELF_SIGNED=1`** to disable. Step **1** only requires a r
 **`~/.cshell.env`**; steps **2–13** need the same required Hybrid variables as
 **`hybrid --check`**. See **Command Reference** for the full matrix.
 
+When cshell runs automation for a step (Helm pull, `kubectl`, `openssl`, `az aks get-credentials`, `mkdir`, and similar), it prints each command on its own line first, with terminal styling (background highlight) when stdout is a TTY and **`NO_COLOR`** is unset—similar to a short inline code block. Pipe stdout or set **`NO_COLOR`** to get plain text without ANSI sequences.
+
 ## Production environments
 
 For **production**, Google’s install requires **seven** Apigee service accounts, key

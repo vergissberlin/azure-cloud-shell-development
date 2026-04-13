@@ -1,0 +1,26 @@
+1..87
+ok 1 cshell --version matches semver line
+ok 2 cshell help exits 0
+ok 3 global --no-update-check before help still works
+ok 4 cshell docs exits 0 and mentions project docs
+ok 5 cshell with no command prints usage and exits 1
+ok 6 unknown command prints usage and exits 1
+ok 7 config set refreshes ~/.cshell-env-exports.sh (bash 4+)
+ok 8 config show masks storage account key
+ok 9 backup --dry-run does not create archive
+ok 10 backup rejects unknown option
+ok 11 tarball gcloud install symlinks launcher into PATH (does not copy it alone)
+ok 12 storage account key resolver calls ARM listKeys with curl
+ok 13 setup offers gcloud auth login after fresh SDK install
+ok 14 hybrid --help prints flag summary and exits 0
+ok 15 hybrid -h prints flag summary and exits 0
+ok 16 hybrid --check succeeds when all required vars are set
+ok 17 hybrid --check omits ANSI escapes when NO_COLOR is set
+ok 18 hybrid --check --json prints schema and steps on stdout
+ok 19 hybrid --check --strict --json emits strict true in JSON
+ok 20 hybrid --check fails when a required var is missing
+ok 21 hybrid --check rejects extra arguments
+ok 22 hybrid --check --json rejects extra arguments
+ok 23 hybrid --check --strict succeeds when checklist has no failures
+ok 24 hybrid --check --strict fails when a checklist step fails
+ok 25 hybrid --check --strict --json still prints JSON before strict failure

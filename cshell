@@ -81,6 +81,8 @@ if ! declare -F info >/dev/null 2>&1; then
 	BG_GREEN='\033[42m'
 	BG_YELLOW='\033[43m'
 	BG_RED='\033[41m'
+	HYBRID_CMD_BG='\033[48;5;235m'
+	HYBRID_CMD_FG='\033[38;5;252m'
 	CHECKMARK='✓'
 	CROSS='✗'
 	ARROW='→'
@@ -113,6 +115,9 @@ if ! declare -F info >/dev/null 2>&1; then
 fi
 # END_CLI_UTILS_FALLBACK
 
+HYBRID_CMD_BG='\033[48;5;235m'
+HYBRID_CMD_FG='\033[38;5;252m'
+
 # Strip ANSI colors for NO_COLOR, non-TTY stdout, or pipes (CLI UX: machine-readable streams).
 # shellcheck disable=SC2034
 # (Palette matches scripts/misc-cli-utils.sh; cleared vars are still read by sourced helpers.)
@@ -131,6 +136,8 @@ cshell_cli_color_init() {
 		BG_YELLOW=''
 		BG_RED=''
 		BG_BLUE=''
+		HYBRID_CMD_BG=''
+		HYBRID_CMD_FG=''
 	fi
 }
 cshell_cli_color_init
@@ -149,6 +156,8 @@ source "${_CSHELL_LIB_ROOT}/lib/portable.sh"
 source "${_CSHELL_LIB_ROOT}/lib/config-cmd.sh"
 # shellcheck source=lib/hybrid-checklist.sh
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-checklist.sh"
+# shellcheck source=lib/hybrid-command-log.sh
+source "${_CSHELL_LIB_ROOT}/lib/hybrid-command-log.sh"
 # shellcheck source=lib/hybrid-aks-kubeconfig.sh
 source "${_CSHELL_LIB_ROOT}/lib/hybrid-aks-kubeconfig.sh"
 # shellcheck source=lib/hybrid-overrides-nonprod.sh
@@ -1163,12 +1172,13 @@ cmd_hybrid_pull_apigee_charts() {
 	fi
 	info "Downloading Apigee Hybrid Helm charts (version ${CHART_VERSION}) ..."
 	(
+		cshell_hybrid_emit_shell_cmd_line "cd $(printf '%q' "${helm_charts_home}")"
 		cd "${helm_charts_home}" || exit 1
 		local chart
 		for chart in "${APIGEE_CHARTS[@]}"; do
 			info "Pulling ${chart} ..."
-			rm -rf "${chart}"
-			helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
+			cshell_hybrid_run_cmd rm -rf "${chart}"
+			cshell_hybrid_run_cmd helm pull "${CHART_REPO}/${chart}" --version "${CHART_VERSION}" --untar
 		done
 	)
 	success "Helm charts downloaded to ${helm_charts_home}"
@@ -1234,7 +1244,7 @@ cmd_hybrid_run_step_actions() {
 			cshell_hybrid_fetch_aks_kubeconfig "${AKS_RESOURCE_GROUP:-}" "${CLUSTER_NAME}"
 			;;
 		3)
-			mkdir -p "${APIGEE_HELM_CHARTS_HOME}"
+			cshell_hybrid_run_cmd mkdir -p "${APIGEE_HELM_CHARTS_HOME}"
 			cmd_hybrid_pull_apigee_charts "${APIGEE_HELM_CHARTS_HOME}" || return 1
 			;;
 		4)
@@ -1242,10 +1252,11 @@ cmd_hybrid_run_step_actions() {
 				warn "kubectl not in PATH — create namespace ${APIGEE_NAMESPACE} on the cluster manually. ${DOC_INSTALL_CREATE_NAMESPACE}"
 				return 0
 			fi
+			cshell_hybrid_emit_shell_cmd_line "$(printf '%q ' kubectl get namespace "${APIGEE_NAMESPACE}" --request-timeout=5s)"
 			if kubectl get namespace "${APIGEE_NAMESPACE}" --request-timeout=5s &>/dev/null; then
 				info "Namespace '${APIGEE_NAMESPACE}' already exists."
 			else
-				if kubectl create namespace "${APIGEE_NAMESPACE}" --request-timeout=30s; then
+				if cshell_hybrid_run_cmd kubectl create namespace "${APIGEE_NAMESPACE}" --request-timeout=30s; then
 					success "Created namespace '${APIGEE_NAMESPACE}'."
 				else
 					warn "kubectl create namespace failed — see ${DOC_INSTALL_CREATE_NAMESPACE}"
@@ -1255,7 +1266,7 @@ cmd_hybrid_run_step_actions() {
 			;;
 		5)
 			local sa_dir="${APIGEE_HELM_CHARTS_HOME}/service-accounts"
-			mkdir -p "${sa_dir}"
+			cshell_hybrid_run_cmd mkdir -p "${sa_dir}"
 			info "Service account key directory: ${sa_dir}"
 			info "Documentation: ${DOC_INSTALL_SERVICE_ACCOUNTS}"
 			local prefer_nonprod=0
@@ -1280,7 +1291,7 @@ cmd_hybrid_run_step_actions() {
 			info "Kubernetes secrets from keys: ${DOC_INSTALL_SA_AUTH}"
 			local np_secret="${APIGEE_NONPROD_SA_SECRET:-apigee-non-prod-svc-account}"
 			local np_json="${APIGEE_HELM_CHARTS_HOME}/service-accounts/${PROJECT_ID}-apigee-non-prod.json"
-			info "Non-prod example: kubectl create secret generic ${np_secret} -n ${APIGEE_NAMESPACE} --from-file=service_account.json=${np_json}"
+			cshell_hybrid_emit_shell_cmd_line "kubectl create secret generic ${np_secret} -n ${APIGEE_NAMESPACE} --from-file=service_account.json=${np_json}"
 			;;
 		7)
 			local vhost="${APIGEE_HELM_CHARTS_HOME}/apigee-virtualhost"
@@ -1288,7 +1299,7 @@ cmd_hybrid_run_step_actions() {
 			local key_rel="${APIGEE_OVERRIDE_TLS_KEY_REL:-certs/tls.key}"
 			local crt_abs="${vhost}/${crt_rel}"
 			local key_abs="${vhost}/${key_rel}"
-			mkdir -p "$(dirname "${crt_abs}")" "$(dirname "${key_abs}")"
+			cshell_hybrid_run_cmd mkdir -p "$(dirname "${crt_abs}")" "$(dirname "${key_abs}")"
 
 			local prefer_np=0
 			if cshell_hybrid_detect_nonprod; then
@@ -1307,7 +1318,7 @@ cmd_hybrid_run_step_actions() {
 				ks_key_rel="certs/keystore_${eg_slug}.key"
 				ks_pem_abs="${vhost}/${ks_pem_rel}"
 				ks_key_abs="${vhost}/${ks_key_rel}"
-				mkdir -p "$(dirname "${ks_pem_abs}")" "$(dirname "${ks_key_abs}")"
+				cshell_hybrid_run_cmd mkdir -p "$(dirname "${ks_pem_abs}")" "$(dirname "${ks_key_abs}")"
 			fi
 
 			info "TLS override paths (sslCertPath / sslKeyPath): ${crt_rel} and ${key_rel}"
@@ -1332,7 +1343,7 @@ cmd_hybrid_run_step_actions() {
 				elif [[ -f "${ks_pem_abs}" && -f "${ks_key_abs}" ]]; then
 					info "Keystore files already exist; not overwriting."
 				else
-					if openssl req -nodes -new -x509 \
+					if cshell_hybrid_run_cmd openssl req -nodes -new -x509 \
 						-keyout "${ks_key_abs}" \
 						-out "${ks_pem_abs}" \
 						-subj "/CN=${DOMAIN}" \
@@ -1365,7 +1376,7 @@ cmd_hybrid_run_step_actions() {
 				elif [[ -f "${crt_abs}" && -f "${key_abs}" ]]; then
 					info "Certificate files already exist at override paths; not overwriting."
 				else
-					if openssl req -nodes -new -x509 \
+					if cshell_hybrid_run_cmd openssl req -nodes -new -x509 \
 						-keyout "${key_abs}" \
 						-out "${crt_abs}" \
 						-subj "/CN=${DOMAIN}" \

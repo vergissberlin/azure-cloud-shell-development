@@ -14,6 +14,7 @@ LIB_FILES=(
 	"${ROOT_DIR}/lib/portable.sh"
 	"${ROOT_DIR}/lib/config-cmd.sh"
 	"${ROOT_DIR}/lib/hybrid-checklist.sh"
+	"${ROOT_DIR}/lib/hybrid-command-log.sh"
 	"${ROOT_DIR}/lib/hybrid-aks-kubeconfig.sh"
 	"${ROOT_DIR}/lib/hybrid-overrides-nonprod.sh"
 	"${ROOT_DIR}/lib/hybrid-overrides-prod.sh"
