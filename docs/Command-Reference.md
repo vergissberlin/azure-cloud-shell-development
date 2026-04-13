@@ -84,7 +84,7 @@ list (same as `cshell docs`).
   prints **session checks**, then the Hybrid v1.16 **install checklist** (same order as
   Google’s topics, plus the community guide link). Session checks (no **`Doc:`** line):
   **GCP authentication** — ✓ when `gcloud auth print-access-token` succeeds, ✗ when
-  `gcloud` is missing or not logged in. **Create cluster** (checklist item with doc link)
+  `gcloud` is installed but not logged in; ○ when `gcloud` is not on `PATH`. **Create cluster** (checklist item with doc link)
   reuses **AKS / Kubernetes** validation: ✓ when `kubectl cluster-info` succeeds; if
   **`AKS_RESOURCE_GROUP`** and **`CLUSTER_NAME`** are set and **`az`** is on `PATH`, **`az aks show`**
   must also succeed or the row is ✗ (Azure login / names). ○ when `kubectl` is not
