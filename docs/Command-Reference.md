@@ -138,12 +138,12 @@ list (same as `cshell docs`).
   `eval "$(cshell hybrid --export --print)"` to load allowlisted variables into
   the **current** shell in one step. **Requires bash 4+**.
 
-- `hybrid --step <1-13>`: run a **single** Hybrid install checklist item (same numbering
-  and **Doc:** URLs as `hybrid --check`). This mirrors **Part 2: Hybrid runtime setup** in
-  Google’s sidebar: cshell **1** = *Before you begin*, cshell **2–12** = Google **Step 1–11**
-  (e.g. **`hybrid --step 7`** = Google **Step 6: Create TLS certificates**), and cshell **13**
-  is the extra community guide link. Prints that row’s status (✓ / ✗ / ○), then runs the
-  matching automation where cshell can do so safely:
+- `hybrid --step <1-13>`: run a **single** Hybrid install checklist item (same **Doc:** URLs
+  as `hybrid --check`). Human checklist output shows *Before you begin* **without** a step
+  number (Google’s pre-step), then **1–12** for the Part 2 rows; **`--step`** indices stay
+  **1–13** (**1** = *Before you begin*, **13** = community guide). For example,
+  **`hybrid --step 7`** matches Google **Step 6: Create TLS certificates**. Prints that row’s
+  status (✓ / ✗ / ○), then runs the matching automation where cshell can do so safely:
   - **1** — same required-variable gate as `--check` for step 1 only (exits **1** if any
     required Hybrid variable is missing); no chart or cluster changes.
   - **2** — prints the cluster doc link; runs `az aks get-credentials` when
