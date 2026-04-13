@@ -1895,7 +1895,7 @@ cmd_backup() {
 	section "BACKUP" "Backup home directory" "cyan"
 
 	if [[ "${dry_run}" -eq 1 ]]; then
-		info "[dry-run] Would create ${ARCHIVE_FILE} from ${HOME} (excluding .cache, gcloud logs, archive.zip)."
+		info "[dry-run] Would create ${ARCHIVE_FILE} from ${HOME} (excluding .cache, ~/google-cloud-sdk, gcloud logs, archive.zip)."
 		if [[ -f "${ENV_FILE}" ]]; then
 			cshell_env_load "${ENV_FILE}"
 		fi
@@ -1908,9 +1908,10 @@ cmd_backup() {
 	fi
 
 	info "Creating archive: ${ARCHIVE_FILE}"
-	[[ "${verbose}" -eq 1 ]] && info "zip excludes: .cache/*, .config/google-cloud-sdk/logs/*, archive.zip"
+	[[ "${verbose}" -eq 1 ]] && info "zip excludes: .cache/*, google-cloud-sdk/*, .config/google-cloud-sdk/logs/*, archive.zip"
 	(cd "${HOME}" && zip -r "${ARCHIVE_FILE}" . \
 		--exclude ".cache/*" \
+		--exclude "google-cloud-sdk/*" \
 		--exclude ".config/google-cloud-sdk/logs/*" \
 		--exclude "archive.zip")
 
@@ -2007,6 +2008,7 @@ cmd_restore() {
 	[[ "${verbose}" -eq 1 ]] && info "Running: unzip -o ${ARCHIVE_FILE}"
 	(cd "${HOME}" && unzip -o "${ARCHIVE_FILE}")
 	success "Restore completed from ${ARCHIVE_FILE}"
+	info "Backups omit ~/google-cloud-sdk. Run 'cshell setup' to install Google Cloud SDK (gcloud) if you need it."
 }
 
 cmd_update() {

@@ -177,7 +177,7 @@ list (same as `cshell docs`).
 
 ## `cshell backup`
 
-- creates `~/archive.zip`
+- creates `~/archive.zip` (excludes **`~/google-cloud-sdk`**; use **`cshell setup`** to install **`gcloud`** after restore)
 - uploads archive to configured Azure Blob container (replaces an existing `archive.zip` blob)
 - uses login auth first, then account-key fallback if available
 - `--dry-run` / `-n`: print the plan without creating `archive.zip` or uploading
@@ -187,6 +187,7 @@ list (same as `cshell docs`).
 
 - restores from local `~/archive.zip`
 - or downloads from Azure Blob if local archive is missing
+- after restore, reminds you that **`~/google-cloud-sdk` is omitted from backups**; run **`cshell setup`** if you need **`gcloud`**
 - `--dry-run` / `-n`: show what would happen without changing files
 - `--verbose` / `-v`: print extra context before `unzip`
 

@@ -11,7 +11,7 @@ cshell backup
 Behavior:
 
 - creates `~/archive.zip`
-- excludes non-essential cache-like content
+- excludes non-essential cache-like content and the **`~/google-cloud-sdk`** install tree (reinstall with `cshell setup` after restore if you need `gcloud`)
 - uploads to Azure Blob Storage using configured account/container
 
 ## Restore Flow
@@ -26,6 +26,7 @@ Behavior:
 
 - restores from local `~/archive.zip` when present
 - otherwise attempts Azure Blob download before restore
+- after a successful unzip, prints a reminder that **`~/google-cloud-sdk` is not in backups**; run **`cshell setup`** to install the Google Cloud SDK when needed
 
 ## Pre-Requirements
 

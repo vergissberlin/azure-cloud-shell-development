@@ -57,6 +57,22 @@ setup() {
 	[ ! -f "${HOME}/archive.zip" ]
 }
 
+@test "backup archive excludes google-cloud-sdk but keeps other paths" {
+	export_home_tmp
+	mkdir -p "${HOME}/google-cloud-sdk" "${HOME}/other"
+	printf 'omit\n' >"${HOME}/google-cloud-sdk/ignored.txt"
+	printf 'keep\n' >"${HOME}/other/keep"
+
+	run env CSHELL_NO_UPDATE_CHECK=1 bash "${REPO_ROOT}/cshell" backup
+	[ "$status" -eq 0 ]
+	[ -f "${HOME}/archive.zip" ]
+
+	run unzip -l "${HOME}/archive.zip"
+	[ "$status" -eq 0 ]
+	[[ "$output" != *google-cloud-sdk* ]]
+	[[ "$output" == *other/keep* ]]
+}
+
 @test "backup upload invokes az storage blob upload with --overwrite" {
 	export_home_tmp
 	local stub_bin="${HOME}/stub-bin"
