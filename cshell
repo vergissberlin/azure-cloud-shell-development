@@ -1493,8 +1493,9 @@ Usage: ${SCRIPT_NAME} hybrid [--help | -h]
                    as '${SCRIPT_NAME} docs'.
 
   --check          Read-only: require ${ENV_FILE} with all required Hybrid
-                   variables non-empty, then print the numbered install checklist
-                   (items 1–13). Exit status reflects env validation; checklist
+                   variables non-empty, then print the install checklist (Before you
+                   begin unnumbered; then 1–12; --step still 1–13). Exit status reflects
+                   env validation; checklist
                    symbols are informational unless --strict.
 
   --strict         With --check: exit 1 if any checklist row is ${HYBRID_CHK_FAIL}.
