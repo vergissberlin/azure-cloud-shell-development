@@ -1512,7 +1512,7 @@ Usage: ${SCRIPT_NAME} hybrid [--help | -h]
 
   --step N         Run a single checklist item (1–13): print that row's status,
                    then run supported automation (charts pull, namespace, TLS hints,
-                   etc.). Numbering matches '${SCRIPT_NAME} hybrid --check'; cshell
+                   etc.). Checklist display uses unnumbered Before you begin then 1–12;
                    step 7 aligns with Google Hybrid docs "Create TLS certificates".
 
 Full heuristics, exit codes, and step details: ${SCRIPT_NAME} help, ${SCRIPT_NAME} docs,

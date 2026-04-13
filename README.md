@@ -166,8 +166,9 @@ Sets up an [Apigee Hybrid v1.16](https://docs.cloud.google.com/apigee/docs/hybri
 Use **`cshell hybrid --check`** to verify that `~/.cshell.env` has all required
 Hybrid variables **set and non-empty** (read-only; no writes, no chart pull). This
 includes a **non-empty `DOMAIN`** (stricter than `APIGEE_SETUP_NONINTERACTIVE`,
-which only warns if `DOMAIN` is empty). The command also prints a **numbered
-v1.16 install checklist** (same order as the documentation links below) with ✓ /
+which only warns if `DOMAIN` is empty). The command also prints the **v1.16 install
+checklist** (same order as the documentation links below): *Before you begin* has no
+step number, then rows **1–12** (**`--step`** still uses indices **1–13**). Each row shows ✓ /
 ✗ / ○ for each step (all thirteen items now have automated hints where possible—see
 the command reference). **Exit code** still depends only on required variables
 unless you use **`cshell hybrid --check --strict`**, which fails when any checklist
