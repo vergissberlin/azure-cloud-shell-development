@@ -462,6 +462,38 @@ EOF
 	grep -q '^export DOMAIN=' "${HOME}/.cshell-env-exports.sh"
 }
 
+@test "hybrid --export does not modify ~/.bashrc (bash 4+)" {
+	if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
+		skip "requires bash 4+ for export snippet"
+	fi
+	export_home_tmp
+	printf '%s\n' "# user bashrc stub" >"${HOME}/.bashrc"
+	local lines_before
+	lines_before="$(wc -l <"${HOME}/.bashrc")"
+	cat >"${HOME}/.cshell.env" <<'EOF'
+PROJECT_ID=p-demo
+ORG_NAME=p-demo
+ORG_DISPLAY_NAME=Demo
+ORGANIZATION_DESCRIPTION=Apigee Hybrid organization
+ANALYTICS_REGION=europe-west3
+RUNTIMETYPE=HYBRID
+CLUSTER_NAME=aks-hybrid
+CLUSTER_REGION=europe-west3
+APIGEE_NAMESPACE=apigee
+ENVIRONMENT_NAME=non-prod
+ENV_GROUP=envgroup
+ENV_GROUP_RELEASE_NAME=apigee-virtualhost
+DOMAIN=api.example.com
+APIGEE_HELM_CHARTS_HOME=/tmp/charts
+EOF
+	run_cshell hybrid --export
+	[ "$status" -eq 0 ]
+	local lines_after
+	lines_after="$(wc -l <"${HOME}/.bashrc")"
+	[ "${lines_before}" -eq "${lines_after}" ]
+	! grep -q 'cshell-env-exports.sh' "${HOME}/.bashrc"
+}
+
 @test "hybrid --export --print writes only export lines to stdout (bash 4+)" {
 	if [[ "${BASH_VERSINFO[0]:-0}" -lt 4 ]]; then
 		skip "requires bash 4+ for export snippet"

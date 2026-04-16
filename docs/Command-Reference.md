@@ -134,11 +134,10 @@ list (same as `cshell docs`).
   `--check` behavior.
 
 - `hybrid --export`: same required-variable checks as `--check`, then regenerates
-  **`~/.cshell-env-exports.sh`** and ensures **`~/.bashrc`**, **`~/.profile`**, and
-  **`~/.bash_profile`** (if present) source it (same as `cshell_env_sync_exports`
-  after setup/hybrid/config). Use this when you only want exports refreshed
-  without running the full interactive hybrid flow. In the **current** shell,
-  run `. ~/.cshell-env-exports.sh` (or `source ~/.bashrc` / open a new terminal).
+  **`~/.cshell-env-exports.sh`**. Unlike **`setup`**, **`init`**, and **`config set`**, this
+  does **not** modify **`~/.bashrc`** / **`~/.profile`** / **`~/.bash_profile`**. Use it when
+  you only want the snippet refreshed without the full interactive hybrid flow. In the
+  **current** shell, run **`. ~/.cshell-env-exports.sh`** or **`eval "$(cshell hybrid --export --print)"`**.
   **Requires bash 4+** for the snippet writer.
 
 - `hybrid --export --print`: after the same validation, writes the snippet file and

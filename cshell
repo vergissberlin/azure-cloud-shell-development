@@ -282,8 +282,10 @@ cshell_install_shell_env_exports_hooks() {
 	cshell_install_bash_profile_env_exports_hook
 }
 
-# Regenerate ~/.cshell-env-exports.sh from ENV_FILE and install shell hooks (bash 4+).
+# Regenerate ~/.cshell-env-exports.sh from ENV_FILE. Optionally install ~/.bashrc / ~/.profile hooks.
+# Args: install_hooks — "1" (default): refresh hooks when bash exists; "0": snippet only (hybrid paths).
 cshell_env_sync_exports() {
+	local install_hooks="${1:-1}"
 	local exports="${HOME}/.cshell-env-exports.sh"
 
 	if [[ ! -f "${ENV_FILE}" ]]; then
@@ -293,10 +295,14 @@ cshell_env_sync_exports() {
 	if ! cshell_env_write_export_snippet "${ENV_FILE}"; then
 		return 1
 	fi
-	if command_exists bash; then
+	if [[ "${install_hooks}" == "1" ]] && command_exists bash; then
 		cshell_install_shell_env_exports_hooks
+		info "Shell export snippet: ${exports} — new bash sessions load it from ~/.bashrc (and ~/.profile for login bash; ~/.bash_profile if present). This shell: source \"${exports}\" or open a new terminal."
+	elif [[ "${install_hooks}" == "0" ]]; then
+		info "Shell export snippet: ${exports} — load into this shell: eval \"\$(${SCRIPT_NAME} hybrid --export --print)\" or: source \"${exports}\". Hybrid commands do not modify ~/.bashrc; run '${SCRIPT_NAME} setup', '${SCRIPT_NAME} init', or '${SCRIPT_NAME} config set' to install hooks for new sessions."
+	else
+		info "Shell export snippet: ${exports} — install bash and re-run, or source \"${exports}\" in this shell."
 	fi
-	info "Shell export snippet: ${exports} — new bash sessions load it from ~/.bashrc (and ~/.profile for login bash; ~/.bash_profile if present). This shell: source \"${exports}\" or open a new terminal."
 }
 
 install_shell_completion() {
@@ -1356,7 +1362,7 @@ cmd_hybrid_run_step_actions() {
 							export APIGEE_OVERRIDE_TLS_CERT_REL="${ks_pem_rel}"
 							export APIGEE_OVERRIDE_TLS_KEY_REL="${ks_key_rel}"
 							if declare -F cshell_env_sync_exports >/dev/null 2>&1; then
-								cshell_env_sync_exports || warn "Could not refresh shell export snippet."
+								cshell_env_sync_exports 0 || warn "Could not refresh shell export snippet."
 							fi
 						else
 							warn "Could not update ${ENV_FILE} with APIGEE_OVERRIDE_TLS_* — set paths manually."
@@ -1580,10 +1586,10 @@ cmd_hybrid_export() {
 		return 0
 	fi
 
-	if ! cshell_env_sync_exports; then
+	if ! cshell_env_sync_exports 0; then
 		exit 1
 	fi
-	success "Hybrid allowlisted variables are in ${HOME}/.cshell-env-exports.sh — new bash sessions load it automatically; this shell: source \"${HOME}/.cshell-env-exports.sh\""
+	success "Hybrid allowlisted variables are in ${HOME}/.cshell-env-exports.sh"
 }
 
 cmd_hybrid_help() {
@@ -1612,7 +1618,8 @@ Usage: ${SCRIPT_NAME} hybrid [--help | -h]
                    No ANSI on stdout for the JSON payload.
 
   --export         Validate required Hybrid variables, then regenerate
-                   ${HOME}/.cshell-env-exports.sh and refresh shell hooks (bash 4+).
+                   ${HOME}/.cshell-env-exports.sh (bash 4+). Does not modify ~/.bashrc;
+                   load into this shell with --print + eval or source the snippet file.
 
   --print          With --export: only print 'export ...' lines to stdout (for
                    eval "\$(${SCRIPT_NAME} hybrid --export --print)"). Requires bash 4+.
@@ -1864,7 +1871,7 @@ cmd_hybrid() {
 	cshell_env_ensure_permissions "${ENV_FILE}"
 
 	if command_exists bash; then
-		cshell_env_sync_exports || warn "Could not refresh shell export snippet (bash 4+ required for ~/.cshell-env-exports.sh)."
+		cshell_env_sync_exports 0 || warn "Could not refresh shell export snippet (bash 4+ required for ~/.cshell-env-exports.sh)."
 	else
 		warn "bash not found; Hybrid values are in ${ENV_FILE} only."
 	fi
@@ -1927,6 +1934,12 @@ cmd_hybrid() {
 	fi
 
 	cshell_hybrid_fetch_aks_kubeconfig "${aks_resource_group}" "${cluster_name}"
+
+	section "SHELL" "Export Hybrid variables into your current session" "blue"
+	info "This wizard runs in a subprocess — exports apply to your interactive shell only after you run one of:"
+	bullet_list \
+		"eval \"\$(${SCRIPT_NAME} hybrid --export --print)\"" \
+		"source \"\${HOME}/.cshell-env-exports.sh\""
 }
 
 cmd_docs() {

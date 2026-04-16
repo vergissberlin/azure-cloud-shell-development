@@ -67,11 +67,21 @@ That file is **not** an executable script. It is **`source`d** (dot-sourced) by 
 . ~/.cshell-env-exports.sh
 ```
 
-After any **`cshell`** run that refreshes exports (`setup`, `hybrid`, `init`, `config set`, `hybrid --export`), you should **not** need to do this in **new** terminals: cshell adds hooks to **`~/.bashrc`**, **`~/.profile`** (bash login shells), and **`~/.bash_profile`** (if that file already exists). Open a **new** Cloud Shell session or run `exec bash -l` / `source ~/.bashrc` once.
+After **`cshell setup`**, **`cshell init`**, or **`cshell config set`**, new Bash sessions
+usually load the snippet automatically: those commands install hooks in **`~/.bashrc`**,
+**`~/.profile`**, and **`~/.bash_profile`** (if present). **`cshell hybrid`** and
+**`cshell hybrid --export`** refresh **`~/.cshell-env-exports.sh`** only — use **`source`**
+or **`eval "$(cshell hybrid --export --print)"`** in the current shell, or run **`setup`**
+/**`config set`** once if you want hooks for new terminals.
 
 ## Hybrid / Apigee variables missing from `env`
 
-`~/.cshell.env` is **not** executed by your shell automatically. After `cshell setup`, `cshell hybrid`, `cshell init`, **`cshell config set`**, or **`cshell hybrid --export`**, cshell refreshes **`~/.cshell-env-exports.sh`** and hooks **`~/.bashrc`**, **`~/.profile`**, and **`~/.bash_profile`** (when present) so **new** Bash sessions export allowlisted variables (then `env | grep PROJECT` etc. works). **Requires bash 4+** (Azure Cloud Shell is fine). In the **current** session run:
+`~/.cshell.env` is **not** executed by your shell automatically. After **`cshell hybrid`**
+or **`cshell hybrid --export`**, cshell refreshes **`~/.cshell-env-exports.sh`** only (no
+**`~/.bashrc`** changes). After **`cshell setup`**, **`cshell init`**, or **`cshell config set`**,
+cshell refreshes the snippet **and** installs hooks so **new** Bash sessions export
+allowlisted variables (then `env | grep PROJECT` etc. works). **Requires bash 4+** (Azure
+Cloud Shell is fine). In the **current** session run:
 
 ```bash
 source ~/.cshell-env-exports.sh
@@ -83,7 +93,8 @@ Or:
 eval "$(cshell hybrid --export --print)"
 ```
 
-Or open a new Cloud Shell / run `source ~/.bashrc`.
+Or open a new Cloud Shell if hooks were installed earlier, or run `source ~/.bashrc` once
+after **`setup`** / **`config set`**.
 
 ## Version Mismatch in CI
 

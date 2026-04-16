@@ -202,9 +202,11 @@ unless you use **`cshell hybrid --check --strict`**, which fails when any checkl
 row is ✗ (rows marked ○ do not count as failures).
 
 Use **`cshell hybrid --export`** to re-run those checks and refresh
-**`~/.cshell-env-exports.sh`** (plus `~/.bashrc` / `~/.profile` / `~/.bash_profile` hooks)—without pulling charts.
-For the **current** session you can run **`eval "$(cshell hybrid --export --print)"`**
-(stdout is only `export` lines; requires bash **4+**).
+**`~/.cshell-env-exports.sh`** without pulling charts (Hybrid commands do **not** modify
+`~/.bashrc`; use **`cshell setup`** / **`config set`** if you want automatic loading in new
+sessions). For the **current** session run **`eval "$(cshell hybrid --export --print)"`**
+or **`source ~/.cshell-env-exports.sh`** (stdout of `--print` is only `export` lines;
+requires bash **4+**).
 
 **Prerequisites:** Helm **v3.14+** and GCP credentials that can pull from the
 Apigee Hybrid OCI registry (see the download-charts page). For automation, set
