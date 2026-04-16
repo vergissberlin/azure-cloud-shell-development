@@ -107,6 +107,11 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "is_azure_cloud_shell honors CSHELL_SIMULATE_CLOUD_SHELL=1" {
+	run grep -qF '"${CSHELL_SIMULATE_CLOUD_SHELL:-0}" == "1"' "${REPO_ROOT}/cshell"
+	[ "$status" -eq 0 ]
+}
+
 @test "hybrid --help prints flag summary and exits 0" {
 	run_cshell hybrid --help
 	[ "$status" -eq 0 ]

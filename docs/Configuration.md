@@ -20,6 +20,7 @@ These are read from the process environment when **`install.sh`** or **`cshell`*
 |-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
 | `CSHELL_REPO_SLUG`  | `owner/repo` on GitHub for release API, update checks, and raw `lib/*.sh` downloads (forks and mirrors). Default: this project’s upstream slug. |
 | `CSHELL_CHART_VERSION` | Overrides the built-in Apigee Hybrid Helm chart version used for `helm pull`. **Unsupported** — cshell prints a warning; confirm against Google’s release notes. |
+| `CSHELL_SIMULATE_CLOUD_SHELL` | Set to **`1`** so `is_azure_cloud_shell` treats the session like Azure Cloud Shell (e.g. `cshell setup` prints the Cloud Shell info line). For local/WSL testing only; real Cloud Shell already sets `CLOUD_SHELL` / `ACC_CLOUD`. |
 
 ## Apigee Hybrid (`cshell hybrid`)
 

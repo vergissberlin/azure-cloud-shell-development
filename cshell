@@ -315,7 +315,8 @@ install_shell_completion() {
 }
 
 is_azure_cloud_shell() {
-	[[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
+	[[ "${CSHELL_SIMULATE_CLOUD_SHELL:-0}" == "1" ]] \
+		|| [[ -n "${ACC_CLOUD:-}" || -n "${AZURE_HTTP_USER_AGENT:-}" || -n "${CLOUD_SHELL:-}" ]]
 }
 
 curl_github() {
