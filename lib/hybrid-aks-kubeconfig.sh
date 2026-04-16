@@ -2,9 +2,14 @@
 # After cshell hybrid: optionally merge AKS credentials into ~/.kube/config.
 # Depends on info/success/warn (misc-cli-utils.sh or cshell fallback banner).
 # shellcheck shell=bash
-_LIB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck disable=SC1091
-source "${_LIB_ROOT}/hybrid-command-log.sh"
+# Standalone cshell inlines libraries in one file; BASH_SOURCE is the global
+# script path, so a sibling source would wrongly target INSTALL_DIR. Skip when
+# hybrid-command-log is already loaded (cshell bundle or tests that sourced it).
+if ! declare -F cshell_hybrid_run_cmd >/dev/null 2>&1; then
+	_LIB_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	# shellcheck disable=SC1091
+	source "${_LIB_ROOT}/hybrid-command-log.sh"
+fi
 
 cshell_hybrid_fetch_aks_kubeconfig() {
 	local rg="${1:-}"

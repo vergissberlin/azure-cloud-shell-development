@@ -118,7 +118,7 @@ download_cshell_support_libs_from_raw() {
 
 	base="https://raw.githubusercontent.com/${REPO}/${ref}/lib"
 	work="$(mktemp -d)"
-	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh hybrid-overrides-prod.sh; do
+	for name in env-file.sh portable.sh config-cmd.sh hybrid-checklist.sh hybrid-command-log.sh hybrid-aks-kubeconfig.sh hybrid-overrides-nonprod.sh hybrid-overrides-prod.sh; do
 		if ! curl_github "${base}/${name}" -o "${work}/${name}"; then
 			rm -rf "${work}"
 			error "Failed to download ${name}"
@@ -213,6 +213,13 @@ if [[ "${RELEASE_REF}" != "${DEFAULT_REF}" ]]; then
 		verified=1
 	else
 		warn "Could not install from verified release assets; falling back to raw ${SCRIPT_NAME} download."
+	fi
+fi
+
+if [[ "${verified}" -eq 1 ]]; then
+	if ! "${INSTALL_PATH}" --version &>/dev/null; then
+		warn "Installed release binary failed self-check (--version); falling back to raw ${SCRIPT_NAME} download."
+		verified=0
 	fi
 fi
 

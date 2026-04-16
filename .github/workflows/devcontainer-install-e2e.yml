@@ -1,0 +1,43 @@
+name: devcontainer-install-e2e
+
+on:
+  pull_request:
+    paths:
+      - ".devcontainer/**"
+      - "scripts/e2e-devcontainer-install.sh"
+      - "install.sh"
+      - "lib/**"
+      - "scripts/misc-cli-utils.sh"
+      - ".github/workflows/devcontainer-install-e2e.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".devcontainer/**"
+      - "scripts/e2e-devcontainer-install.sh"
+      - "install.sh"
+      - "lib/**"
+      - "scripts/misc-cli-utils.sh"
+      - ".github/workflows/devcontainer-install-e2e.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: devcontainer-e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Build dev container and run install E2E
+        uses: devcontainers/ci@v0.3
+        with:
+          push: never
+          runCmd: bash scripts/e2e-devcontainer-install.sh

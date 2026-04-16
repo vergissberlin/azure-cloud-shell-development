@@ -3,26 +3,32 @@ name: standalone-build-check
 on:
   pull_request:
     paths:
+      - ".devcontainer/**"
       - "cshell"
       - "install.sh"
       - "lib/**"
       - "scripts/misc-cli-utils.sh"
       - "scripts/build-standalone-scripts.sh"
+      - "scripts/e2e-devcontainer-install.sh"
       - "tests/**"
       - ".github/workflows/standalone-build-check.yml"
       - ".github/workflows/release-build-assets.yml"
+      - ".github/workflows/devcontainer-install-e2e.yml"
   push:
     branches:
       - main
     paths:
+      - ".devcontainer/**"
       - "cshell"
       - "install.sh"
       - "lib/**"
       - "scripts/misc-cli-utils.sh"
       - "scripts/build-standalone-scripts.sh"
+      - "scripts/e2e-devcontainer-install.sh"
       - "tests/**"
       - ".github/workflows/standalone-build-check.yml"
       - ".github/workflows/release-build-assets.yml"
+      - ".github/workflows/devcontainer-install-e2e.yml"
   workflow_dispatch:
 
 concurrency:
@@ -51,7 +57,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bash -n cshell install.sh scripts/build-standalone-scripts.sh
+          bash -n cshell install.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh
           bash -n lib/env-file.sh lib/portable.sh lib/config-cmd.sh lib/hybrid-checklist.sh lib/hybrid-command-log.sh lib/hybrid-aks-kubeconfig.sh lib/hybrid-overrides-nonprod.sh lib/hybrid-overrides-prod.sh
           bash -n dist/cshell dist/install.sh
 
@@ -73,13 +79,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          shellcheck -x cshell install.sh scripts/build-standalone-scripts.sh lib/*.sh
+          shellcheck -x cshell install.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh lib/*.sh
 
       - name: shfmt (check only)
         shell: bash
         run: |
           set -euo pipefail
-          shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
+          shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh
 
   bats-smoke:
     runs-on: ubuntu-latest

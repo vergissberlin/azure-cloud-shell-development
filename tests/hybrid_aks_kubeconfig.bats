@@ -39,6 +39,26 @@ STUB
 	[ "$status" -eq 0 ]
 }
 
+@test "hybrid-aks-kubeconfig skips command-log source when hybrid-command-log already loaded" {
+	export_home_tmp
+	local stub_bin="${HOME}/stub-bin"
+	mkdir -p "${stub_bin}"
+	cat >"${stub_bin}/az" <<'STUB'
+#!/usr/bin/env bash
+exit 0
+STUB
+	chmod +x "${stub_bin}/az"
+
+	# shellcheck source=/dev/null
+	source "${REPO_ROOT}/scripts/misc-cli-utils.sh"
+	# shellcheck source=/dev/null
+	source "${REPO_ROOT}/lib/hybrid-command-log.sh"
+	# shellcheck source=/dev/null
+	source "${REPO_ROOT}/lib/hybrid-aks-kubeconfig.sh"
+
+	PATH="${stub_bin}:${PATH}" cshell_hybrid_fetch_aks_kubeconfig "rg" "aks" >/dev/null
+}
+
 @test "cshell_hybrid_fetch_aks_kubeconfig skips when resource group is empty" {
 	export_home_tmp
 	local stub_bin="${HOME}/stub-bin"

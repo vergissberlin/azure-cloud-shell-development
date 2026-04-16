@@ -41,7 +41,7 @@ build:
 syntax: build
 	#!/usr/bin/env bash
 	set -euo pipefail
-	bash -n cshell install.sh scripts/build-standalone-scripts.sh
+	bash -n cshell install.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh
 	bash -n lib/env-file.sh lib/portable.sh lib/config-cmd.sh lib/hybrid-checklist.sh lib/hybrid-command-log.sh lib/hybrid-aks-kubeconfig.sh lib/hybrid-overrides-nonprod.sh lib/hybrid-overrides-prod.sh
 	bash -n dist/cshell dist/install.sh
 
@@ -55,7 +55,7 @@ lint: build
 		echo "Or run:  just doctor"
 		exit 127
 	fi
-	shellcheck -x cshell install.sh scripts/build-standalone-scripts.sh lib/*.sh
+	shellcheck -x cshell install.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh lib/*.sh
 	shellcheck -x dist/cshell
 
 # shfmt check-only (CI flags)
@@ -68,7 +68,7 @@ fmt-check:
 		echo "Or run:  just doctor"
 		exit 127
 	fi
-	shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
+	shfmt -d -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh
 
 # Format shell sources in place
 fmt:
@@ -79,7 +79,7 @@ fmt:
 		echo "shfmt not found. Install:  brew install shfmt"
 		exit 127
 	fi
-	shfmt -w -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh
+	shfmt -w -ci -bn cshell install.sh lib/*.sh scripts/build-standalone-scripts.sh scripts/e2e-devcontainer-install.sh
 
 # Bats smoke tests (needs bats on PATH, or run `just bats-deps` once)
 bats:
