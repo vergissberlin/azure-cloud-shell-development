@@ -1,5 +1,51 @@
 # Changelog
 
+## [1.23.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.22.0...1.23.0) (2026-04-17)
+
+
+### Features
+
+* **cshell:** add CSHELL_SIMULATE_CLOUD_SHELL for local Azure Cloud Shell simulation ([59e97dc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/59e97dc92e4610d6dadb7de149196e2ef46c0972))
+* **devcontainer:** add devcontainer configuration for Azure Cloud Shell ([8eb226d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8eb226d0f0cfc3bd5a6c1be89f4a0742199b4510))
+
+
+### Bug Fixes
+
+* **cshell:** ensure hybrid-command-log is sourced only once ([8eb226d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8eb226d0f0cfc3bd5a6c1be89f4a0742199b4510))
+
+
+### Documentation
+
+* **Configuration.md:** document CSHELL_SIMULATE_CLOUD_SHELL usage ([59e97dc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/59e97dc92e4610d6dadb7de149196e2ef46c0972))
+* **FAQ.md:** add FAQ entry for simulating Azure Cloud Shell locally ([59e97dc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/59e97dc92e4610d6dadb7de149196e2ef46c0972))
+* **Troubleshooting.md:** clarify cshell command behavior and shell hook installation ([99d860a](https://github.com/vergissberlin/azure-cloud-shell-development/commit/99d860a4329c4b66df5eafb31da5749428d04bbc))
+* update README and documentation for export command behavior ([99d860a](https://github.com/vergissberlin/azure-cloud-shell-development/commit/99d860a4329c4b66df5eafb31da5749428d04bbc))
+
+
+### Tests
+
+* **cshell_cli.bats:** add test for CSHELL_SIMULATE_CLOUD_SHELL variable ([59e97dc](https://github.com/vergissberlin/azure-cloud-shell-development/commit/59e97dc92e4610d6dadb7de149196e2ef46c0972))
+* **cshell_cli.bats:** add test to ensure hybrid --export does not modify .bashrc ([99d860a](https://github.com/vergissberlin/azure-cloud-shell-development/commit/99d860a4329c4b66df5eafb31da5749428d04bbc))
+* **hybrid_aks_kubeconfig:** add test for command-log source skip ([8eb226d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8eb226d0f0cfc3bd5a6c1be89f4a0742199b4510))
+
+
+### Build System
+
+* **devcontainer:** add Dockerfile for dev container to improve build efficiency ([535d5c4](https://github.com/vergissberlin/azure-cloud-shell-development/commit/535d5c44db124b9d57659bfc0e6ca8dbda097b2f))
+
+
+### Continuous Integration
+
+* **workflows:** add devcontainer E2E install workflow ([8eb226d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8eb226d0f0cfc3bd5a6c1be89f4a0742199b4510))
+* **workflows:** update standalone build check paths ([8eb226d](https://github.com/vergissberlin/azure-cloud-shell-development/commit/8eb226d0f0cfc3bd5a6c1be89f4a0742199b4510))
+
+
+### Chores
+
+* Configure Renovate ([6c7a290](https://github.com/vergissberlin/azure-cloud-shell-development/commit/6c7a2900057d51d9b62c3283e4a4d788d6dd2933))
+* **devcontainer:** update devcontainer.json to use Dockerfile for building image ([535d5c4](https://github.com/vergissberlin/azure-cloud-shell-development/commit/535d5c44db124b9d57659bfc0e6ca8dbda097b2f))
+* update cshell script to support optional hook installation ([99d860a](https://github.com/vergissberlin/azure-cloud-shell-development/commit/99d860a4329c4b66df5eafb31da5749428d04bbc))
+
 ## [1.22.0](https://github.com/vergissberlin/azure-cloud-shell-development/compare/1.21.0...1.22.0) (2026-04-13)
 
 
