@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_NAME="cshell"
-SCRIPT_VERSION="1.22.0" # x-release-please-version
+SCRIPT_VERSION="1.23.0" # x-release-please-version
 REPO_SLUG="${CSHELL_REPO_SLUG:-vergissberlin/azure-cloud-shell-development}"
 DEFAULT_REF="main"
 LATEST_RELEASE_API="https://api.github.com/repos/${REPO_SLUG}/releases/latest"
