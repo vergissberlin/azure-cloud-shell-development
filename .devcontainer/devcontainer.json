@@ -1,7 +1,9 @@
 {
   "name": "azure-cloud-shell-development",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
-  "postCreateCommand": "sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3 ca-certificates coreutils",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
   "customizations": {
     "vscode": {
       "settings": {},
